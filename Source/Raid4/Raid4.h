@@ -2,5 +2,6 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+// PCH 모음
+#include <CoreMinimal.h>
 
