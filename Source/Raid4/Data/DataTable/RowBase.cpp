@@ -12,6 +12,7 @@
  * Can be overridden by subclasses; Called on every row when the owning data table is modified
  * Allows for custom fix-ups, parsing, etc for user changes
  * This will be called in addition to OnPostDataImport when importing
+ *
  * @param InDataTable					The data table that owns this row
  * @param InRowName						The name of the row we're performing fix-up on
  */
@@ -29,7 +30,7 @@ void FRowBase::OnDataTableChanged(const UDataTable* InDataTable, const FName InR
 	{
 		FText title = FText::FromString(FString::Printf(TEXT("%s Warning!"), *InDataTable->GetName()));
 		FText text = FText::FromString(FString::Printf(TEXT("%s, PK : %d is invalid number."), *InRowName.ToString(), PrimaryKey));
-		FMessageDialog::Open(EAppMsgType::OkCancel, text, title);
+		FMessageDialog::Open(EAppMsgType::Ok, text, title);
 
 		return;
 	}
@@ -46,7 +47,7 @@ void FRowBase::OnDataTableChanged(const UDataTable* InDataTable, const FName InR
 			{
 				FText title = FText::FromString(FString::Printf(TEXT("%s Warning!"), *InDataTable->GetName()));
 				FText text = FText::FromString(FString::Printf(TEXT("%s, PK : %d is duplicate number."), *InRowName.ToString(), PrimaryKey));
-				FMessageDialog::Open(EAppMsgType::OkCancel, text, title);
+				FMessageDialog::Open(EAppMsgType::Ok, text, title);
 
 				PrimaryKey = DTConst::G_InvalidPK;
 				return;

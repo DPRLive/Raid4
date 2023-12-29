@@ -2,6 +2,8 @@
 
 
 #include "R4GameInstance.h"
+#include "../Manager/DataTableManager.h"
+#include "Raid4/Data/DataTable/Row/ExampleRow.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4GameInstance)
 
@@ -21,6 +23,12 @@ void UR4GameInstance::Init()
 	Super::Init();
 
 	SingletonManager.InitSingletons();
+
+	FExampleRowPtr row(1);
+	if(!row.IsValid())
+		return;
+	
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *row->Good);
 }
 
 /**
@@ -38,5 +46,5 @@ void UR4GameInstance::Shutdown()
  */
 void UR4GameInstance::_AddSingletons()
 {
-	// ADD_SINGLETON(  );
+	ADD_SINGLETON( FDataTableManager );
 }
