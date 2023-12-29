@@ -5,3 +5,5 @@
 // PCH 모음
 #include <CoreMinimal.h>
 
+#include "Common/Const.h"
+#include "Common/Typedef.h"
