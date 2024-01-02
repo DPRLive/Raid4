@@ -28,7 +28,7 @@ void UR4GameInstance::Init()
 	if(!row.IsValid())
 		return;
 	
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *row->Good);
+	LOG_WARN(R4Data, TEXT("%s"), *row->Good);
 }
 
 /**

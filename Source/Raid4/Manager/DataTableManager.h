@@ -62,7 +62,7 @@ private:
 };
 
 /**
- * 데이터 테이블을 로드한다. ( FRowBase를 상속받은 DT일때 템플릿을 활성화 )
+ * 데이터 테이블을 로드한다. ( FRowBase를 상속받은 DT일때 템플릿을 활성화, 오버로딩을 위해 enable_if를 반환값으로 )
  */
 template <typename Type, typename RowMap>
 typename TEnableIf<TIsDerivedFrom<Type, FRowBase>::Value>::Type
@@ -71,7 +71,7 @@ FDataTableManager::_LoadDataTable(RowMap& InRowMap, const FString& InFileName)
 	UDataTable* dataTable = LoadObject<UDataTable>(nullptr, *UtilPath::GetDataTablePath(InFileName));
 	if(dataTable == nullptr)
 	{
-		// TODO: Log 추가
+		LOG_ERROR(R4Data, TEXT("Failed to load Data table. Data table is nullptr : [%s]"), *InFileName);
 		return;
 	}
 
@@ -98,7 +98,7 @@ FDataTableManager::_LoadDataTable(RowMap& InRowMap, const FString& InFileName)
 		InRowMap.Empty();
 	});
 	
-	// TODO: Log 추가
+	LOG_N(R4Data, TEXT("Load Data table Completed. : [%s]"), *InFileName);
 }
 
 /**
