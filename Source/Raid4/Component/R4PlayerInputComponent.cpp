@@ -9,6 +9,7 @@
 UR4PlayerInputComponent::UR4PlayerInputComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	bWantsInitializeComponent = true;
 }
 
 /**

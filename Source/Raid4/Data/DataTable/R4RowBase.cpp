@@ -1,12 +1,12 @@
 ﻿
 
-#include "RowBase.h"
+#include "R4RowBase.h"
 
 #if WITH_EDITOR
 #include <Misc/MessageDialog.h>
 #endif
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(RowBase)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(R4RowBase)
 
 /**
  * Can be overridden by subclasses; Called on every row when the owning data table is modified
@@ -16,7 +16,7 @@
  * @param InDataTable					The data table that owns this row
  * @param InRowName						The name of the row we're performing fix-up on
  */
-void FRowBase::OnDataTableChanged(const UDataTable* InDataTable, const FName InRowName)
+void FR4RowBase::OnDataTableChanged(const UDataTable* InDataTable, const FName InRowName)
 {
 	FTableRowBase::OnDataTableChanged(InDataTable, InRowName);
 
@@ -38,7 +38,7 @@ void FRowBase::OnDataTableChanged(const UDataTable* InDataTable, const FName InR
 	// 중복된 PK인 경우
 	for(const auto& [rowName, rowData] : InDataTable->GetRowMap())
 	{
-		if(const FRowBase* data = reinterpret_cast<FRowBase*>(rowData))
+		if(const FR4RowBase* data = reinterpret_cast<FR4RowBase*>(rowData))
 		{
 			if(rowName == InRowName)
 				continue;

@@ -1,13 +1,13 @@
 ﻿#pragma once
 
 #include <Engine/DataTable.h>
-#include "RowBase.generated.h"
+#include "R4RowBase.generated.h"
 
 /**
  * Data Table을 정수 형태의 Pk로 사용하기 위한 Row Base
  */
 USTRUCT()
-struct RAID4_API FRowBase : public FTableRowBase
+struct RAID4_API FR4RowBase : public FTableRowBase
 {
 	GENERATED_BODY()
 

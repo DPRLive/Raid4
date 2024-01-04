@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "../Core/SingletonBase.h"
-#include "../Data/DataTable/RowBase.h"
+#include "../Data/DataTable/R4RowBase.h"
 
 /**
  * 데이터 테이블을 편하게 등록하기 위한 매크로
@@ -49,12 +49,12 @@ private:
 
 	// 데이터 테이블을 로드한다. ( FRowBase를 상속받은 DT일때 템플릿을 활성화, 오버로딩을 위해 enable_if를 반환값으로)
 	template<typename Type, typename RowMap>
-	typename TEnableIf<TIsDerivedFrom<Type, FRowBase>::Value>::Type
+	typename TEnableIf<TIsDerivedFrom<Type, FR4RowBase>::Value>::Type
 	_LoadDataTable(RowMap& InRowMap, const FString& InFileName);
 
 	// 데이터 테이블을 로드한다. ( FRowBase를 상속받은 DT가 아니면 경고를 띄움 )
 	template<typename Type, typename RowMap>
-	typename TEnableIf<!TIsDerivedFrom<Type, FRowBase>::Value>::Type
+	typename TEnableIf<!TIsDerivedFrom<Type, FR4RowBase>::Value>::Type
 	_LoadDataTable(RowMap& InRowMap, const FString& InFileName);
 	
 	// 데이터 테이블을 로드 해제해주는 람다 함수들
@@ -65,7 +65,7 @@ private:
  * 데이터 테이블을 로드한다. ( FRowBase를 상속받은 DT일때 템플릿을 활성화, 오버로딩을 위해 enable_if를 반환값으로 )
  */
 template <typename Type, typename RowMap>
-typename TEnableIf<TIsDerivedFrom<Type, FRowBase>::Value>::Type
+typename TEnableIf<TIsDerivedFrom<Type, FR4RowBase>::Value>::Type
 FDataTableManager::_LoadDataTable(RowMap& InRowMap, const FString& InFileName)
 {
 	UDataTable* dataTable = LoadObject<UDataTable>(nullptr, *UtilPath::GetDataTablePath(InFileName));
@@ -105,7 +105,7 @@ FDataTableManager::_LoadDataTable(RowMap& InRowMap, const FString& InFileName)
  * ( FRowBase를 상속받은 DT가 아니면 경고를 띄움 )
  */
 template <typename Type, typename RowMap>
-typename TEnableIf<!TIsDerivedFrom<Type, FRowBase>::Value>::Type
+typename TEnableIf<!TIsDerivedFrom<Type, FR4RowBase>::Value>::Type
 FDataTableManager::_LoadDataTable(RowMap& InRowMap, const FString& InFileName)
 {
 	ensureMsgf(false, TEXT("[%s] Error ! Data table must be derived from FRowbase."), *InFileName);
