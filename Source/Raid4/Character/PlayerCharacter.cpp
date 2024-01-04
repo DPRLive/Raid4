@@ -2,7 +2,11 @@
 
 
 #include "PlayerCharacter.h"
-#include "../Input/R4PlayerInputComponent.h"
+#include "../Component/R4PlayerInputComponent.h"
+#include "../Component/R4CameraManageComponent.h"
+
+#include <Camera/CameraComponent.h>
+#include <GameFramework/SpringArmComponent.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(PlayerCharacter)
 
@@ -10,8 +14,27 @@ APlayerCharacter::APlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	// InputComponent
+	// Input Component
 	PlayerInputComp = CreateDefaultSubobject<UR4PlayerInputComponent>(TEXT("PlayerInputComp"));
+
+	// SpringArm Comp
+	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
+	SpringArmComp->SetupAttachment(RootComponent);
+		
+	// Camera Component
+	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
+	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
+
+	// Camera Manage Comp
+	CameraManageComp = CreateDefaultSubobject<UR4CameraManageComponent>(TEXT("CameraManageComp"));
+}
+
+/**
+ *  Post Init
+ */
+void APlayerCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
 }
 
 /**

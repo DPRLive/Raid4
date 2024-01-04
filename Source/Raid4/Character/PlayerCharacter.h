@@ -6,6 +6,9 @@
 #include "PlayerCharacter.generated.h"
 
 class UR4PlayerInputComponent;
+class UR4CameraManageComponent;
+class USpringArmComponent;
+class UCameraComponent;
 
 /**
  *  PlayerCharacter의 베이스가 되는 클래스
@@ -18,6 +21,8 @@ class RAID4_API APlayerCharacter : public ACharacterBase
 public:
 	APlayerCharacter();
 
+	virtual void PostInitializeComponents() override;
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -25,11 +30,23 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	// 입력 바인딩을 위임
-	DECLARE_MULTICAST_DELEGATE_OneParam(FSetupPlayerInputDelegate, UInputComponent*)
+	DECLARE_MULTICAST_DELEGATE_OneParam( FSetupPlayerInputDelegate, UInputComponent* )
 	FSetupPlayerInputDelegate OnSetupPlayerInput;
 
 private:
 	// 입력을 담당하는 Input Component
-	UPROPERTY( VisibleAnywhere, Category = "Input", meta = (AllowPrivateAccess = true))
+	UPROPERTY( VisibleAnywhere, Category = "Input", meta = (AllowPrivateAccess = true) )
 	TObjectPtr<UR4PlayerInputComponent> PlayerInputComp;
+
+	// Spring Arm
+	UPROPERTY( VisibleAnywhere, Category = "Camera", meta = (AllowPrivateAccess = true) )
+	TObjectPtr<USpringArmComponent> SpringArmComp;
+
+	// 카메라
+	UPROPERTY( VisibleAnywhere, Category = "Camera", meta = (AllowPrivateAccess = true) )
+	TObjectPtr<UCameraComponent> CameraComp;
+	
+	// 카메라를 관리해주는 Component
+	UPROPERTY( VisibleAnywhere, Category = "Camera", meta = (AllowPrivateAccess = true) )
+	TObjectPtr<UR4CameraManageComponent> CameraManageComp;
 };
