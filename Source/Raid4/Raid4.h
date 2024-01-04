@@ -10,3 +10,4 @@
 #include "Common/Typedef.h"
 #include "Common/R4Log.h"
 #include "Util/UtilPath.h"
+#include "Data/DataAsset/R4DataAssetHelper.h"
