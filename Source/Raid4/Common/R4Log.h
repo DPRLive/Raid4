@@ -4,6 +4,8 @@
  * 로그 카테고리 추가. (R4Log.cpp 에도 카테고리를 추가해야함)
  */
 DECLARE_LOG_CATEGORY_EXTERN( R4Data, Log, All );
+DECLARE_LOG_CATEGORY_EXTERN( R4Input, Log, All );
+DECLARE_LOG_CATEGORY_EXTERN( R4Effect, Log, All );
 
 /**
  * 로그 매크로 모음. SHIPPING 시에 지워지지 않으면 패키징 안되므로 #if 추가

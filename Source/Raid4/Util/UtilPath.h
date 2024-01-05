@@ -1,5 +1,8 @@
 ﻿#pragma once
 
+/**
+* 여러 경로들을 쉽게 가져오기 위한 Util namespace
+*/
 namespace UtilPath
 {
 	/**
