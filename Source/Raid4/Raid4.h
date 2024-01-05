@@ -12,3 +12,6 @@
 #include "Util/UtilPath.h"
 #include "Util/UtilEffect.h"
 #include "Data/DataAsset/R4DataAssetHelper.h"
+
+// 월드를 반환한다.
+UWorld* R4GetWorld( UObject* InObject = nullptr );

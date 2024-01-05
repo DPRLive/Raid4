@@ -8,7 +8,7 @@
 * Niagara System을 생성한다. ( 로컬에서만, 멀티 X )
 */
 UNiagaraComponent* UtilEffect::SpawnNiagaraAtLocation_Local(const TSoftObjectPtr<UNiagaraSystem>& InNiagaraSystem,
-                                                             const FVector& InLocation, const FRotator& InRotation, const FVector& InScale, UWorld* InWorld)
+                                                             const FVector& InLocation, const FRotator& InRotation, const FVector& InScale, UWorld* InWorld )
 {
 	if(InNiagaraSystem.IsNull())
 	{
@@ -16,6 +16,7 @@ UNiagaraComponent* UtilEffect::SpawnNiagaraAtLocation_Local(const TSoftObjectPtr
 		return nullptr;
 	}
 
+	UWorld* world = (InWorld == nullptr) ? R4GetWorld() : InWorld;
 	UNiagaraSystem* niagara = nullptr;
 	
 	if(InNiagaraSystem.IsPending())
@@ -23,5 +24,5 @@ UNiagaraComponent* UtilEffect::SpawnNiagaraAtLocation_Local(const TSoftObjectPtr
 	else
 		niagara = InNiagaraSystem.Get();
 	
-	return UNiagaraFunctionLibrary::SpawnSystemAtLocation(InWorld, niagara, InLocation, InRotation, InScale);
+	return UNiagaraFunctionLibrary::SpawnSystemAtLocation(world, niagara, InLocation, InRotation, InScale);
 }
