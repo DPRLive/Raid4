@@ -3,8 +3,6 @@
 
 #include "R4CharacterMovementComponent.h"
 
-#include "GameFramework/Pawn.h"
-
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4CharacterMovementComponent)
 
 UR4CharacterMovementComponent::UR4CharacterMovementComponent()
