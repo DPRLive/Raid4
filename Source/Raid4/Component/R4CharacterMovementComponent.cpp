@@ -7,6 +7,8 @@
 
 UR4CharacterMovementComponent::UR4CharacterMovementComponent()
 {
+	PrimaryComponentTick.bCanEverTick = false;
+
 	// Simple move to location에서 Character Movement Comp의 Replicate System을 이용하기 위해 가속 기반 path following 사용
 	// UPathFollowingComponent::FollowPathSegment 에서 bUseAccelerationForPaths가 true일 시 AddMovement로 가속하는걸 확인
 	bUseAccelerationForPaths = true;
