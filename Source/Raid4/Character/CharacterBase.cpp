@@ -10,6 +10,11 @@ ACharacterBase::ACharacterBase()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
+ACharacterBase::ACharacterBase(const FObjectInitializer& InObjectInitializer)
+	: Super(InObjectInitializer)
+{
+}
+
 /**
  *  begin play
  */

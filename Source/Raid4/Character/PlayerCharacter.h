@@ -19,7 +19,7 @@ class RAID4_API APlayerCharacter : public ACharacterBase
 	GENERATED_BODY()
 	
 public:
-	APlayerCharacter();
+	APlayerCharacter(const FObjectInitializer& InObjectInitializer);
 
 	virtual void PostInitializeComponents() override;
 	
@@ -27,7 +27,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent) override;
 
 	// 입력 바인딩을 위임
 	DECLARE_MULTICAST_DELEGATE_OneParam( FSetupPlayerInputDelegate, UInputComponent* )

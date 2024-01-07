@@ -16,6 +16,8 @@ class RAID4_API ACharacterBase : public ACharacter
 public:
 	ACharacterBase();
 
+	ACharacterBase(const FObjectInitializer& InObjectInitializer);
+
 protected:
 	virtual void BeginPlay() override;
 };
