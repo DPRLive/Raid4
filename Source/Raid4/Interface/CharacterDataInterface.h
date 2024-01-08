@@ -3,13 +3,13 @@
 #pragma once
 
 #include <UObject/Interface.h>
-#include "CharacterLoadableData.generated.h"
+#include "CharacterDataInterface.generated.h"
 
 class ACharacterBase;
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UCharacterLoadableData : public UInterface
+class UCharacterDataInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -17,7 +17,7 @@ class UCharacterLoadableData : public UInterface
 /**
  * 캐릭터가 로드 가능한 데이터를 정의시 사용
  */
-class RAID4_API ICharacterLoadableData
+class RAID4_API ICharacterDataInterface
 {
 	GENERATED_BODY()
 
