@@ -3,14 +3,14 @@
 #pragma once
 
 #include <Engine/DataAsset.h>
-#include "../../Interface/CharacterLoadableData.h"
+#include "../../Interface/R4CharacterDataInterface.h"
 #include "R4DACameraInitData.generated.h"
 
 /**
  * PlayerCharacter 가 사용할 초기 Camera Data  
  */
 UCLASS()
-class RAID4_API UR4DACameraInitData : public UPrimaryDataAsset, public ICharacterLoadableData
+class RAID4_API UR4DACameraInitData : public UPrimaryDataAsset, public IR4CharacterDataInterface
 {
 	GENERATED_BODY()
 public:
