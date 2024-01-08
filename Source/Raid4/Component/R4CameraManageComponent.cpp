@@ -2,7 +2,7 @@
 
 
 #include "R4CameraManageComponent.h"
-#include "../Data/DataAsset/R4DataAssetPCCamera.h"
+#include "../Data/DataAsset/R4DACameraInitData.h"
 #include "../Character/CharacterBase.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4CameraManageComponent)

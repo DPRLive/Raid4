@@ -1,12 +1,12 @@
-#include "R4DataAssetPCCamera.h"
+#include "R4DACameraInitData.h"
 #include "../../Character/CharacterBase.h"
 
 #include <GameFramework/CharacterMovementComponent.h>
 #include <GameFramework/SpringArmComponent.h>
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(R4DataAssetPCCamera)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(R4DACameraInitData)
 
-UR4DataAssetPCCamera::UR4DataAssetPCCamera()
+UR4DACameraInitData::UR4DACameraInitData()
 {
 	bUseControllerRotationYaw = false;
 	
@@ -26,7 +26,7 @@ UR4DataAssetPCCamera::UR4DataAssetPCCamera()
 /**
  * Character가 Data를 받아갈 수 있도록 한다.
  */
-void UR4DataAssetPCCamera::LoadDataToCharacter(ACharacterBase* InCharacter)
+void UR4DACameraInitData::LoadDataToCharacter(ACharacterBase* InCharacter)
 {
 	if (InCharacter == nullptr)
 		return;

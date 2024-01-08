@@ -4,7 +4,7 @@
 #include <Components/ActorComponent.h>
 #include "R4CameraManageComponent.generated.h"
 
-class UR4DataAssetPCCamera;
+class UR4DACameraInitData;
 
 /**
  *  Player의 Camera를 관리해주는 컴포넌트
@@ -26,5 +26,5 @@ protected:
 private:
 	// 초기 카메라 데이터
 	UPROPERTY( EditAnywhere, Category = "Data", meta = (AllowPrivateAccess = true) )
-	TObjectPtr<UR4DataAssetPCCamera> CameraInitData;
+	TObjectPtr<UR4DACameraInitData> CameraInitData;
 };

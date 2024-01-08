@@ -4,17 +4,17 @@
 
 #include <Engine/DataAsset.h>
 #include "../../Interface/CharacterLoadableData.h"
-#include "R4DataAssetPCCamera.generated.h"
+#include "R4DACameraInitData.generated.h"
 
 /**
  * PlayerCharacter 가 사용할 초기 Camera Data  
  */
 UCLASS()
-class RAID4_API UR4DataAssetPCCamera : public UPrimaryDataAsset, public ICharacterLoadableData
+class RAID4_API UR4DACameraInitData : public UPrimaryDataAsset, public ICharacterLoadableData
 {
 	GENERATED_BODY()
 public:
-	UR4DataAssetPCCamera();
+	UR4DACameraInitData();
 	
 	virtual void LoadDataToCharacter(ACharacterBase* InCharacter) override;
 	
