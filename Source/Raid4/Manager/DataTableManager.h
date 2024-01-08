@@ -20,6 +20,7 @@ public:															\
 
 // 여기에 전방 선언 //
 struct FExampleRow;
+struct FStatRow;
 ////////////////////
 
 /**
@@ -30,6 +31,7 @@ class FDataTableManager : public TSingletonBase<FDataTableManager>
 private:
 	// 데이터 테이블을 선언 //
 	DECLARE_DATATABLE( FExampleRow, ExampleRow );
+	DECLARE_DATATABLE( FStatRow, StatRow );
 	///////////////////////
 
 public:

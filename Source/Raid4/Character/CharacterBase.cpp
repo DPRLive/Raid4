@@ -3,6 +3,7 @@
 
 #include "CharacterBase.h"
 #include "../Component/R4SkillManageComponent.h"
+#include "../Component/R4StatManageComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(CharacterBase)
 
@@ -12,6 +13,8 @@ ACharacterBase::ACharacterBase(const FObjectInitializer& InObjectInitializer)
 	PrimaryActorTick.bCanEverTick = false;
 
 	SkillManageComp = CreateDefaultSubobject<UR4SkillManageComponent>(TEXT("SkillManageComp"));
+
+	StatManageComp = CreateDefaultSubobject<UR4StatManageComponent>(TEXT("StatManageComp"));
 }
 
 /**

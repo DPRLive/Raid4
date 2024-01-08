@@ -7,6 +7,7 @@
 #include "CharacterBase.generated.h"
 
 class UR4SkillManageComponent;
+class UR4StatManageComponent;
 
 /**
  * (NPC, PlayerCharacter 등) 캐릭터에 베이스가 되는 클래스
@@ -27,6 +28,11 @@ public:
 	virtual bool CanActivateSkill() override;
 	
 private:
+	// 스킬을 관리 해주는 Skill Manage Component
 	UPROPERTY( VisibleAnywhere, Category = "Skill", meta = (AllowPrivateAccess = true) )
 	TObjectPtr<UR4SkillManageComponent> SkillManageComp;
+
+	// 스탯을 관리해주는 Stat Manage Component
+	UPROPERTY( VisibleAnywhere, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	TObjectPtr<UR4StatManageComponent> StatManageComp;
 };
