@@ -30,7 +30,7 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent) override;
 
 	// 입력 바인딩을 위임
-	DECLARE_MULTICAST_DELEGATE_OneParam( FSetupPlayerInputDelegate, UInputComponent* )
+	DECLARE_MULTICAST_DELEGATE_OneParam( FSetupPlayerInputDelegate, UInputComponent* /* InInputComponent */ )
 	FSetupPlayerInputDelegate OnSetupPlayerInput;
 
 private:
