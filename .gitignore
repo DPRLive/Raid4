@@ -83,3 +83,7 @@ Plugins/Developer/*
 *DotSettings*
 
 *__ExternalActors__
+
+
+#ignore ParagonAsset
+Content/*Paragon*
