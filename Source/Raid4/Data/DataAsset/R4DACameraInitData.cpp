@@ -26,7 +26,7 @@ UR4DACameraInitData::UR4DACameraInitData()
 /**
  * Character가 Data를 받아갈 수 있도록 한다.
  */
-void UR4DACameraInitData::LoadDataToCharacter(ACharacterBase* InCharacter)
+void UR4DACameraInitData::LoadDataToCharacter(ACharacterBase* InCharacter) const
 {
 	if (InCharacter == nullptr)
 		return;

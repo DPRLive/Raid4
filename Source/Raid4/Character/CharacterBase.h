@@ -20,6 +20,8 @@ class RAID4_API ACharacterBase : public ACharacter, public IR4SkillInterface
 public:
 	ACharacterBase(const FObjectInitializer& InObjectInitializer);
 	
+	virtual void PostInitializeComponents() override;
+	
 protected:
 	virtual void BeginPlay() override;
 

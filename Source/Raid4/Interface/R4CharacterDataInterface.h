@@ -24,5 +24,5 @@ class RAID4_API IR4CharacterDataInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	// 캐릭터에게 데이터를 로드할 때 사용할 함수
-	virtual void LoadDataToCharacter(ACharacterBase* InCharacter) = 0;
+	virtual void LoadDataToCharacter(ACharacterBase* InCharacter) const = 0;
 };

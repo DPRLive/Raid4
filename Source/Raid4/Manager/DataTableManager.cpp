@@ -2,6 +2,7 @@
 
 #include "../Data/DataTable/Row/ExampleRow.h"
 #include "../Data/DataTable/Row/StatRow.h"
+#include "../Data/DataTable/Row/CharacterRow.h"
 
 /**
  * 데이터 초기화 (로드)
@@ -30,4 +31,5 @@ void FDataTableManager::_LoadDataTableAll()
 {
 	_LoadDataTable<FExampleRow>(ExampleRows, TEXT("DT_Example"));
 	_LoadDataTable<FStatRow>(StatRows, TEXT("DT_CharacterStat"));
+	_LoadDataTable<FCharacterRow>(CharacterRows, TEXT("DT_Character"));
 }

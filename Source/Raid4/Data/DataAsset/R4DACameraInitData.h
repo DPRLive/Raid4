@@ -16,7 +16,7 @@ class RAID4_API UR4DACameraInitData : public UPrimaryDataAsset, public IR4Charac
 public:
 	UR4DACameraInitData();
 	
-	virtual void LoadDataToCharacter(ACharacterBase* InCharacter) override;
+	virtual void LoadDataToCharacter(ACharacterBase* InCharacter) const override;
 	
 	UPROPERTY( EditAnywhere, Category = "Pawn" )
 	uint8 bUseControllerRotationYaw : 1;

@@ -31,6 +31,7 @@ public:													\
 	Name##Ptr() = delete;								\
 	Name##Ptr(FPriKey InPK);							\
 	FPriKey GetPK() const { return PK; }				\
+	const Name* GetRow() const { return Row; }			\
 	const Name* operator->() const { return Row; }		\
 	const Name& operator*() const { return *Row; }		\
 	bool IsValid() const { return Row != nullptr; }		\
