@@ -15,7 +15,7 @@ struct FCharacterRow : public FR4RowBase, public IR4CharacterDataInterface
 {
 	GENERATED_BODY()
 
-	FCharacterRow() {}
+	FCharacterRow() : BaseStatRowPK(DTConst::G_InvalidPK) {}
 
 	// 캐릭터에 사용할 Skeletal Mesh 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Mesh" )
@@ -25,6 +25,10 @@ struct FCharacterRow : public FR4RowBase, public IR4CharacterDataInterface
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Anim" )
 	TSubclassOf<UAnimInstance> AnimInstance;
 
+	// 해당 캐릭터의 기본 스탯 정보를 담은 Data table의 Pk
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
+	int32 BaseStatRowPK;
+	
 	// 캐릭터가 데이터를 로드해 갈 수 있도록 한다.
 	virtual void LoadDataToCharacter(ACharacterBase* InCharacter) const override;
 };

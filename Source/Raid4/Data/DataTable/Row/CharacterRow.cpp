@@ -1,6 +1,7 @@
 ﻿#include "CharacterRow.h"
 #include "../../../Character/CharacterBase.h"
 #include "../../../Manager/DataTableManager.h"
+#include "../../../Component/R4StatManageComponent.h"
 
 #include <Components/SkeletalMeshComponent.h>
 #include <Engine/SkeletalMesh.h>
@@ -32,4 +33,10 @@ void FCharacterRow::LoadDataToCharacter(ACharacterBase* InCharacter) const
 	// 애니메이션 설정
 	if(AnimInstance != nullptr)
 		meshComp->SetAnimInstanceClass(AnimInstance);
+
+	// 기본 스탯을 적용
+	if(UR4StatManageComponent* statComp = InCharacter->FindComponentByClass<UR4StatManageComponent>(); InCharacter->GetLocalRole() == ROLE_Authority)
+	{
+		statComp->Server_SetBaseStat(BaseStatRowPK);
+	}
 }

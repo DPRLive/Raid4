@@ -53,7 +53,8 @@ void UR4StatManageComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
  */
 void UR4StatManageComponent::Server_SetBaseStat(const FPriKey& InPK)
 {
-	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
+	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")) ||
+		!ensureMsgf(InPK != DTConst::G_InvalidPK, TEXT("InPK is Invalid Primary Key.")))
 		return;
 
 	const FStatRowPtr statRowPtr(InPK);
@@ -141,8 +142,8 @@ void UR4StatManageComponent::_OnRep_Stat() const
 {
 	LOG_N( R4Data, TEXT("On Change Stat!") );
 	
-	if(OnChangeBaseStat.IsBound())
-		OnChangeBaseStat.Broadcast(BaseStat, ModifierStat);
+	if(OnChangeTotalStat.IsBound())
+		OnChangeTotalStat.Broadcast(BaseStat, ModifierStat);
 }
 
 /**

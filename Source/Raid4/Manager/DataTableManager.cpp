@@ -30,6 +30,6 @@ void FDataTableManager::ClearSingleton()
 void FDataTableManager::_LoadDataTableAll()
 {
 	_LoadDataTable<FExampleRow>(ExampleRows, TEXT("DT_Example"));
-	_LoadDataTable<FStatRow>(StatRows, TEXT("DT_CharacterStat"));
+	_LoadDataTable<FStatRow>(StatRows, TEXT("DT_CharacterBaseStat"));
 	_LoadDataTable<FCharacterRow>(CharacterRows, TEXT("DT_Character"));
 }

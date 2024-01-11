@@ -8,6 +8,7 @@
 
 class UR4SkillManageComponent;
 class UR4StatManageComponent;
+struct FStatRow;
 
 /**
  * (NPC, PlayerCharacter 등) 캐릭터에 베이스가 되는 클래스
@@ -30,6 +31,9 @@ public:
 	virtual bool CanActivateSkill() override;
 	
 private:
+	// 스탯을 적용한다.
+	void ApplyTotalStat(const FStatRow& InBaseStat, const FStatRow& InModifierStat);
+	
 	// 스킬을 관리 해주는 Skill Manage Component
 	UPROPERTY( VisibleAnywhere, Category = "Skill", meta = (AllowPrivateAccess = true) )
 	TObjectPtr<UR4SkillManageComponent> SkillManageComp;

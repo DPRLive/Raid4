@@ -4,7 +4,6 @@
 #include "PlayerCharacter.h"
 #include "../Component/R4PlayerInputComponent.h"
 #include "../Component/R4CameraManageComponent.h"
-#include "../Component/R4CharacterMovementComponent.h"
 
 #include <Camera/CameraComponent.h>
 #include <GameFramework/SpringArmComponent.h>
@@ -12,10 +11,10 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(PlayerCharacter)
 
 /**
- *  생성자, Move Comp를 R4 Character Movement Component 로 변경
+ *  생성자
  */
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& InObjectInitializer)
-	: Super(InObjectInitializer.SetDefaultSubobjectClass<UR4CharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+	: Super(InObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = false;
 

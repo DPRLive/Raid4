@@ -92,7 +92,7 @@ public:
 	FOnChangeSharedStatDelegate OnChangeSharedStat;
 
 	// 서버와 소유 클라이언트만 공유해야 하는 스탯 변경 알림 Delegate
-	FOnChangeStatDelegate OnChangeBaseStat;
+	FOnChangeStatDelegate OnChangeTotalStat;
 	
 private:
 	// 모든 유저와 공유해야할 Stat 데이터
