@@ -8,6 +8,7 @@
 class UInputMappingContext;
 class UInputAction;
 class UNiagaraSystem;
+struct FInputActionValue;
 
 /**
  *  입력을 담당하는 Component
@@ -30,10 +31,15 @@ private:
 	// 입력을 바인딩 하는 함수
 	void _InitializePlayerInput(UInputComponent* InPlayerInputComponent);
 	
-	// Move Input Action
+	// Move Input Func
 	void OnInputMoveStarted();
 	void OnInputMoveTriggered();
 	void OnInputMoveCompleted();
+
+	// Skill Input Func
+	void OnInputSkillStarted(const FInputActionValue& InValue, const ESkillIndex InSkillIndex);
+	void OnInputSkillTriggered(const FInputActionValue& InValue, const ESkillIndex InSkillIndex);
+	void OnInputSkillCompleted(const FInputActionValue& InValue, const ESkillIndex InSkillIndex);
 	
 	// MappingContext
 	UPROPERTY( EditAnywhere, Category = "Data|Mapping", meta = (AllowPrivateAccess = true) )
@@ -43,6 +49,10 @@ private:
 	UPROPERTY( EditAnywhere, Category = "Data|Action", meta = (AllowPrivateAccess = true) )
 	TObjectPtr<UInputAction> MoveAction;
 
+	// 스킬 입력 액션들
+	UPROPERTY( EditAnywhere, Category = "Data|Action", meta = (AllowPrivateAccess = true) )
+	TMap<ESkillIndex, TObjectPtr<UInputAction>> SkillActions;
+	
 	// 짧은 입력 / 긴 입력을 구분하는 경계시간
 	UPROPERTY( EditAnywhere, Category = "Data|Setting", meta = (AllowPrivateAccess = true) )
 	float ShortTriggerThreshold;
@@ -50,7 +60,7 @@ private:
 	// 클릭시 스폰되는 FX (어디를 클릭했는지 표시)
 	UPROPERTY( EditAnywhere, Category = "Data|Setting", meta=(AllowPrivateAccess = true) )
 	TSoftObjectPtr<UNiagaraSystem> FXCursor;
-
+	
 	/////////////////////////
 	// **** Transient **** //
 	/////////////////////////

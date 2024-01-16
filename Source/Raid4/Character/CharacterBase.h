@@ -32,7 +32,7 @@ public:
 	
 private:
 	// 스탯을 적용한다.
-	void ApplyTotalStat(const FStatRow& InBaseStat, const FStatRow& InModifierStat);
+	void _ApplyTotalStat(const FStatRow& InBaseStat, const FStatRow& InModifierStat);
 	
 	// 스킬을 관리 해주는 Skill Manage Component
 	UPROPERTY( VisibleAnywhere, Category = "Skill", meta = (AllowPrivateAccess = true) )

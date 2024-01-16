@@ -29,7 +29,7 @@ void UR4PlayerInputComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 
-	// Owner를 등록하고, Input Init을 대기한다.
+	// Input Init을 대기한다.
 	if(APlayerCharacter* player = Cast<APlayerCharacter>(GetOwner()))
 	{
 		player->OnSetupPlayerInput.AddUObject(this, &UR4PlayerInputComponent::_InitializePlayerInput);
@@ -55,9 +55,18 @@ void UR4PlayerInputComponent::_InitializePlayerInput(UInputComponent* InPlayerIn
 		EnhancedInputComponent->ClearActionBindings();
 
 		// 이동 입력 액션 바인딩
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &UR4PlayerInputComponent::OnInputMoveStarted);
+		EnhancedInputComponent->BindAction<>(MoveAction, ETriggerEvent::Started, this, &UR4PlayerInputComponent::OnInputMoveStarted);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &UR4PlayerInputComponent::OnInputMoveTriggered);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &UR4PlayerInputComponent::OnInputMoveCompleted);
+
+		// 스킬 입력 액션 바인딩
+		for( const TPair<ESkillIndex, TObjectPtr<UInputAction>>& skillAction : SkillActions )
+		{
+			// 스킬 index도 같이 넘긴다.
+			EnhancedInputComponent->BindAction(skillAction.Value, ETriggerEvent::Started, this, &UR4PlayerInputComponent::OnInputSkillStarted, skillAction.Key);
+			EnhancedInputComponent->BindAction(skillAction.Value, ETriggerEvent::Triggered, this, &UR4PlayerInputComponent::OnInputSkillTriggered, skillAction.Key);
+			EnhancedInputComponent->BindAction(skillAction.Value, ETriggerEvent::Completed, this, &UR4PlayerInputComponent::OnInputSkillCompleted, skillAction.Key);
+		}
 	}
 
 	APawn* owner = Cast<APawn>(GetOwner());
@@ -163,4 +172,28 @@ void UR4PlayerInputComponent::OnInputMoveCompleted()
 	}
 	
 	TriggerTime = 0.f;
+}
+
+/**
+ *  스킬 입력 시작
+ */
+void UR4PlayerInputComponent::OnInputSkillStarted(const FInputActionValue& InValue, const ESkillIndex InSkillIndex)
+{
+	LOG_WARN(LogTemp, TEXT("%s"), *ENUM_TO_STRING(ESkillIndex, InSkillIndex));
+}
+
+/**
+ *  스킬 입력 중
+ */
+void UR4PlayerInputComponent::OnInputSkillTriggered(const FInputActionValue& InValue, const ESkillIndex InSkillIndex)
+{
+	
+}
+
+/**
+ *  스킬 입력 종료
+ */
+void UR4PlayerInputComponent::OnInputSkillCompleted(const FInputActionValue& InValue, const ESkillIndex InSkillIndex)
+{
+	
 }

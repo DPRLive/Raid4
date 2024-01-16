@@ -9,6 +9,8 @@ UR4SkillManageComponent::UR4SkillManageComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	bWantsInitializeComponent = true;
+
+	SetIsReplicatedByDefault(true);
 }
 
 /**
@@ -25,4 +27,23 @@ void UR4SkillManageComponent::InitializeComponent()
 void UR4SkillManageComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// for(auto& elem : Skills)
+	// {
+	// 	InstancedSkills.Emplace(NewObject<UR4SkillBase>(this, elem));
+	// 	InstancedSkills.Last()->RegisterComponent();
+	// 	
+	// 	if(InstancedSkills.Last()->GetOwnerRole() == ROLE_None)
+	// 	{
+	// 		LOG_WARN(LogTemp, TEXT("No role."));
+	// 	}
+	// 	else if(InstancedSkills.Last()->GetOwnerRole() == ROLE_Authority)
+	// 	{
+	// 		LOG_WARN(LogTemp, TEXT("Auth."));
+	// 	}
+	// 	else if(InstancedSkills.Last()->GetOwnerRole() == ROLE_AutonomousProxy)
+	// 	{
+	// 		LOG_WARN(LogTemp, TEXT("Auto."));
+	// 	}
+	// }
 }

@@ -11,6 +11,7 @@ UR4StatManageComponent::UR4StatManageComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	bWantsInitializeComponent = true;
+	SetIsReplicatedByDefault(true);
 
 	SharedStat = FSharedStat();
 	BaseStat = FStatRow();

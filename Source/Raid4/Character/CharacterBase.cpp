@@ -30,7 +30,7 @@ void ACharacterBase::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	// 스탯 변경시 적용한다.
-	StatManageComp->OnChangeTotalStat.AddUObject(this, &ACharacterBase::ApplyTotalStat);
+	StatManageComp->OnChangeTotalStat.AddUObject(this, &ACharacterBase::_ApplyTotalStat);
 	
 	// Character 테스트를 위한 Yin 데이터 임시 로드
 	// TODO : 나중에 캐릭터에 따른 데이터 로드를 진행해야함.
@@ -61,7 +61,7 @@ bool ACharacterBase::CanActivateSkill()
 /**
  *  변경된 스탯을 적용한다.
  */
-void ACharacterBase::ApplyTotalStat(const FStatRow& InBaseStat, const FStatRow& InModifierStat)
+void ACharacterBase::_ApplyTotalStat(const FStatRow& InBaseStat, const FStatRow& InModifierStat)
 {
 	// 이동 속도를 변경한다.
 	if(UR4CharacterMovementComponent* moveComp = Cast<UR4CharacterMovementComponent>(GetCharacterMovement()))
