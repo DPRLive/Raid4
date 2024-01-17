@@ -15,6 +15,6 @@ enum class ESkillIndex : uint8
     Skill3 UMETA( ToolTip = "3번 스킬" ),
 	Skill4 UMETA( ToolTip = "4번 스킬" ),
 	Skill5 UMETA( ToolTip = "5번 스킬" ),
-	Max
+	None
 };
-ENUM_RANGE_BY_COUNT( ESkillIndex, ESkillIndex::Max );
+ENUM_RANGE_BY_COUNT( ESkillIndex, ESkillIndex::None );

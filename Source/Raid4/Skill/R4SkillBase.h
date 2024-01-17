@@ -5,11 +5,12 @@
 #include <Components/ActorComponent.h>
 #include "R4SkillBase.generated.h"
 
+class UAnimMontage;
 /**
  * Skill의 Base가 되는 클래스
  * Anim Montage를 실행하여 스킬을 시전.
  */
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( Blueprintable, BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RAID4_API UR4SkillBase : public UActorComponent
 {
 	GENERATED_BODY()
@@ -21,6 +22,9 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	// 스킬을 준비
+	virtual void PrepareSkill();
+	
 	// 스킬을 사용
 	virtual void ActivateSkill();
 
@@ -30,8 +34,8 @@ public:
 	// 스킬 사용 완료
 	virtual void CompleteSkill();
 
-	// RPC 테스트
-	UFUNCTION( Reliable, Server )
-	void RPCtest();
-	
+protected:
+	// 스킬의 메인 애니메이션 ( 해당 애니메이션을 플레이하여 스킬을 발동 )
+	UPROPERTY( EditAnywhere, Category = "Anim" )
+	TSoftObjectPtr<UAnimMontage> SkillMainAnim;
 };
