@@ -5,11 +5,10 @@
 #include <Components/ActorComponent.h>
 #include "R4SkillManageComponent.generated.h"
 
-class UR4SkillBase;
-
 /**
- * 객체가 스킬을 사용할 때, 스킬들을 들고 관리해주는 컴포넌트
- * 객체에 IR4SkillInterface를 오버라이드 후 사용
+ * 객체의 스킬들을 관리해주는 컴포넌트.
+ * 사용중인 스킬 상태, 스킬 사용 가능 여부 판단 등
+ * 객체에 IR4SkillManageInterface를 오버라이드 후 사용 -> 여기서 버프같은거 체크 시킬 생각
  */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RAID4_API UR4SkillManageComponent : public UActorComponent
@@ -24,11 +23,5 @@ public:
 protected:
 	// BeginPlay
 	virtual void BeginPlay() override;
-
-private:
-	UPROPERTY( EditAnywhere )
-	TArray<TSubclassOf<UR4SkillBase>> Skills;
 	
-	UPROPERTY( Transient, VisibleInstanceOnly )
-	TArray<TObjectPtr<UR4SkillBase>> InstancedSkills; 
 };

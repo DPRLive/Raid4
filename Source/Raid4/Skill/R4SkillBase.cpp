@@ -46,7 +46,7 @@ void UR4SkillBase::CancelSkill()
 {
 	if(ACharacter* owner = Cast<ACharacter>(GetOwner()))
 	{
-		owner->StopAnimMontage();
+		owner->StopAnimMontage(LoadSoftObjectSync(SkillMainAnim));
 	}
 }
 

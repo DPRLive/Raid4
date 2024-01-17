@@ -3,6 +3,7 @@
 
 #include "R4PlayerInputComponent.h"
 #include "../Character/PlayerCharacter.h"
+#include "../Interface/R4ServePlayerSkillInterface.h"
 
 #include <EnhancedInputComponent.h>
 #include <EnhancedInputSubsystems.h>
@@ -55,7 +56,7 @@ void UR4PlayerInputComponent::_InitializePlayerInput(UInputComponent* InPlayerIn
 		EnhancedInputComponent->ClearActionBindings();
 
 		// 이동 입력 액션 바인딩
-		EnhancedInputComponent->BindAction<>(MoveAction, ETriggerEvent::Started, this, &UR4PlayerInputComponent::OnInputMoveStarted);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &UR4PlayerInputComponent::OnInputMoveStarted);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &UR4PlayerInputComponent::OnInputMoveTriggered);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &UR4PlayerInputComponent::OnInputMoveCompleted);
 
@@ -179,7 +180,10 @@ void UR4PlayerInputComponent::OnInputMoveCompleted()
  */
 void UR4PlayerInputComponent::OnInputSkillStarted(const FInputActionValue& InValue, const ESkillIndex InSkillIndex)
 {
-	LOG_WARN(LogTemp, TEXT("%s"), *ENUM_TO_STRING(ESkillIndex, InSkillIndex));
+	if(IR4ServePlayerSkillInterface* owner = Cast<IR4ServePlayerSkillInterface>(GetOwner()))
+	{
+		owner->OnInputSkillStarted(InSkillIndex);
+	}
 }
 
 /**
@@ -187,7 +191,10 @@ void UR4PlayerInputComponent::OnInputSkillStarted(const FInputActionValue& InVal
  */
 void UR4PlayerInputComponent::OnInputSkillTriggered(const FInputActionValue& InValue, const ESkillIndex InSkillIndex)
 {
-	
+	if(IR4ServePlayerSkillInterface* owner = Cast<IR4ServePlayerSkillInterface>(GetOwner()))
+	{
+		owner->OnInputSkillTriggered(InSkillIndex);
+	}
 }
 
 /**
@@ -195,5 +202,8 @@ void UR4PlayerInputComponent::OnInputSkillTriggered(const FInputActionValue& InV
  */
 void UR4PlayerInputComponent::OnInputSkillCompleted(const FInputActionValue& InValue, const ESkillIndex InSkillIndex)
 {
-	
+	if(IR4ServePlayerSkillInterface* owner = Cast<IR4ServePlayerSkillInterface>(GetOwner()))
+	{
+		owner->OnInputSkillCompleted(InSkillIndex);
+	}
 }

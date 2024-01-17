@@ -4,6 +4,8 @@
 #include "PlayerCharacter.h"
 #include "../Component/R4PlayerInputComponent.h"
 #include "../Component/R4CameraManageComponent.h"
+#include "../Skill/R4SkillBase.h"
+#include "../Interface/R4PlayerSkillInterface.h"
 
 #include <Camera/CameraComponent.h>
 #include <GameFramework/SpringArmComponent.h>
@@ -58,4 +60,59 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayerInputC
 
 	if(OnSetupPlayerInput.IsBound())
 		OnSetupPlayerInput.Broadcast(InPlayerInputComponent);
+}
+
+/**
+ *  스킬 입력 시작 처리
+ */
+void APlayerCharacter::OnInputSkillStarted(const ESkillIndex InSkillIndex)
+{
+	TObjectPtr<UR4SkillBase>* skill = InstancedSkills.Find(InSkillIndex);
+	if(skill == nullptr)
+	{
+		LOG_WARN( R4Data, TEXT("SkillIndex : [%s] is nullptr."), *ENUM_TO_STRING( ESkillIndex, InSkillIndex ) );
+		return;
+	}
+
+	// TODO : Manage Comp에 허락 받고 입력 넣기
+	if(IR4PlayerSkillInterface* playerSkill = Cast<IR4PlayerSkillInterface>(*skill))
+	{
+		playerSkill->OnInputSkillStarted();
+	}
+}
+
+/**
+ *  스킬 입력 처리
+ */
+void APlayerCharacter::OnInputSkillTriggered(const ESkillIndex InSkillIndex)
+{
+	TObjectPtr<UR4SkillBase>* skill = InstancedSkills.Find(InSkillIndex);
+	if(skill == nullptr)
+	{
+		LOG_WARN( R4Data, TEXT("SkillIndex : [%s] is nullptr."), *ENUM_TO_STRING( ESkillIndex, InSkillIndex ) );
+		return;
+	}
+	
+	if(IR4PlayerSkillInterface* playerSkill = Cast<IR4PlayerSkillInterface>(*skill))
+	{
+		playerSkill->OnInputSkillTriggered();
+	}
+}
+
+/**
+ *  스킬 입력 종료 처리
+ */
+void APlayerCharacter::OnInputSkillCompleted(const ESkillIndex InSkillIndex)
+{
+	TObjectPtr<UR4SkillBase>* skill = InstancedSkills.Find(InSkillIndex);
+	if(skill == nullptr)
+	{
+		LOG_WARN( R4Data, TEXT("SkillIndex : [%s] is nullptr."), *ENUM_TO_STRING( ESkillIndex, InSkillIndex ) );
+		return;
+	}
+	
+	if(IR4PlayerSkillInterface* playerSkill = Cast<IR4PlayerSkillInterface>(*skill))
+	{
+		playerSkill->OnInputSkillCompleted();
+	}
 }

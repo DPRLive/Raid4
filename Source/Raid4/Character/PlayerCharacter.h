@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CharacterBase.h"
+#include "../Interface/R4ServePlayerSkillInterface.h"
 #include "PlayerCharacter.generated.h"
 
 class UR4PlayerInputComponent;
@@ -14,7 +15,7 @@ class UCameraComponent;
  *  PlayerCharacter의 베이스가 되는 클래스
  */
 UCLASS()
-class RAID4_API APlayerCharacter : public ACharacterBase
+class RAID4_API APlayerCharacter : public ACharacterBase, public IR4ServePlayerSkillInterface
 {
 	GENERATED_BODY()
 	
@@ -29,6 +30,11 @@ protected:
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent) override;
 
+	// 스킬 입력 처리
+	virtual void OnInputSkillStarted(const ESkillIndex InSkillIndex) override;
+	virtual void OnInputSkillTriggered(const ESkillIndex InSkillIndex) override;
+	virtual void OnInputSkillCompleted(const ESkillIndex InSkillIndex) override;
+	
 	// 입력 바인딩을 위임
 	DECLARE_MULTICAST_DELEGATE_OneParam( FSetupPlayerInputDelegate, UInputComponent* /* InInputComponent */ )
 	FSetupPlayerInputDelegate OnSetupPlayerInput;

@@ -2,6 +2,7 @@
 #include "../../../Character/CharacterBase.h"
 #include "../../../Manager/DataTableManager.h"
 #include "../../../Component/R4StatManageComponent.h"
+#include "../../../Skill/R4SkillBase.h"
 
 #include <Components/SkeletalMeshComponent.h>
 #include <Engine/SkeletalMesh.h>
@@ -38,5 +39,15 @@ void FCharacterRow::LoadDataToCharacter(ACharacterBase* InCharacter) const
 	if(UR4StatManageComponent* statComp = InCharacter->FindComponentByClass<UR4StatManageComponent>(); InCharacter->GetLocalRole() == ROLE_Authority)
 	{
 		statComp->Server_SetBaseStat(BaseStatRowPK);
+	}
+
+	// 스킬을 적용
+	for(const TPair<ESkillIndex, TSubclassOf<UR4SkillBase>>& skill : Skills)
+	{
+		if(UR4SkillBase* instanceSkill = NewObject<UR4SkillBase>(InCharacter, skill.Value))
+		{
+			instanceSkill->RegisterComponent();
+			InCharacter->AddSkill(skill.Key, instanceSkill);
+		}
 	}
 }

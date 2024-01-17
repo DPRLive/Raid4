@@ -6,6 +6,7 @@
 
 class USkeletalMesh;
 class UAnimInstance;
+class UR4SkillBase;
 
 /**
  * Character에 적용할 정보들을 담는 Row 
@@ -28,6 +29,10 @@ struct FCharacterRow : public FR4RowBase, public IR4CharacterDataInterface
 	// 해당 캐릭터의 기본 스탯 정보를 담은 Data table의 Pk
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
 	int32 BaseStatRowPK;
+
+	// 해당 캐릭터가 사용할 스킬들
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Skill" )
+	TMap<ESkillIndex, TSubclassOf<UR4SkillBase>> Skills;
 	
 	// 캐릭터가 데이터를 로드해 갈 수 있도록 한다.
 	virtual void LoadDataToCharacter(ACharacterBase* InCharacter) const override;
