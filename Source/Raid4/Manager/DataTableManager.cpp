@@ -29,7 +29,8 @@ void FDataTableManager::ClearSingleton()
  */
 void FDataTableManager::_LoadDataTableAll()
 {
-	_LoadDataTable<FExampleRow>(ExampleRows, TEXT("DT_Example"));
-	_LoadDataTable<FStatRow>(StatRows, TEXT("DT_CharacterBaseStat"));
-	_LoadDataTable<FCharacterRow>(CharacterRows, TEXT("DT_Character"));
+	LOAD_DATATABLE( FExampleRow, ExampleRow, TEXT("DT_Example") );
+	LOAD_DATATABLE( FStatRow, StatRow, TEXT("DT_CharacterBaseStat") );
+	LOAD_DATATABLE( FCharacterRow, CharacterRow, TEXT("DT_Character") );
 }
+
