@@ -1,0 +1,1 @@
+UnrealEditor.exe "%cd%\Raid4.uproject" /Game/NewMap?listen -game -log
