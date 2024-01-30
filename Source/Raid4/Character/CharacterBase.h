@@ -5,8 +5,8 @@
 #include <GameFramework/Character.h>
 #include "CharacterBase.generated.h"
 
-class UR4SkillManageComponent;
-class UR4StatManageComponent;
+class UR4SkillComponent;
+class UR4StatComponent;
 class UR4SkillBase;
 struct FStatRow;
 
@@ -26,26 +26,16 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:
-	// 스킬을 추가
-	void AddSkill(const ESkillIndex InSkillIndex, UR4SkillBase* InSkill);
-
-	// 스킬 Map을 반환
-	const TMap<ESkillIndex, TObjectPtr<UR4SkillBase>>& GetSkills() const { return InstancedSkills; }
 private:
 	// 스탯을 적용한다.
 	void _ApplyTotalStat(const FStatRow& InBaseStat, const FStatRow& InModifierStat);
 
-	// 스탯을 관리해주는 Stat Manage Component
-	UPROPERTY( VisibleAnywhere, Category = "Stat", meta = (AllowPrivateAccess = true) )
-	TObjectPtr<UR4StatManageComponent> StatManageComp;
-
 protected:
-	// 실제로 인스턴스화 된 스킬
-	UPROPERTY( Transient, VisibleInstanceOnly, Category = "Skill" )
-	TMap<ESkillIndex, TObjectPtr<UR4SkillBase>> InstancedSkills;
+	// 스탯 기능을 부여해주는 Stat Component
+	UPROPERTY( VisibleAnywhere, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	TObjectPtr<UR4StatComponent> StatComp;
 
-	// 스킬을 관리해주는 Component
+	// 스킬 기능을 부여해주는 Skill Component
 	UPROPERTY( VisibleAnywhere, Category = "Skill", meta = (AllowPrivateAccess = true) )
-	TObjectPtr<UR4SkillManageComponent> SkillManageComp;
+	TObjectPtr<UR4SkillComponent> SkillComp;
 };

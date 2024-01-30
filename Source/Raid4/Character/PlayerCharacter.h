@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CharacterBase.h"
-#include "../Interface/R4ServePlayerSkillInterface.h"
+#include "../Interface/R4PlayerSkillInputInterface.h"
 #include "PlayerCharacter.generated.h"
 
 class UR4PlayerInputComponent;
@@ -15,7 +15,7 @@ class UCameraComponent;
  *  PlayerCharacter의 베이스가 되는 클래스
  */
 UCLASS()
-class RAID4_API APlayerCharacter : public ACharacterBase, public IR4ServePlayerSkillInterface
+class RAID4_API APlayerCharacter : public ACharacterBase, public IR4PlayerSkillInputInterface
 {
 	GENERATED_BODY()
 	

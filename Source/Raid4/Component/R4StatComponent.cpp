@@ -1,13 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "R4StatManageComponent.h"
+#include "R4StatComponent.h"
 
 #include <Net/UnrealNetwork.h>
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(R4StatManageComponent)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(R4StatComponent)
 
-UR4StatManageComponent::UR4StatManageComponent()
+UR4StatComponent::UR4StatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	bWantsInitializeComponent = true;
@@ -21,7 +21,7 @@ UR4StatManageComponent::UR4StatManageComponent()
 /**
  *	컴포넌트 초기화
  */
-void UR4StatManageComponent::InitializeComponent()
+void UR4StatComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 
@@ -31,7 +31,7 @@ void UR4StatManageComponent::InitializeComponent()
 /**
  *  begin play
  */
-void UR4StatManageComponent::BeginPlay()
+void UR4StatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 }
@@ -39,20 +39,20 @@ void UR4StatManageComponent::BeginPlay()
 /**
  *  Replicate 설정
  */
-void UR4StatManageComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UR4StatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME(UR4StatManageComponent, SharedStat)
+	DOREPLIFETIME(UR4StatComponent, SharedStat)
 
-	DOREPLIFETIME_CONDITION(UR4StatManageComponent, BaseStat, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UR4StatManageComponent, ModifierStat, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UR4StatComponent, BaseStat, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UR4StatComponent, ModifierStat, COND_OwnerOnly);
 }
 
 /**
  *  Stat DT의 PK로 Base 스탯을 설정 한다. (서버)
  */
-void UR4StatManageComponent::Server_SetBaseStat(const FPriKey& InPK)
+void UR4StatComponent::Server_SetBaseStat(const FPriKey& InPK)
 {
 	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")) ||
 		!ensureMsgf(InPK != DTConst::G_InvalidPK, TEXT("InPK is Invalid Primary Key.")))
@@ -75,7 +75,7 @@ void UR4StatManageComponent::Server_SetBaseStat(const FPriKey& InPK)
 /**
  *  Modifier Stat을 더한다. (서버)
  */
-void UR4StatManageComponent::Server_AddModifierStat(const FStatRow& InModifierStat)
+void UR4StatComponent::Server_AddModifierStat(const FStatRow& InModifierStat)
 {
 	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
 		return;
@@ -90,7 +90,7 @@ void UR4StatManageComponent::Server_AddModifierStat(const FStatRow& InModifierSt
 /**
  *  Stat을 초기화, SetBaseStat 및 AddModifierStat을 할 필요가 있다면 먼저 하고 난 뒤 호출! (서버)
  */
-void UR4StatManageComponent::Server_ResetStat()
+void UR4StatComponent::Server_ResetStat()
 {
 	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
 		return;
@@ -104,7 +104,7 @@ void UR4StatManageComponent::Server_ResetStat()
 /**
  *  Now Hp 변경 함수 (서버)
  */
-void UR4StatManageComponent::Server_AddDeltaHp(const float InDeltaHp)
+void UR4StatComponent::Server_AddDeltaHp(const float InDeltaHp)
 {
 	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
 		return;
@@ -116,7 +116,7 @@ void UR4StatManageComponent::Server_AddDeltaHp(const float InDeltaHp)
 /**
  *  Now Mp 변경 함수 (서버)
  */
-void UR4StatManageComponent::Server_AddDeltaMp(const float InDeltaMp)
+void UR4StatComponent::Server_AddDeltaMp(const float InDeltaMp)
 {
 	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
 		return;
@@ -128,7 +128,7 @@ void UR4StatManageComponent::Server_AddDeltaMp(const float InDeltaMp)
 /**
  *  모든 유저와 공유해야할 데이터가 Replicate (변경) 되면, 알림
  */
-void UR4StatManageComponent::_OnRep_SharedStat() const
+void UR4StatComponent::_OnRep_SharedStat() const
 {
 	LOG_N( R4Data, TEXT("On Change Shared Stat!") );
 
@@ -139,7 +139,7 @@ void UR4StatManageComponent::_OnRep_SharedStat() const
 /**
  *  서버와 소유 클라이언트가 공유해야 할 Stat이 변경되면 알림
  */
-void UR4StatManageComponent::_OnRep_Stat() const
+void UR4StatComponent::_OnRep_Stat() const
 {
 	LOG_N( R4Data, TEXT("On Change Stat!") );
 	
@@ -150,7 +150,7 @@ void UR4StatManageComponent::_OnRep_Stat() const
 /**
  *  BaseStat과 Modifier Stat을 기반으로 Shared Stat을 업데이트 (서버)
  */
-void UR4StatManageComponent::_Server_UpdateSharedStat()
+void UR4StatComponent::_Server_UpdateSharedStat()
 {
 	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
 		return;

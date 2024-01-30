@@ -10,11 +10,11 @@
 UENUM( BlueprintType )
 enum class ESkillIndex : uint8
 {
-    Skill1 UMETA( ToolTip = "1번 스킬" ),
-	Skill2 UMETA( ToolTip = "2번 스킬" ),
-    Skill3 UMETA( ToolTip = "3번 스킬" ),
-	Skill4 UMETA( ToolTip = "4번 스킬" ),
-	Skill5 UMETA( ToolTip = "5번 스킬" ),
+    Skill1 = 0 UMETA( ToolTip = "1번 스킬" ),
+	Skill2	   UMETA( ToolTip = "2번 스킬" ),
+    Skill3	   UMETA( ToolTip = "3번 스킬" ),
+	Skill4     UMETA( ToolTip = "4번 스킬" ),
+	Skill5     UMETA( ToolTip = "5번 스킬" ),
 	None
 };
 ENUM_RANGE_BY_COUNT( ESkillIndex, ESkillIndex::None );

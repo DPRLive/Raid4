@@ -3,7 +3,7 @@
 
 #include "R4PlayerInputComponent.h"
 #include "../Character/PlayerCharacter.h"
-#include "../Interface/R4ServePlayerSkillInterface.h"
+#include "../Interface/R4PlayerSkillInputInterface.h"
 
 #include <EnhancedInputComponent.h>
 #include <EnhancedInputSubsystems.h>
@@ -180,7 +180,7 @@ void UR4PlayerInputComponent::OnInputMoveCompleted()
  */
 void UR4PlayerInputComponent::OnInputSkillStarted(const FInputActionValue& InValue, const ESkillIndex InSkillIndex)
 {
-	if(IR4ServePlayerSkillInterface* owner = Cast<IR4ServePlayerSkillInterface>(GetOwner()))
+	if(IR4PlayerSkillInputInterface* owner = Cast<IR4PlayerSkillInputInterface>(GetOwner()))
 	{
 		owner->OnInputSkillStarted(InSkillIndex);
 	}
@@ -191,7 +191,7 @@ void UR4PlayerInputComponent::OnInputSkillStarted(const FInputActionValue& InVal
  */
 void UR4PlayerInputComponent::OnInputSkillTriggered(const FInputActionValue& InValue, const ESkillIndex InSkillIndex)
 {
-	if(IR4ServePlayerSkillInterface* owner = Cast<IR4ServePlayerSkillInterface>(GetOwner()))
+	if(IR4PlayerSkillInputInterface* owner = Cast<IR4PlayerSkillInputInterface>(GetOwner()))
 	{
 		owner->OnInputSkillTriggered(InSkillIndex);
 	}
@@ -202,7 +202,7 @@ void UR4PlayerInputComponent::OnInputSkillTriggered(const FInputActionValue& InV
  */
 void UR4PlayerInputComponent::OnInputSkillCompleted(const FInputActionValue& InValue, const ESkillIndex InSkillIndex)
 {
-	if(IR4ServePlayerSkillInterface* owner = Cast<IR4ServePlayerSkillInterface>(GetOwner()))
+	if(IR4PlayerSkillInputInterface* owner = Cast<IR4PlayerSkillInputInterface>(GetOwner()))
 	{
 		owner->OnInputSkillCompleted(InSkillIndex);
 	}

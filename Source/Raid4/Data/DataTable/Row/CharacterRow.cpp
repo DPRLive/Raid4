@@ -1,7 +1,8 @@
 ﻿#include "CharacterRow.h"
 #include "../../../Character/CharacterBase.h"
 #include "../../../Manager/DataTableManager.h"
-#include "../../../Component/R4StatManageComponent.h"
+#include "../../../Component/R4StatComponent.h"
+#include "../../../Component/R4SkillComponent.h"
 #include "../../../Skill/R4SkillBase.h"
 
 #include <Components/SkeletalMeshComponent.h>
@@ -35,19 +36,28 @@ void FCharacterRow::LoadDataToCharacter(ACharacterBase* InCharacter) const
 	if(AnimInstance != nullptr)
 		meshComp->SetAnimInstanceClass(AnimInstance);
 
-	// 기본 스탯을 적용
-	if(UR4StatManageComponent* statComp = InCharacter->FindComponentByClass<UR4StatManageComponent>(); InCharacter->GetLocalRole() == ROLE_Authority)
+    if (!InCharacter->HasAuthority())
+    	return;
+	
+	///// Only Server /////
+	
+    // 스탯 컴포넌트에 기본 스탯을 적용.
+    if (UR4StatComponent* statComp = InCharacter->FindComponentByClass<UR4StatComponent>())
+    {
+	    statComp->Server_SetBaseStat(BaseStatRowPK);
+    }
+    
+    // 스킬 컴포넌트에 스킬을 적용.
+	if (UR4SkillComponent* skillComp = InCharacter->FindComponentByClass<UR4SkillComponent>())
 	{
-		statComp->Server_SetBaseStat(BaseStatRowPK);
-	}
-
-	// 스킬을 적용
-	for(const TPair<ESkillIndex, TSubclassOf<UR4SkillBase>>& skill : Skills)
-	{
-		if(UR4SkillBase* instanceSkill = NewObject<UR4SkillBase>(InCharacter, skill.Value))
+		for (const TPair<ESkillIndex, TSubclassOf<UR4SkillBase>>& skill : Skills)
 		{
-			instanceSkill->RegisterComponent();
-			InCharacter->AddSkill(skill.Key, instanceSkill);
+			if (UR4SkillBase* instanceSkill = NewObject<UR4SkillBase>(InCharacter, skill.Value))
+			{
+				instanceSkill->RegisterComponent();
+				skillComp->Server_AddSkill(skill.Key, instanceSkill);
+			}
 		}
 	}
+    
 }

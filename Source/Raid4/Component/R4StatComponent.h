@@ -4,7 +4,7 @@
 
 #include "../Data/DataTable/Row/StatRow.h"
 #include <Components/ActorComponent.h>
-#include "R4StatManageComponent.generated.h"
+#include "R4StatComponent.generated.h"
 
 /**
  * 다른 유저와 공유해야하는 Stat 데이터, UI에 사용 예정
@@ -33,15 +33,15 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnChangeSharedStatDelegate, const FSharedSt
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnChangeStatDelegate, const FStatRow& /* InBaseStat */, const FStatRow& /* InModifierStat */)
 
 /**
- * 객체에 스탯을 부여할 때, 그 스탯을 관리해주는 컴포넌트
+ * 객체가 스킬을 사용할 수 있도록 하는 컴포넌트
  */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class RAID4_API UR4StatManageComponent : public UActorComponent
+class RAID4_API UR4StatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
-	UR4StatManageComponent();
+	UR4StatComponent();
 
 	// 컴포넌트 초기화
 	virtual void InitializeComponent() override;

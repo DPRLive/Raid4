@@ -4,8 +4,7 @@
 #include "PlayerCharacter.h"
 #include "../Component/R4PlayerInputComponent.h"
 #include "../Component/R4CameraManageComponent.h"
-#include "../Skill/R4SkillBase.h"
-#include "../Interface/R4PlayerSkillInterface.h"
+#include "../Component/R4PlayerSkillComponent.h"
 
 #include <Camera/CameraComponent.h>
 #include <GameFramework/SpringArmComponent.h>
@@ -13,10 +12,10 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(PlayerCharacter)
 
 /**
- *  생성자
+ *  생성자. Skill Comp를 Player용으로 변경. 찾아보니 SetDefaultSubobjectClass를 여러번 .으로 이어서 쓸 수 있는듯 하다
  */
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& InObjectInitializer)
-	: Super(InObjectInitializer)
+	: Super(InObjectInitializer.SetDefaultSubobjectClass<UR4PlayerSkillComponent>(FName(TEXT("SkillComp"))))
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -67,17 +66,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayerInputC
  */
 void APlayerCharacter::OnInputSkillStarted(const ESkillIndex InSkillIndex)
 {
-	TObjectPtr<UR4SkillBase>* skill = InstancedSkills.Find(InSkillIndex);
-	if(skill == nullptr)
+	if(IR4PlayerSkillInputInterface* skillComp = Cast<IR4PlayerSkillInputInterface>(SkillComp))
 	{
-		LOG_WARN( R4Data, TEXT("SkillIndex : [%s] is nullptr."), *ENUM_TO_STRING( ESkillIndex, InSkillIndex ) );
-		return;
-	}
-
-	// TODO : Manage Comp에 허락 받고 입력 넣기
-	if(IR4PlayerSkillInterface* playerSkill = Cast<IR4PlayerSkillInterface>(*skill))
-	{
-		playerSkill->OnInputSkillStarted();
+		skillComp->OnInputSkillStarted(InSkillIndex);
 	}
 }
 
@@ -86,16 +77,9 @@ void APlayerCharacter::OnInputSkillStarted(const ESkillIndex InSkillIndex)
  */
 void APlayerCharacter::OnInputSkillTriggered(const ESkillIndex InSkillIndex)
 {
-	TObjectPtr<UR4SkillBase>* skill = InstancedSkills.Find(InSkillIndex);
-	if(skill == nullptr)
+	if(IR4PlayerSkillInputInterface* skillComp = Cast<IR4PlayerSkillInputInterface>(SkillComp))
 	{
-		LOG_WARN( R4Data, TEXT("SkillIndex : [%s] is nullptr."), *ENUM_TO_STRING( ESkillIndex, InSkillIndex ) );
-		return;
-	}
-	
-	if(IR4PlayerSkillInterface* playerSkill = Cast<IR4PlayerSkillInterface>(*skill))
-	{
-		playerSkill->OnInputSkillTriggered();
+		skillComp->OnInputSkillTriggered(InSkillIndex);
 	}
 }
 
@@ -104,15 +88,8 @@ void APlayerCharacter::OnInputSkillTriggered(const ESkillIndex InSkillIndex)
  */
 void APlayerCharacter::OnInputSkillCompleted(const ESkillIndex InSkillIndex)
 {
-	TObjectPtr<UR4SkillBase>* skill = InstancedSkills.Find(InSkillIndex);
-	if(skill == nullptr)
+	if(IR4PlayerSkillInputInterface* skillComp = Cast<IR4PlayerSkillInputInterface>(SkillComp))
 	{
-		LOG_WARN( R4Data, TEXT("SkillIndex : [%s] is nullptr."), *ENUM_TO_STRING( ESkillIndex, InSkillIndex ) );
-		return;
-	}
-	
-	if(IR4PlayerSkillInterface* playerSkill = Cast<IR4PlayerSkillInterface>(*skill))
-	{
-		playerSkill->OnInputSkillCompleted();
+		skillComp->OnInputSkillCompleted(InSkillIndex);
 	}
 }

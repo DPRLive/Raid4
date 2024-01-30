@@ -2,10 +2,10 @@
 
 
 #include "CharacterBase.h"
-#include "../Component/R4StatManageComponent.h"
+#include "../Component/R4StatComponent.h"
 #include "../Data/DataTable/Row/CharacterRow.h"
 #include "../Component/R4CharacterMovementComponent.h"
-#include "../Component/R4SkillManageComponent.h"
+#include "../Component/R4SkillComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(CharacterBase)
 
@@ -17,9 +17,9 @@ ACharacterBase::ACharacterBase(const FObjectInitializer& InObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	StatManageComp = CreateDefaultSubobject<UR4StatManageComponent>(TEXT("StatManageComp"));
+	StatComp = CreateDefaultSubobject<UR4StatComponent>(TEXT("StatManageComp"));
 
-	SkillManageComp = CreateDefaultSubobject<UR4SkillManageComponent>(TEXT("SKillManageComp"));
+	SkillComp = CreateDefaultSubobject<UR4SkillComponent>(TEXT("SkillComp"));
 }
 
 /**
@@ -30,7 +30,7 @@ void ACharacterBase::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	// 스탯 변경시 적용한다.
-	StatManageComp->OnChangeTotalStat.AddUObject(this, &ACharacterBase::_ApplyTotalStat);
+	StatComp->OnChangeTotalStat.AddUObject(this, &ACharacterBase::_ApplyTotalStat);
 	
 	// Character 테스트를 위한 Aurora 데이터 임시 로드
 	// TODO : 나중에 캐릭터에 따른 데이터 로드를 진행해야함.
@@ -47,20 +47,6 @@ void ACharacterBase::PostInitializeComponents()
 void ACharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-}
-
-/**
- *  현재 캐릭터에 스킬을 추가한다.
- */
-void ACharacterBase::AddSkill(const ESkillIndex InSkillIndex, UR4SkillBase* InSkill)
-{
-	if(InSkill == nullptr)
-	{
-		LOG_WARN( R4Data, TEXT("In Skill is nullptr.") );
-		return;
-	}
-	
-	InstancedSkills.Add(InSkillIndex, InSkill);
 }
 
 /**
