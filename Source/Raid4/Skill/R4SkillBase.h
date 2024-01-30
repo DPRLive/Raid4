@@ -9,6 +9,7 @@ class UAnimMontage;
 /**
  * Skill의 Base가 되는 클래스
  * Anim Montage를 실행하여 스킬을 시전.
+ * TODO : 할게 많음.
  */
 UCLASS( Blueprintable, BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RAID4_API UR4SkillBase : public UActorComponent
@@ -35,7 +36,22 @@ public:
 	virtual void CompleteSkill();
 
 protected:
-	// 스킬의 메인 애니메이션 ( 해당 애니메이션을 플레이하여 스킬을 발동 )
+	// 서버로 스킬을 사용 했음을 알린다.
+	UFUNCTION( Server, Reliable )
+	void ServerRPC_ActivateSkill();
+
+	// 클라이언트들에게 스킬 사용을 명령한다.
+	UFUNCTION( NetMulticast, Unreliable )
+	void MulticastRPC_ActivateSkill();
+	
+private:
+	// 스킬 애니메이션을 실행한다.
+	void _PlaySkillAnim();
+
+	// 스킬 애니메이션을 중지한다.
+	void _StopSkillAnim();
+protected:
+	// 스킬의 메인 애니메이션 Montage ( 해당 애니메이션을 플레이하여 스킬을 발동 )
 	UPROPERTY( EditAnywhere, Category = "Anim" )
-	TSoftObjectPtr<UAnimMontage> SkillMainAnim;
+	TSoftObjectPtr<UAnimMontage> SkillAnim;
 };
