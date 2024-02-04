@@ -17,7 +17,7 @@ UNiagaraComponent* UtilEffect::SpawnNiagaraAtLocation_Local(const TSoftObjectPtr
 	}
 
 	UWorld* world = (InWorld == nullptr) ? R4GetWorld() : InWorld;
-	UNiagaraSystem* niagara = LoadSoftObjectSync<UNiagaraSystem>(InNiagaraSystem);
+	UNiagaraSystem* niagara = InNiagaraSystem.LoadSynchronous();
 	
 	return UNiagaraFunctionLibrary::SpawnSystemAtLocation(world, niagara, InLocation, InRotation, InScale);
 }

@@ -2,17 +2,20 @@
 
 
 #include "R4SkillBase.h"
+#include "../Controller/R4PlayerController.h"
 
 #include <GameFramework/Character.h>
 #include <Animation/AnimMontage.h>
+#include <GameFramework/GameStateBase.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4SkillBase)
 
 UR4SkillBase::UR4SkillBase()
 {
     PrimaryComponentTick.bCanEverTick = false;
-
     SetIsReplicatedByDefault(true);
+
+	LastActivateTime = 0.f;
 }
 
 void UR4SkillBase::BeginPlay()
@@ -25,22 +28,6 @@ void UR4SkillBase::BeginPlay()
  */
 void UR4SkillBase::PrepareSkill()
 {
-}
-
-/**
- *  스킬을 사용 ( Main Anim Montage를 Play )
- *  TODO : 버프 걸거 있으면 걸기
- */
-void UR4SkillBase::ActivateSkill()
-{
-    // 자율 프록시면 애니메이션을 플레이
-	if(GetOwner()->GetLocalRole() == ROLE_AutonomousProxy)
-	{
-		_PlaySkillAnim();
-	}
-
-	// 서버로 스킬 사용을 알림
-	ServerRPC_ActivateSkill();
 }
 
 /**
@@ -60,50 +47,55 @@ void UR4SkillBase::CompleteSkill()
 }
 
 /**
- *  서버로 스킬 사용을 알린다.
+ *  스킬을 사용 ( Main Anim Montage를 Play )
+ *  TODO : 버프 걸거 있으면 걸기
  */
-void UR4SkillBase::ServerRPC_ActivateSkill_Implementation()
+void UR4SkillBase::ActivateSkill()
 {
-	// 서버에서 애니메이션을 플레이 후
-    _PlaySkillAnim();
-
-    // 클라이언트들에게 스킬 사용을 명령한다. ( 시뮬레이트 프록시들에게 )
-    MulticastRPC_ActivateSkill();
-}
-
-/**
- *  클라이언트들에게 스킬 사용을 명령한다.
- */
-void UR4SkillBase::MulticastRPC_ActivateSkill_Implementation()
-{
-    // 시뮬레이티드면 애니메이션을 플레이
-    if(GetOwner()->GetLocalRole() == ROLE_SimulatedProxy)
-    {
-        _PlaySkillAnim();
-    }
-
-	// ... TODO
-}
-
-/**
- *  스킬 Anim Montage를 플레이
- */
-void UR4SkillBase::_PlaySkillAnim()
-{
-    if(ACharacter* owner = Cast<ACharacter>(GetOwner()))
-    {
-        owner->PlayAnimMontage(LoadSoftObjectSync(SkillAnim));
-    }
-}
-
-/**
- *  스킬 Anim Montage를 중지
- */
-void UR4SkillBase::_StopSkillAnim()
-{
-    if(ACharacter* owner = Cast<ACharacter>(GetOwner()))
+    // 내가 플레이 하던거면 애니메이션을 플레이
+	if(ACharacter* owner = Cast<ACharacter>(GetOwner()); owner != nullptr && owner->IsLocallyControlled())
 	{
-		owner->StopAnimMontage(LoadSoftObjectSync(SkillAnim));
+		owner->StopAnimMontage();
+		owner->PlayAnimMontage(SkillAnim.LoadSynchronous());
+	}
+
+    // 서버로 스킬 사용을 알림
+	float serverTime = GetWorld()->GetGameState()->GetServerWorldTimeSeconds();
+    ServerRPC_ActivateSkill(serverTime);
+}
+
+/**
+ *  스킬 사용의 유효성을 검증한다.
+ *  @param InActivateTime : 클라이언트가 스킬 사용 당시의 서버 시간
+ */
+bool UR4SkillBase::ServerRPC_ActivateSkill_Validate(const float InActivateTime)
+{
+	// 사용한 시간이 쿨타임 + 오차허용시간 보다 짧다?
+	// if((InActivateTime - LastActivateTime) <  (/* 쿹타임 - */ Validation::G_AcceptMinCoolTime) )
+	// 	return false;
+	return true;
+}
+
+/**
+ *  서버로 스킬 사용을 알린다.
+ *  @param InActivateTime : 클라이언트에서 스킬을 사용했을 때의 서버 시간
+ */
+void UR4SkillBase::ServerRPC_ActivateSkill_Implementation(const float InActivateTime)
+{
+	// 스킬 사용시간 기록
+	LastActivateTime = InActivateTime;
+	
+	if(ACharacter* owner = Cast<ACharacter>(GetOwner()))
+	{
+		for (AR4PlayerController* playerController : TActorRange<AR4PlayerController>(GetWorld()))
+		{
+			// 이 액터를 움직인 컨트롤러를 제외한 나머지에게 애니메이션을 플레이 시킨다.
+			if(playerController && (owner->GetController() != playerController))
+			{
+				playerController->ClientRPC_StopAnimMontage(owner, nullptr);
+				playerController->ClientRPC_PlayAnimMontage(owner, SkillAnim);
+			}
+		}
 	}
 }
 
