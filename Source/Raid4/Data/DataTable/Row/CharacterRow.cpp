@@ -29,7 +29,7 @@ void FCharacterRow::LoadDataToCharacter(ACharacterBase* InCharacter) const
 		return;
 
 	// 스켈레탈 메시 설정
-	if(USkeletalMesh* skelMesh = LoadSoftObjectSync<USkeletalMesh>(SkeletalMesh))
+	if(USkeletalMesh* skelMesh = SkeletalMesh.LoadSynchronous())
 		meshComp->SetSkeletalMesh(skelMesh);
 
 	// 애니메이션 설정
