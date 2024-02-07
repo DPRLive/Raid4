@@ -60,17 +60,10 @@ private:
 	// 클릭시 스폰되는 FX (어디를 클릭했는지 표시)
 	UPROPERTY( EditAnywhere, Category = "Data|Setting", meta=(AllowPrivateAccess = true) )
 	TSoftObjectPtr<UNiagaraSystem> FXCursor;
-	
-	/////////////////////////
-	// **** Transient **** //
-	/////////////////////////
-	
+
 	// 눌린 시간을 측정하는 임시 변수
-	UPROPERTY( Transient )
-	float TriggerTime;
+	float CachedTriggerTime;
 
-	// 마지막에 눌린 위치를 기억하는 변수
-	UPROPERTY( Transient )
-	FVector LastHitLocation;
-
+	// 마지막에 눌린 위치를 기억하는 임시 변수
+	FVector CachedLastHitLocation;
 };

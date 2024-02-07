@@ -23,6 +23,6 @@ public:
 	void ClientRPC_PlayAnimMontage(ACharacter* InCharacter, const TSoftObjectPtr<UAnimMontage>& InAnimMontage);
 
 	// 특정 캐릭터에게 애니메이션 몽타주 중지 명령
-	UFUNCTION( Client, Unreliable, Category = "RPC|Anim", Unreliable )
+	UFUNCTION( Client, Unreliable, Category = "RPC|Anim" )
 	void ClientRPC_StopAnimMontage(ACharacter* InCharacter, const TSoftObjectPtr<UAnimMontage>& InAnimMontage);
 };

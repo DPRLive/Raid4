@@ -20,7 +20,7 @@ UR4PlayerInputComponent::UR4PlayerInputComponent()
 	bWantsInitializeComponent = true;
 	
 	ShortTriggerThreshold = 0.3f;
-	TriggerTime = 0.f;
+	CachedTriggerTime = 0.f;
 }
 
 /**
@@ -127,7 +127,7 @@ void UR4PlayerInputComponent::OnInputMoveTriggered()
 		return;
 	}
 
-	TriggerTime += GetWorld()->GetDeltaSeconds();
+	CachedTriggerTime += GetWorld()->GetDeltaSeconds();
 	
 	FHitResult hit;
 	if(playerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, hit))
@@ -137,7 +137,7 @@ void UR4PlayerInputComponent::OnInputMoveTriggered()
 		dir.Normalize();
 		
 		owner->AddMovementInput(dir);
-		LastHitLocation = hit.Location;
+		CachedLastHitLocation = hit.Location;
 	}
 }
 
@@ -161,10 +161,10 @@ void UR4PlayerInputComponent::OnInputMoveCompleted()
 	}
 
 	// 짧은 입력이면, 위치로 이동 실행
-	if(TriggerTime < ShortTriggerThreshold)
+	if(CachedTriggerTime < ShortTriggerThreshold)
 	{
-		UAIBlueprintHelperLibrary::SimpleMoveToLocation(playerController, LastHitLocation);
-		UtilEffect::SpawnNiagaraAtLocation_Local(FXCursor, LastHitLocation, FRotator::ZeroRotator, FVector(1.f), GetWorld());
+		UAIBlueprintHelperLibrary::SimpleMoveToLocation(playerController, CachedLastHitLocation);
+		UtilEffect::SpawnNiagaraAtLocation_Local(FXCursor, CachedLastHitLocation, FRotator::ZeroRotator, FVector(1.f), GetWorld());
 	}
 	else
 	{
@@ -172,7 +172,7 @@ void UR4PlayerInputComponent::OnInputMoveCompleted()
 		owner->GetMovementComponent()->StopMovementImmediately();
 	}
 	
-	TriggerTime = 0.f;
+	CachedTriggerTime = 0.f;
 }
 
 /**
