@@ -37,9 +37,9 @@ private:
 	void OnInputMoveCompleted();
 
 	// Skill Input Func
-	void OnInputSkillStarted(const FInputActionValue& InValue, const ESkillIndex InSkillIndex);
-	void OnInputSkillTriggered(const FInputActionValue& InValue, const ESkillIndex InSkillIndex);
-	void OnInputSkillCompleted(const FInputActionValue& InValue, const ESkillIndex InSkillIndex);
+	void OnInputSkillStarted(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
+	void OnInputSkillTriggered(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
+	void OnInputSkillCompleted(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
 	
 	// MappingContext
 	UPROPERTY( EditAnywhere, Category = "Data|Mapping", meta = (AllowPrivateAccess = true) )

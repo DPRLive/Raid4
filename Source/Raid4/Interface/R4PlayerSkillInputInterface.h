@@ -22,7 +22,7 @@ class RAID4_API IR4PlayerSkillInputInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	// 스킬 입력 처리가 가능해야함.
-	virtual void OnInputSkillStarted(const ESkillIndex InSkillIndex) = 0;
-	virtual void OnInputSkillTriggered(const ESkillIndex InSkillIndex) = 0;
-	virtual void OnInputSkillCompleted(const ESkillIndex InSkillIndex) = 0;
+	virtual void OnInputSkillStarted(ESkillIndex InSkillIndex) = 0;
+	virtual void OnInputSkillTriggered(ESkillIndex InSkillIndex) = 0;
+	virtual void OnInputSkillCompleted(ESkillIndex InSkillIndex) = 0;
 };

@@ -23,7 +23,7 @@ FCoolTimeHandler::~FCoolTimeHandler()
  * 쿨타임을 적용한다.
  * @param InCoolTime : 사용할 쿨타임. 0.f >= InCoolTime이면 clear됨
  */
-void FCoolTimeHandler::SetCoolTime(const float InCoolTime)
+void FCoolTimeHandler::SetCoolTime(float InCoolTime)
 {
 	R4GetWorld()->GetTimerManager().SetTimer(Handle, [this]
 	{
@@ -44,7 +44,7 @@ void FCoolTimeHandler::ClearCoolTime()
  * 남은 쿨타임을 가져온다.
  * @return : 쿨타임을 반환, 쿨타임이 걸려있지 않은경우 0.f를 반환
  */
-const float FCoolTimeHandler::GetCoolTime() const
+float FCoolTimeHandler::GetCoolTime() const
 {
     if(R4GetWorld()->GetTimerManager().IsTimerActive(Handle))
         return R4GetWorld()->GetTimerManager().GetTimerRemaining(Handle);
@@ -57,7 +57,7 @@ const float FCoolTimeHandler::GetCoolTime() const
  * @param InReduceTime : 감소시키고 싶은 시간
  * @return : 감소된 후 쿨타임. 남은 쿨타임보다 감소량이 더 많으면 0.f 반환 
  */
-float FCoolTimeHandler::ReduceCoolTime(const float InReduceTime)
+float FCoolTimeHandler::ReduceCoolTime(float InReduceTime)
 {
     float newCoolTime = FMath::Clamp(GetCoolTime() - InReduceTime, 0.f, GetCoolTime() - InReduceTime);
 

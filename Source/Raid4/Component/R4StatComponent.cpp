@@ -104,7 +104,7 @@ void UR4StatComponent::Server_ResetStat()
 /**
  *  Now Hp 변경 함수 (서버)
  */
-void UR4StatComponent::Server_AddDeltaHp(const float InDeltaHp)
+void UR4StatComponent::Server_AddDeltaHp(float InDeltaHp)
 {
 	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
 		return;
@@ -116,7 +116,7 @@ void UR4StatComponent::Server_AddDeltaHp(const float InDeltaHp)
 /**
  *  Now Mp 변경 함수 (서버)
  */
-void UR4StatComponent::Server_AddDeltaMp(const float InDeltaMp)
+void UR4StatComponent::Server_AddDeltaMp(float InDeltaMp)
 {
 	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
 		return;

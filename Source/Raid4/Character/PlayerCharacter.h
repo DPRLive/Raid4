@@ -31,9 +31,9 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent) override;
 
 	// 스킬 입력 처리
-	virtual void OnInputSkillStarted(const ESkillIndex InSkillIndex) override;
-	virtual void OnInputSkillTriggered(const ESkillIndex InSkillIndex) override;
-	virtual void OnInputSkillCompleted(const ESkillIndex InSkillIndex) override;
+	virtual void OnInputSkillStarted(ESkillIndex InSkillIndex) override;
+	virtual void OnInputSkillTriggered(ESkillIndex InSkillIndex) override;
+	virtual void OnInputSkillCompleted(ESkillIndex InSkillIndex) override;
 	
 	// 입력 바인딩을 위임
 	DECLARE_MULTICAST_DELEGATE_OneParam( FSetupPlayerInputDelegate, UInputComponent* /* InInputComponent */ )

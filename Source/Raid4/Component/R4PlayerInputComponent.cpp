@@ -178,7 +178,7 @@ void UR4PlayerInputComponent::OnInputMoveCompleted()
 /**
  *  스킬 입력 시작
  */
-void UR4PlayerInputComponent::OnInputSkillStarted(const FInputActionValue& InValue, const ESkillIndex InSkillIndex)
+void UR4PlayerInputComponent::OnInputSkillStarted(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
 	if(IR4PlayerSkillInputInterface* owner = Cast<IR4PlayerSkillInputInterface>(GetOwner()))
 	{
@@ -189,7 +189,7 @@ void UR4PlayerInputComponent::OnInputSkillStarted(const FInputActionValue& InVal
 /**
  *  스킬 입력 중
  */
-void UR4PlayerInputComponent::OnInputSkillTriggered(const FInputActionValue& InValue, const ESkillIndex InSkillIndex)
+void UR4PlayerInputComponent::OnInputSkillTriggered(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
 	if(IR4PlayerSkillInputInterface* owner = Cast<IR4PlayerSkillInputInterface>(GetOwner()))
 	{
@@ -200,7 +200,7 @@ void UR4PlayerInputComponent::OnInputSkillTriggered(const FInputActionValue& InV
 /**
  *  스킬 입력 종료
  */
-void UR4PlayerInputComponent::OnInputSkillCompleted(const FInputActionValue& InValue, const ESkillIndex InSkillIndex)
+void UR4PlayerInputComponent::OnInputSkillCompleted(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
 	if(IR4PlayerSkillInputInterface* owner = Cast<IR4PlayerSkillInputInterface>(GetOwner()))
 	{

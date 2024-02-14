@@ -5,6 +5,7 @@
 #include <Components/ActorComponent.h>
 #include "R4SkillBase.generated.h"
 
+class FCoolTimeHandler;
 class UAnimMontage;
 /**
  * Skill의 Base가 되는 클래스
@@ -37,7 +38,7 @@ public:
 protected:
 	// 서버로 스킬을 사용 했음을 알린다.
 	UFUNCTION( Server, Reliable, WithValidation )
-	void ServerRPC_ActivateSkill(const float InActivateTime);
+	void ServerRPC_ActivateSkill(float InActivateTime);
 
 protected:
 	// 스킬의 메인 애니메이션 Montage ( 해당 애니메이션을 플레이하여 스킬을 발동 )
@@ -45,6 +46,9 @@ protected:
 	TSoftObjectPtr<UAnimMontage> SkillAnim;
 
 private:
+	// 스킬 쿨타임을 위한 CoolTimeHandler
+	//TUniquePtr<FCoolTimeHandler> CoolTimeHandler;
+	
 	// 마지막으로 발동한 시간
-	float LastActivateTime;
+	float CachedLastActivateTime;
 };

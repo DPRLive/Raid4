@@ -15,7 +15,7 @@ UR4SkillBase::UR4SkillBase()
     PrimaryComponentTick.bCanEverTick = false;
     SetIsReplicatedByDefault(true);
 
-	LastActivateTime = 0.f;
+	CachedLastActivateTime = 0.f;
 }
 
 void UR4SkillBase::BeginPlay()
@@ -68,7 +68,7 @@ void UR4SkillBase::ActivateSkill()
  *  스킬 사용의 유효성을 검증한다.
  *  @param InActivateTime : 클라이언트가 스킬 사용 당시의 서버 시간
  */
-bool UR4SkillBase::ServerRPC_ActivateSkill_Validate(const float InActivateTime)
+bool UR4SkillBase::ServerRPC_ActivateSkill_Validate(float InActivateTime)
 {
 	// 사용한 시간이 쿨타임 + 오차허용시간 보다 짧다?
 	// if((InActivateTime - LastActivateTime) <  (/* 쿹타임 - */ Validation::G_AcceptMinCoolTime) )
@@ -80,10 +80,10 @@ bool UR4SkillBase::ServerRPC_ActivateSkill_Validate(const float InActivateTime)
  *  서버로 스킬 사용을 알린다.
  *  @param InActivateTime : 클라이언트에서 스킬을 사용했을 때의 서버 시간
  */
-void UR4SkillBase::ServerRPC_ActivateSkill_Implementation(const float InActivateTime)
+void UR4SkillBase::ServerRPC_ActivateSkill_Implementation(float InActivateTime)
 {
 	// 스킬 사용시간 기록
-	LastActivateTime = InActivateTime;
+	CachedLastActivateTime = InActivateTime;
 	
 	if(ACharacter* owner = Cast<ACharacter>(GetOwner()))
 	{

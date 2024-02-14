@@ -13,36 +13,36 @@ UR4PlayerSkillComponent::UR4PlayerSkillComponent()
 /**
  *  입력 연결
  */
-void UR4PlayerSkillComponent::OnInputSkillStarted(const ESkillIndex InSkillIndex)
+void UR4PlayerSkillComponent::OnInputSkillStarted(ESkillIndex InSkillIndex)
 {
 	const uint8 realIdx = static_cast<uint8>(InSkillIndex);
-	if(InstancedSkills.IsValidIndex(realIdx))
+	if(SkillInstancePtrs.IsValidIndex(realIdx))
 	{
-		if(IR4PlayerSkillInterface* playerSkill = Cast<IR4PlayerSkillInterface>(InstancedSkills[realIdx]))
+		if(IR4PlayerSkillInterface* playerSkill = Cast<IR4PlayerSkillInterface>(SkillInstancePtrs[realIdx]))
 		{
 			playerSkill->OnInputSkillStarted();
 		}
 	}
 }
 
-void UR4PlayerSkillComponent::OnInputSkillTriggered(const ESkillIndex InSkillIndex)
+void UR4PlayerSkillComponent::OnInputSkillTriggered(ESkillIndex InSkillIndex)
 {
 	const uint8 realIdx = static_cast<uint8>(InSkillIndex);
-	if(InstancedSkills.IsValidIndex(realIdx))
+	if(SkillInstancePtrs.IsValidIndex(realIdx))
 	{
-		if(IR4PlayerSkillInterface* playerSkill = Cast<IR4PlayerSkillInterface>(InstancedSkills[realIdx]))
+		if(IR4PlayerSkillInterface* playerSkill = Cast<IR4PlayerSkillInterface>(SkillInstancePtrs[realIdx]))
 		{
 			playerSkill->OnInputSkillTriggered();
 		}
 	}
 }
 
-void UR4PlayerSkillComponent::OnInputSkillCompleted(const ESkillIndex InSkillIndex)
+void UR4PlayerSkillComponent::OnInputSkillCompleted(ESkillIndex InSkillIndex)
 {
 	const uint8 realIdx = static_cast<uint8>(InSkillIndex);
-	if(InstancedSkills.IsValidIndex(realIdx))
+	if(SkillInstancePtrs.IsValidIndex(realIdx))
 	{
-		if(IR4PlayerSkillInterface* playerSkill = Cast<IR4PlayerSkillInterface>(InstancedSkills[realIdx]))
+		if(IR4PlayerSkillInterface* playerSkill = Cast<IR4PlayerSkillInterface>(SkillInstancePtrs[realIdx]))
 		{
 			playerSkill->OnInputSkillCompleted();
 		}

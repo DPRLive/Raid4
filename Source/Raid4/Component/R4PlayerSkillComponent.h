@@ -18,7 +18,7 @@ public:
 	UR4PlayerSkillComponent();
 
 	// 스킬 입력 처리
-	virtual void OnInputSkillStarted(const ESkillIndex InSkillIndex) override;
-	virtual void OnInputSkillTriggered(const ESkillIndex InSkillIndex) override;
-	virtual void OnInputSkillCompleted(const ESkillIndex InSkillIndex) override;
+	virtual void OnInputSkillStarted(ESkillIndex InSkillIndex) override;
+	virtual void OnInputSkillTriggered(ESkillIndex InSkillIndex) override;
+	virtual void OnInputSkillCompleted(ESkillIndex InSkillIndex) override;
 };

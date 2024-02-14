@@ -70,10 +70,10 @@ public:
 	FORCEINLINE FStatRow GetTotalStat() const { return BaseStat + ModifierStat; } 
 
 	// Now Hp 변경 함수 (서버)
-	void Server_AddDeltaHp(const float InDeltaHp);
+	void Server_AddDeltaHp(float InDeltaHp);
 
 	// Now Mp 변경 함수 (서버)
-	void Server_AddDeltaMp(const float InDeltaMp);
+	void Server_AddDeltaMp(float InDeltaMp);
 	
 private:
 	// 모든 유저와 공유해야할 데이터가 Replicate (변경) 되면, 알림

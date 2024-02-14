@@ -30,7 +30,7 @@ void UR4SkillComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME_CONDITION(UR4SkillComponent, InstancedSkills, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UR4SkillComponent, SkillInstancePtrs, COND_OwnerOnly);
 }
 
 /**
@@ -45,7 +45,7 @@ void UR4SkillComponent::BeginPlay()
 /**
  *  스킬을 추가한다. (서버)
  */
-void UR4SkillComponent::Server_AddSkill(const ESkillIndex InSkillIndex, UR4SkillBase* InSkill)
+void UR4SkillComponent::Server_AddSkill(ESkillIndex InSkillIndex, UR4SkillBase* InSkill)
 {
 	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
 		return;
@@ -53,10 +53,10 @@ void UR4SkillComponent::Server_AddSkill(const ESkillIndex InSkillIndex, UR4Skill
 	const uint8 realIdx = static_cast<uint8>(InSkillIndex);
 
 	// 음 인덱스가 부족한걸? -> resize
-	if(realIdx >= InstancedSkills.Num())
+	if(realIdx >= SkillInstancePtrs.Num())
 	{
-		InstancedSkills.SetNum(realIdx + 1);
+		SkillInstancePtrs.SetNum(realIdx + 1);
 	}
 
-	InstancedSkills[realIdx] = InSkill;
+	SkillInstancePtrs[realIdx] = InSkill;
 }

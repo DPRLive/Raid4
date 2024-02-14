@@ -64,7 +64,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayerInputC
 /**
  *  스킬 입력 시작 처리
  */
-void APlayerCharacter::OnInputSkillStarted(const ESkillIndex InSkillIndex)
+void APlayerCharacter::OnInputSkillStarted(ESkillIndex InSkillIndex)
 {
 	if(IR4PlayerSkillInputInterface* skillComp = Cast<IR4PlayerSkillInputInterface>(SkillComp))
 	{
@@ -75,7 +75,7 @@ void APlayerCharacter::OnInputSkillStarted(const ESkillIndex InSkillIndex)
 /**
  *  스킬 입력 처리
  */
-void APlayerCharacter::OnInputSkillTriggered(const ESkillIndex InSkillIndex)
+void APlayerCharacter::OnInputSkillTriggered(ESkillIndex InSkillIndex)
 {
 	if(IR4PlayerSkillInputInterface* skillComp = Cast<IR4PlayerSkillInputInterface>(SkillComp))
 	{
@@ -86,7 +86,7 @@ void APlayerCharacter::OnInputSkillTriggered(const ESkillIndex InSkillIndex)
 /**
  *  스킬 입력 종료 처리
  */
-void APlayerCharacter::OnInputSkillCompleted(const ESkillIndex InSkillIndex)
+void APlayerCharacter::OnInputSkillCompleted(ESkillIndex InSkillIndex)
 {
 	if(IR4PlayerSkillInputInterface* skillComp = Cast<IR4PlayerSkillInputInterface>(SkillComp))
 	{
