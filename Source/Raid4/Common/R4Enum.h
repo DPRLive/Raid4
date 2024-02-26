@@ -18,3 +18,15 @@ enum class ESkillIndex : uint8
 	None
 };
 ENUM_RANGE_BY_COUNT( ESkillIndex, ESkillIndex::None );
+
+/**
+ *  Overlap 체크시 사용할 모양
+ */
+UENUM( BlueprintType )
+enum class EOverlapShape : uint8
+{
+	Box			UMETA( ToolTip = "박스" ),
+	Sphere		UMETA( ToolTip = "구" ),
+	Capsule		UMETA( ToolTip = "캡슐" ),
+	Sector		UMETA( ToolTip = "부채꼴" )
+};
