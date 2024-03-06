@@ -5,6 +5,7 @@
 #include "../../Util/UtilOverlap.h"
 
 #include <Components/SkeletalMeshComponent.h>
+#include <GameFramework/Pawn.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AnimNotify_OverlapCheck)
 
@@ -20,8 +21,16 @@ void UAnimNotify_OverlapCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 {
 	Super::Notify(MeshComp, Animation, EventReference);
 	
-	// TODO : 내가 직접 움직이는 Proxy에서만 발동하도록 설정 필요
-	if (const UWorld* world = MeshComp->GetWorld())
+	// 클라에서 Notify 시 Server로는 가지 않지만 서버에서도 클라로 히트체크를 굳이 보내지 않도록 함
+	const APawn* owner = Cast<APawn>(MeshComp->GetOwner());
+	if(owner == nullptr)
+		return;
+
+	const AController* controller = owner->GetController();
+	if(controller == nullptr)
+		return;
+	
+	if (const UWorld* world = MeshComp->GetWorld(); controller->IsLocalController())
 	{
 		// Relative Location을 더한 위치, 회전을 구함
 		// TODO : UI용 마우스 위치 버전을 만들어야해! 아하하! 마우스로 회전 기능도 만들어야해!
@@ -30,7 +39,7 @@ void UAnimNotify_OverlapCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 		const FQuat quat = meshTrans.GetRotation() * RelativeRot.Quaternion();
 		
 		FCollisionQueryParams params;
-		params.AddIgnoredActor(MeshComp->GetOwner()); // 나는 무시
+		params.AddIgnoredActor(owner); // 나는 무시
 		TArray<FOverlapResult> overlapResults;
 		
 		switch (Shape) // 모양에 맞춰 overlap 체크
