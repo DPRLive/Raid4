@@ -3,43 +3,20 @@
 #pragma once
 
 #include "../Data/DataTable/Row/StatRow.h"
+#include "../Stat/R4StatData.h"
+#include "../Stat/R4StatMacro.h"
 #include <Components/ActorComponent.h>
 #include "R4StatComponent.generated.h"
 
 /**
- * 다른 유저와 공유해야하는 Stat 데이터, UI에 사용 예정
- */
-USTRUCT()
-struct FSharedStat
-{
-	GENERATED_BODY()
-
-	FSharedStat() : MaxHp(0.f), NowHp(0.f), MaxMp(0.f), NowMp(0.f) {}
-	
-	UPROPERTY()
-	float MaxHp;
-
-	UPROPERTY()
-	float NowHp;
-
-	UPROPERTY()
-	float MaxMp;
-
-	UPROPERTY()
-	float NowMp;
-};
-
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnChangeSharedStatDelegate, const FSharedStat& /* InSharedStat */)
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnChangeStatDelegate, const FStatRow& /* InBaseStat */, const FStatRow& /* InModifierStat */)
-
-/**
- * 객체가 스킬을 사용할 수 있도록 하는 컴포넌트
+ * 객체에게 스탯 기능을 추가하는 컴포넌트
+ * TODO : OnRep 관련 기능 추가
  */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RAID4_API UR4StatComponent : public UActorComponent
 {
 	GENERATED_BODY()
-
+	
 public:	
 	UR4StatComponent();
 
@@ -52,58 +29,58 @@ protected:
 
 	// Replicate 설정
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
+
 public:
-	// Stat DT의 PK로 Base 스탯을 설정 한다. (서버)
-	void Server_SetBaseStat(const FPriKey& InPK);
-
-	// Modifier Stat을 더한다. (서버)
-	void Server_AddModifierStat(const FStatRow& InModifierStat);
-
-	// Stat을 초기화, SetBaseStat 및 AddModifierStat을 할 필요가 있다면 먼저 하고 난 뒤 호출! (서버)
-	void Server_ResetStat();
-	
-	// Getter
-	FORCEINLINE const FSharedStat& GetSharedStat() const { return SharedStat; }
-	FORCEINLINE const FStatRow& GetBaseStat() const { return BaseStat; }
-	FORCEINLINE const FStatRow& GetModifierStat() const { return ModifierStat; }
-	FORCEINLINE FStatRow GetTotalStat() const { return BaseStat + ModifierStat; } 
-
-	// Now Hp 변경 함수 (서버)
-	void Server_AddDeltaHp(float InDeltaHp);
-
-	// Now Mp 변경 함수 (서버)
-	void Server_AddDeltaMp(float InDeltaMp);
+	// Accessors
+	R4STAT_CONSUMABLE_STAT_ACCESSORS( Hp );
+	R4STAT_STAT_ACCESSORS( HpRegenPerSec );
+	R4STAT_CONSUMABLE_STAT_ACCESSORS( Mp );
+	R4STAT_STAT_ACCESSORS( MpRegenPerSec );
+	R4STAT_STAT_ACCESSORS( AttackPower );
+	R4STAT_STAT_ACCESSORS( Armor );
+	R4STAT_STAT_ACCESSORS( CoolDownReduction );
+	R4STAT_STAT_ACCESSORS( CriticalChance );
+	R4STAT_STAT_ACCESSORS( BaseAttackSpeed );
+	R4STAT_STAT_ACCESSORS( MovementSpeed );
 	
 private:
-	// 모든 유저와 공유해야할 데이터가 Replicate (변경) 되면, 알림
-	UFUNCTION()
-	void _OnRep_SharedStat() const;
+	// HP (체력)
+	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	FR4ConsumableStatData Hp;
 
-	// 서버와 소유 클라이언트가 공유해야 할 Stat이 변경되면 알림
-	UFUNCTION()
-	void _OnRep_Stat() const;
+	// 초당 체력 재생력
+	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	FR4ConsumableStatData HpRegenPerSec;
 	
-	// BaseStat과 Modifier Stat을 기반으로 Shared Stat을 업데이트 (서버)
-	void _Server_UpdateSharedStat();
+	// MP (마나)
+	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	FR4ConsumableStatData Mp;
+
+	// 초당 마나 재생력
+	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	FR4ConsumableStatData MpRegenPerSec;
 	
-public:
-	// 모든 유저와 공유해야할 스탯 변경 알림 Delegate
-	FOnChangeSharedStatDelegate OnChangeSharedStat;
+	// 공격력
+	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	FR4StatData AttackPower;
 
-	// 서버와 소유 클라이언트만 공유해야 하는 스탯 변경 알림 Delegate
-	FOnChangeStatDelegate OnChangeTotalStat;
-	
-private:
-	// 모든 유저와 공유해야할 Stat 데이터
-	UPROPERTY( ReplicatedUsing = _OnRep_SharedStat, Transient, VisibleInstanceOnly, Category = "Stat", Meta = (AllowPrivateAccess = true) )
-	FSharedStat SharedStat;
+	// 방어력
+	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	FR4StatData Armor;
 
-	// 객체의 Base Stat, 서버와 소유 클라이언트만 공유
-	UPROPERTY( ReplicatedUsing = _OnRep_Stat, Transient, VisibleInstanceOnly, Category = "Stat", Meta = (AllowPrivateAccess = true) )
-	FStatRow BaseStat;
+	// 스킬 쿨타임 감소
+	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	FR4StatData CoolDownReduction;
 
-	// 객체의 Modifier Stat (버프나 아이템 등에 의한 변경 수치)
-	UPROPERTY( ReplicatedUsing = _OnRep_Stat, Transient, VisibleInstanceOnly, Category = "Stat", Meta = (AllowPrivateAccess = true) )
-	FStatRow ModifierStat;
+	// 치명타 확률
+	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	FR4StatData CriticalChance;
+
+	// 기본 공격 속도
+	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	FR4StatData BaseAttackSpeed;
+
+	// 이동 속도
+	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	FR4StatData MovementSpeed;
 };

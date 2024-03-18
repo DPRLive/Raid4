@@ -11,56 +11,47 @@ struct FStatRow : public FR4RowBase
 {
 	GENERATED_BODY()
 
-	FStatRow() : MaxHp(0.f), MaxMp(0.f), AttackDamage(0.f), CriticalRate(0.f), Defensive(0.f), MovementSpeed(0.f) {}
+	FStatRow() : Hp(0.f), HpRegenPerSec(0.f), Mp(0.f), MpRegenPerSec(0.f), AttackPower(0.f), Armor(0.f), CoolDownReduction(0.f), CriticalChance(0.f), BaseAttackSpeed(0.f), MovementSpeed(0.f) {}
 	
-	// 최대 체력
+	// 기본 체력
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
-	float MaxHp;
+	float Hp;
 
-	// 최대 마나
+	// 기본 초당 체력 재생력
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
-	float MaxMp;
+	float HpRegenPerSec;
+	
+	// 기본 마나
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
+	float Mp;
 
+	// 기본 초당 마나 재생력
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
+	float MpRegenPerSec;
+	
 	// 기본 공격력
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
-	float AttackDamage;
+	float AttackPower;
 
-	// 크리티컬 확률
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
-	float CriticalRate;
-	
 	// 방어력
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
-	float Defensive;
+	float Armor;
+	
+	// 치명타 확률
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
+	float CoolDownReduction;
+	
+	// 치명타 확률
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
+	float CriticalChance;
+
+	// 이동 속도
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
+	float BaseAttackSpeed;
 	
 	// 이동 속도
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
 	float MovementSpeed;
-
-	FStatRow& operator+=(const FStatRow& InRow)
-	{
-		MaxHp += InRow.MaxHp;
-		MaxMp += InRow.MaxMp;
-		AttackDamage += InRow.AttackDamage;
-		CriticalRate += InRow.CriticalRate;
-		Defensive += InRow.Defensive;
-		MovementSpeed += InRow.MovementSpeed;
-	
-		return *this;
-	}
 };
-
-inline FStatRow operator+(const FStatRow& InRowL, const FStatRow& InRowR)
-{
-	FStatRow ret;
-	ret.MaxHp = InRowL.MaxHp + InRowR.MaxHp;
-	ret.MaxMp = InRowL.MaxMp + InRowR.MaxMp;
-	ret.AttackDamage = InRowL.AttackDamage + InRowR.AttackDamage;
-	ret.CriticalRate = InRowL.CriticalRate + InRowR.CriticalRate;
-	ret.Defensive = InRowL.Defensive + InRowR.Defensive;
-	ret.MovementSpeed = InRowL.MovementSpeed + InRowR.MovementSpeed;
-	
-	return ret;
-}
 
 GENERATE_DT_PTR_H( FStatRow );

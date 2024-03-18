@@ -41,10 +41,10 @@ void FCharacterRow::LoadDataToCharacter(ACharacterBase* InCharacter) const
 	
 	///// Only Server /////
 	
-    // 스탯 컴포넌트에 기본 스탯을 적용.
+    // TODO : 스탯 컴포넌트에 기본 스탯을 적용.
     if (UR4StatComponent* statComp = InCharacter->FindComponentByClass<UR4StatComponent>())
     {
-	    statComp->Server_SetBaseStat(BaseStatRowPK);
+	    //statComp->Server_SetBaseStat(BaseStatRowPK);
     }
     
     // 스킬 컴포넌트에 스킬을 적용.

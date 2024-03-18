@@ -17,7 +17,7 @@ ACharacterBase::ACharacterBase(const FObjectInitializer& InObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	StatComp = CreateDefaultSubobject<UR4StatComponent>(TEXT("StatManageComp"));
+	StatComp = CreateDefaultSubobject<UR4StatComponent>(TEXT("StatComp"));
 
 	SkillComp = CreateDefaultSubobject<UR4SkillComponent>(TEXT("SkillComp"));
 }
@@ -29,9 +29,9 @@ void ACharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	// 스탯 변경시 적용한다.
-	StatComp->OnChangeTotalStat.AddUObject(this, &ACharacterBase::_ApplyTotalStat);
-	
+	// TODO : 스탯 변경시 적용한다.
+	// StatComp->OnChangeTotalStat.AddUObject(this, &ACharacterBase::_ApplyTotalStat);
+
 	// Character 테스트를 위한 Aurora 데이터 임시 로드
 	// TODO : 나중에 캐릭터에 따른 데이터 로드를 진행해야함.
 	const FCharacterRowPtr characterData(1);
@@ -55,8 +55,8 @@ void ACharacterBase::BeginPlay()
 void ACharacterBase::_ApplyTotalStat(const FStatRow& InBaseStat, const FStatRow& InModifierStat)
 {
 	// 이동 속도를 변경한다.
-	if(UR4CharacterMovementComponent* moveComp = Cast<UR4CharacterMovementComponent>(GetCharacterMovement()))
-	{
-		moveComp->SetMaxWalkSpeed(InBaseStat.MovementSpeed + InModifierStat.MovementSpeed);
-	}
+	// if(UR4CharacterMovementComponent* moveComp = Cast<UR4CharacterMovementComponent>(GetCharacterMovement()))
+	// {
+	// 	moveComp->SetMaxWalkSpeed(InBaseStat.MovementSpeed + InModifierStat.MovementSpeed);
+	// }
 }
