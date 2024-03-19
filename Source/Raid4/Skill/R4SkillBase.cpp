@@ -84,18 +84,14 @@ void UR4SkillBase::ServerRPC_ActivateSkill_Implementation(float InActivateTime)
 {
 	// 스킬 사용시간 기록
 	CachedLastActivateTime = InActivateTime;
-	
+
+	// TODO : AIController 일때를 대비해서 Interface로 빼면 참 좋겠다 그지?
 	if(ACharacter* owner = Cast<ACharacter>(GetOwner()))
 	{
-		for (AR4PlayerController* playerController : TActorRange<AR4PlayerController>(GetWorld()))
+		if(AR4PlayerController* controller = Cast<AR4PlayerController>(owner->GetController()))
 		{
-			// 이 액터를 움직인 컨트롤러를 제외한 나머지에게 애니메이션을 플레이 시킨다.
-			if(playerController && (owner->GetController() != playerController))
-			{
-				playerController->ClientRPC_StopAnimMontage(owner, nullptr);
-				playerController->ClientRPC_PlayAnimMontage(owner, SkillAnim);
-			}
+			// 클라에서 바로 요청해도 되긴 하는데 Validate 체크를 위해 server에서 호출
+			controller->ServerRPC_NotifyPlayAnimMontage(owner, SkillAnim);
 		}
 	}
 }
-

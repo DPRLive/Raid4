@@ -49,6 +49,6 @@ private:
 	// 스킬 쿨타임을 위한 CoolTimeHandler
 	//TUniquePtr<FCoolTimeHandler> CoolTimeHandler;
 	
-	// 마지막으로 발동한 시간
+	// 마지막으로 발동한 시간 (서버)
 	float CachedLastActivateTime;
 };
