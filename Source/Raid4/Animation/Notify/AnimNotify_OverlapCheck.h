@@ -5,6 +5,26 @@
 #include <Animation/AnimNotifies/AnimNotify.h>
 #include "AnimNotify_OverlapCheck.generated.h"
 
+class UNiagaraSystem;
+
+/**
+ * Overlap 시 출력할 Effect 정보
+ * TODO : 오버랩 이펙트 관련 헤더따로 만들기, util effect로 빼보기, controller에 RPC들 모은 component 만들기
+ */
+USTRUCT()
+struct FOverlapEffectInfo
+{
+	GENERATED_BODY()
+	
+	// 출력할 Particle
+	UPROPERTY( EditAnywhere )
+	TSoftObjectPtr<UNiagaraSystem> Particle;
+
+	// 출력할 타입
+	UPROPERTY( EditAnywhere )
+	EOverlapEffectType EffectType;
+};
+
 /**
  * Overlap을 체크하는 Notify
  */
@@ -21,6 +41,9 @@ public:
 private:
 	// Overlap 결과를 처리
 	void _ProcessOverlapActor(const AActor* InActor) const;
+
+	// Effect를 출력
+	void _SpawnNiagara(const AActor* InInstigator, const FOverlapResult& InResult) const;
 private:
 	// Overlap할 형태 결정
 	UPROPERTY( EditAnywhere, Category="AnimNotify", meta =(AllowPrivateAccess = true) )
@@ -51,6 +74,10 @@ private:
 	UPROPERTY( EditAnywhere, Category="AnimNotify", meta =(AllowPrivateAccess = true) )
 	FName Profile;
 
+	// Overlap 시 출력할 파티클들
+	UPROPERTY( EditAnywhere, Category="AnimNotify", meta =(AllowPrivateAccess = true) )
+	TArray<FOverlapEffectInfo> Particles;
+	
 	// Debug 할 것인지 설정
 	UPROPERTY( EditAnywhere, Category="Debug", meta =(AllowPrivateAccess = true) )
 	uint8 bDrawDebug:1;

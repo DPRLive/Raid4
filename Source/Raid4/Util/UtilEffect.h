@@ -11,5 +11,10 @@ namespace UtilEffect
 	/**
 	* Niagara System을 생성한다. ( 로컬에서만, 멀티 X )
 	*/
-	UNiagaraComponent* SpawnNiagaraAtLocation_Local(const TSoftObjectPtr<UNiagaraSystem>& InNiagaraSystem, const FVector& InLocation, const FRotator& InRotation, const FVector& InScale, UWorld* InWorld = nullptr);
+	UNiagaraComponent* SpawnNiagaraAtLocation_Local(const TSoftObjectPtr<UNiagaraSystem>& InNiagaraSystem, const FVector& InLocation, const FRotator& InRotation, const FVector& InScale, const UWorld* InWorld = nullptr);
+
+	/**
+	* Niagara System을 생성하여 Attach 한다. ( 로컬에서만, 멀티 X )
+	*/
+	UNiagaraComponent* SpawnNiagaraAttached_Local(const TSoftObjectPtr<UNiagaraSystem>& InNiagaraSystem, USceneComponent* InAttachComp, FName InSocketName, const FVector& InLocation, const FRotator& InRotation );
 }

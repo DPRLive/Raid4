@@ -3,6 +3,7 @@
 
 #include "AnimNotify_OverlapCheck.h"
 #include "../../Util/UtilOverlap.h"
+#include "../../Controller/R4PlayerController.h"
 
 #include <Components/SkeletalMeshComponent.h>
 #include <GameFramework/Pawn.h>
@@ -63,6 +64,7 @@ void UAnimNotify_OverlapCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 		for (const FOverlapResult& overlapResult : overlapResults)
 		{
 			_ProcessOverlapActor(overlapResult.GetActor());
+			_SpawnNiagara(owner, overlapResult);
 		}
 	}
 }
@@ -78,4 +80,50 @@ void UAnimNotify_OverlapCheck::_ProcessOverlapActor(const AActor* InActor) const
 	
 	// 여기에서 로직 처리
 	LOG_SCREEN(FColor::Purple, TEXT("%s Overlap!"), *InActor->GetName());
+
+	
+}
+
+/**
+ *	Effect를 처리한다.
+ *	@param InInstigator : 오버랩을 시전한 액터
+ *	@param InResult : 오버랩 결과
+ */
+void UAnimNotify_OverlapCheck::_SpawnNiagara(const AActor* InInstigator, const FOverlapResult& InResult) const
+{
+	const APawn* owner = Cast<APawn>(InInstigator);
+	if(owner == nullptr)
+		return;
+
+	// TODO : AIController를 고려해야함
+	AR4PlayerController* controller = Cast<AR4PlayerController>(owner->GetController());
+	if(controller == nullptr)
+		return;
+	// TODO : Cascade를 추가해야 에셋들을 좀 쓰겄는디..;
+	for(const auto& [particle, type] : Particles)
+	{
+		FVector closestPoint;
+		switch (type)
+		{
+		case EOverlapEffectType::ClosestPoint:
+			InResult.GetComponent()->GetClosestPointOnCollision(InInstigator->GetActorLocation(), closestPoint);
+			
+			UtilEffect::SpawnNiagaraAtLocation_Local(particle, closestPoint, owner->GetActorRotation(), FVector(1.f), controller->GetWorld());
+			controller->ServerRPC_NotifySpawnNiagaraAtLocation(particle, closestPoint, owner->GetActorRotation(), FVector(1.f), controller->GetWorld());
+			break;
+
+		case EOverlapEffectType::Instigator:
+			UtilEffect::SpawnNiagaraAttached_Local(particle, owner->GetRootComponent(), EName::None, FVector(0.f), owner->GetActorRotation());
+			controller->ServerRPC_NotifySpawnNiagaraAttached(particle, owner->GetRootComponent(), EName::None, FVector(0.f), owner->GetActorRotation());
+			break;
+
+		case EOverlapEffectType::OverlappedActor:
+			if(InResult.GetActor() == nullptr)
+				break;
+			
+			UtilEffect::SpawnNiagaraAttached_Local(particle, InResult.GetActor()->GetRootComponent(), EName::None, FVector(0.f), InResult.GetActor()->GetActorRotation());
+			controller->ServerRPC_NotifySpawnNiagaraAttached(particle, InResult.GetActor()->GetRootComponent(), EName::None, FVector(0.f), InResult.GetActor()->GetActorRotation());
+			break;
+		}
+	}
 }
