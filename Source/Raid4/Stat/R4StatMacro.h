@@ -44,3 +44,22 @@
     R4STAT_CURRENT_VALUE_GETTER( Name )            \
     R4STAT_CURRENT_VALUE_SETTER( Name )            \
     R4STAT_CURRENT_VALUE_DELEGATE( Name )          
+
+/**
+ * OnRep 시 바뀐 데이터를 Broadcast하기 위한 Macro.
+ * Shadow data와 비교해서 바뀐것만 broadcast
+ */
+#define R4STAT_STAT_OnRep( Now, Prev ) \
+    if(!FMath::IsNearlyEqual(Now.GetBaseValue(), Prev.GetBaseValue()) || !FMath::IsNearlyEqual(Now.GetModifierValue(), Prev.GetModifierValue())) \
+    {                                                                                                                                            \
+        if(Now.OnChangeStatData.IsBound())                                                                                                       \
+            Now.OnChangeStatData.Broadcast(Now.GetBaseValue(), Now.GetModifierValue());                                                          \
+    }
+
+#define R4STAT_CONSUMABLE_STAT_OnRep( Now, Prev ) \
+    R4STAT_STAT_OnRep( Now, Prev )                                              \
+    if(!FMath::IsNearlyEqual(Now.GetCurrentValue(), Prev.GetCurrentValue()))    \
+    {                                                                           \
+        if(Now.OnChangeCurrentValue.IsBound())                                  \
+            Now.OnChangeCurrentValue.Broadcast(Now.GetCurrentValue());          \
+    }

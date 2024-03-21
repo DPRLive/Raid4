@@ -100,6 +100,7 @@ void ACharacterBase::_InitStatData(FPriKey InStatPk)
 {
 	// TODO : Bind Stats
 	// 이동속도 설정 바인드
+	// TODO : Server / Client 나눠야함. 이렇게 위에서 저기서 호출하면 CLient가 bind를 못함
 	StatComp->GetOnChangeMovementSpeed().AddUObject(this, &ACharacterBase::_ApplyMovementSpeed);
 	
 	StatComp->InitStat(InStatPk);
