@@ -27,8 +27,11 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	// 스탯을 적용한다.
-	void _ApplyTotalStat(const FStatRow& InBaseStat, const FStatRow& InModifierStat);
+	// 주어진 스탯 key로 스탯을 초기화한다.
+	void _InitStat(FPriKey InStatPk);
+	
+	// 이동 속도를 적용한다.
+	void _ApplyMovementSpeed(float InBaseMovementSpeed, float InModifierMovementSpeed) const;
 
 protected:
 	// 스탯 기능을 부여해주는 Stat Component

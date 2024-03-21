@@ -29,16 +29,16 @@ void ACharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	// TODO : 스탯 변경시 적용한다.
-	// StatComp->OnChangeTotalStat.AddUObject(this, &ACharacterBase::_ApplyTotalStat);
-
 	// Character 테스트를 위한 Aurora 데이터 임시 로드
 	// TODO : 나중에 캐릭터에 따른 데이터 로드를 진행해야함.
+	// TODO : 그냥 읽어오는식으로 변경 필요
 	const FCharacterRowPtr characterData(1);
 	if(!characterData.IsValid())
 		return;
 	
 	characterData.GetRow()->LoadDataToCharacter(this);
+
+	_InitStat(characterData->BaseStatRowPK);
 }
 
 /**
@@ -50,13 +50,25 @@ void ACharacterBase::BeginPlay()
 }
 
 /**
- *  변경된 스탯을 적용한다.
+ *  스탯을 초기화한다.
  */
-void ACharacterBase::_ApplyTotalStat(const FStatRow& InBaseStat, const FStatRow& InModifierStat)
+void ACharacterBase::_InitStat(FPriKey InStatPk)
+{
+	// TODO : Bind Stats
+	// 이동속도 설정 바인드
+	StatComp->GetOnChangeMovementSpeed().AddUObject(this, &ACharacterBase::_ApplyMovementSpeed);
+	
+	StatComp->InitStat(InStatPk);
+}
+
+/**
+ *  이동 속도를 적용한다.
+ */
+void ACharacterBase::_ApplyMovementSpeed(float InBaseMovementSpeed, float InModifierMovementSpeed) const
 {
 	// 이동 속도를 변경한다.
-	// if(UR4CharacterMovementComponent* moveComp = Cast<UR4CharacterMovementComponent>(GetCharacterMovement()))
-	// {
-	// 	moveComp->SetMaxWalkSpeed(InBaseStat.MovementSpeed + InModifierStat.MovementSpeed);
-	// }
+	if(UR4CharacterMovementComponent* moveComp = GetCharacterMovement<UR4CharacterMovementComponent>())
+	{
+		moveComp->SetMaxWalkSpeed(InBaseMovementSpeed + InModifierMovementSpeed);
+	}
 }
