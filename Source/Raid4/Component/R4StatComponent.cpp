@@ -48,7 +48,10 @@ void UR4StatComponent::InitStat(FPriKey InPk)
 {
 	const FStatRowPtr statPtr(InPk);
 	if(!statPtr.IsValid())
+	{
+		LOG_ERROR(R4Data, TEXT("StatData is Invalid. PK : [%d]"), InPk);
 		return;
+	}
 
 	InitHp(statPtr->Hp);
 	InitHpRegenPerSec(statPtr->HpRegenPerSec);

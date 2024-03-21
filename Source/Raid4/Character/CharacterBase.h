@@ -27,8 +27,11 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	// 주어진 스탯 key로 스탯을 초기화한다.
-	void _InitStat(FPriKey InStatPk);
+	// 주어진 Character Data PK로 데이터를 읽어 초기화한다.
+	void _InitCharacterData(FPriKey InCharacterDataPk);
+	
+	// 주어진 스탯 Data로 스탯을 초기화한다.
+	void _InitStatData(FPriKey InStatPk);
 	
 	// 이동 속도를 적용한다.
 	void _ApplyMovementSpeed(float InBaseMovementSpeed, float InModifierMovementSpeed) const;
