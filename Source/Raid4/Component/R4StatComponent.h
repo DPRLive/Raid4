@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "../Data/DataTable/Row/StatRow.h"
 #include "../Stat/R4StatData.h"
 #include "../Stat/R4StatMacro.h"
 #include <Components/ActorComponent.h>
@@ -30,6 +29,10 @@ protected:
 	// Replicate 설정
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+public:
+	// 스탯을 주어진 Pk로 초기화한다.
+	void InitStat(FPriKey InPk);
+	
 public:
 	// Accessors
 	R4STAT_CONSUMABLE_STAT_ACCESSORS( Hp );

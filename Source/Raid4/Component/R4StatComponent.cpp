@@ -2,6 +2,7 @@
 
 
 #include "R4StatComponent.h"
+#include "../Data/DataTable/Row/StatRow.h"
 
 #include <Net/UnrealNetwork.h>
 
@@ -33,10 +34,30 @@ void UR4StatComponent::BeginPlay()
 }
 
 /**
- *  Replicate 설정
+ *  TODO : Replicate 설정
  */
 void UR4StatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
+/**
+ *  스탯을 주어진 Pk로 초기화한다.
+ */
+void UR4StatComponent::InitStat(FPriKey InPk)
+{
+	const FStatRowPtr statPtr(InPk);
+	if(!statPtr.IsValid())
+		return;
+
+	InitHp(statPtr->Hp);
+	InitHpRegenPerSec(statPtr->HpRegenPerSec);
+	InitMp(statPtr->Mp);
+	InitMpRegenPerSec(statPtr->MpRegenPerSec);
+	InitAttackPower(statPtr->MpRegenPerSec);
+	InitArmor(statPtr->Armor);
+	InitCoolDownReduction(statPtr->CoolDownReduction);
+	InitCriticalChance(statPtr->CriticalChance);
+	InitBaseAttackSpeed(statPtr->BaseAttackSpeed);
+	InitMovementSpeed(statPtr->MovementSpeed);
+}
