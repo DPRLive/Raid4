@@ -71,14 +71,14 @@ void ACharacterBase::_InitCharacterData(FPriKey InCharacterDataPk)
 		// 애니메이션 설정
 		meshComp->SetAnimInstanceClass(characterData->AnimInstance);
 	}
+
+	// 스탯 초기화
+	_InitStatData(characterData->BaseStatRowPK);
 	
 	if (!HasAuthority())
 		return;
 
 	///// Only Server /////
-	
-	// 스탯 초기화
-	_InitStatData(characterData->BaseStatRowPK);
 
 	// 스킬 컴포넌트에 스킬을 적용.
 	// TODO : 배열 주면 Skill Comp에서 읽어가게 하는게 좋을거 같단말이야
@@ -100,10 +100,11 @@ void ACharacterBase::_InitStatData(FPriKey InStatPk)
 {
 	// TODO : Bind Stats
 	// 이동속도 설정 바인드
-	// TODO : Server / Client 나눠야함. 이렇게 위에서 저기서 호출하면 CLient가 bind를 못함
 	StatComp->GetOnChangeMovementSpeed().AddUObject(this, &ACharacterBase::_ApplyMovementSpeed);
-	
-	StatComp->InitStat(InStatPk);
+
+	// 실제로 DT에서 Stat Data를 넣는것은 Server
+	if(HasAuthority())
+		StatComp->InitStat(InStatPk);
 }
 
 /**

@@ -15,7 +15,9 @@ USTRUCT()
 struct FOverlapEffectInfo
 {
 	GENERATED_BODY()
-	
+
+	FOverlapEffectInfo() : EffectType(EOverlapEffectType::ClosestPoint) {}
+
 	// 출력할 Particle
 	UPROPERTY( EditAnywhere )
 	TSoftObjectPtr<UNiagaraSystem> Particle;
