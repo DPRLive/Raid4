@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include "../R4RowBase.h"
-#include "../../../Interface/R4CharacterDataInterface.h"
 #include "CharacterRow.generated.h"
 
 class USkeletalMesh;

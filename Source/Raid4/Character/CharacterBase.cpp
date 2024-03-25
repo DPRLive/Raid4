@@ -37,7 +37,7 @@ void ACharacterBase::PostInitializeComponents()
 
 	// Character 테스트를 위한 Aurora 데이터 임시 로드
 	// TODO : 나중에 캐릭터에 따른 데이터 로드를 진행해야함.
-	_InitCharacterData(1);
+	InitCharacterData(1);
 	
 }
 
@@ -53,7 +53,7 @@ void ACharacterBase::BeginPlay()
  *  주어진 스탯 Data로 스탯을 초기화한다.
  *  @param InCharacterDataPk : Character DT의 primary key
  */
-void ACharacterBase::_InitCharacterData(FPriKey InCharacterDataPk)
+void ACharacterBase::InitCharacterData(FPriKey InCharacterDataPk)
 {
 	const FCharacterRowPtr characterData(InCharacterDataPk);
 	if(!characterData.IsValid())
@@ -73,7 +73,7 @@ void ACharacterBase::_InitCharacterData(FPriKey InCharacterDataPk)
 	}
 
 	// 스탯 초기화
-	_InitStatData(characterData->BaseStatRowPK);
+	InitStatData(characterData->BaseStatRowPK);
 	
 	if (!HasAuthority())
 		return;
@@ -96,11 +96,11 @@ void ACharacterBase::_InitCharacterData(FPriKey InCharacterDataPk)
  *  주어진 스탯 Data로 스탯을 초기화한다.
  *  @param InStatPk : Stat DT의 primary key
  */
-void ACharacterBase::_InitStatData(FPriKey InStatPk)
+void ACharacterBase::InitStatData(FPriKey InStatPk)
 {
 	// TODO : Bind Stats
 	// 이동속도 설정 바인드
-	StatComp->GetOnChangeMovementSpeed().AddUObject(this, &ACharacterBase::_ApplyMovementSpeed);
+	StatComp->GetOnChangeMovementSpeed().AddUObject(this, &ACharacterBase::ApplyMovementSpeed);
 
 	// 실제로 DT에서 Stat Data를 넣는것은 Server
 	if(HasAuthority())
@@ -110,7 +110,7 @@ void ACharacterBase::_InitStatData(FPriKey InStatPk)
 /**
  *  이동 속도를 적용한다.
  */
-void ACharacterBase::_ApplyMovementSpeed(float InBaseMovementSpeed, float InModifierMovementSpeed) const
+void ACharacterBase::ApplyMovementSpeed(float InBaseMovementSpeed, float InModifierMovementSpeed) const
 {
 	// 이동 속도를 변경한다.
 	if(UR4CharacterMovementComponent* moveComp = GetCharacterMovement<UR4CharacterMovementComponent>())

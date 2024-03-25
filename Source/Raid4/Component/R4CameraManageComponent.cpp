@@ -2,7 +2,7 @@
 
 
 #include "R4CameraManageComponent.h"
-#include "../Data/DataAsset/R4DACameraInitData.h"
+#include "..\Data\DataAsset\R4DAPCCommonData.h"
 #include "../Character/CharacterBase.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4CameraManageComponent)
@@ -19,11 +19,7 @@ UR4CameraManageComponent::UR4CameraManageComponent()
 void UR4CameraManageComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-
-	if(ACharacterBase* character = Cast<ACharacterBase>(GetOwner()); CameraInitData != nullptr)
-	{
-		CameraInitData->LoadDataToCharacter(character);
-	}
+	
 }
 
 /**

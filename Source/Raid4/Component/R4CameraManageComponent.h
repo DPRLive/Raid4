@@ -4,8 +4,6 @@
 #include <Components/ActorComponent.h>
 #include "R4CameraManageComponent.generated.h"
 
-class UR4DACameraInitData;
-
 /**
  *  Player의 Camera를 관리해주는 컴포넌트
  */
@@ -22,9 +20,5 @@ public:
 	
 protected:
 	virtual void BeginPlay() override;
-
-private:
-	// 초기 카메라 데이터
-	UPROPERTY( EditAnywhere, Category = "Data", meta = (AllowPrivateAccess = true) )
-	TObjectPtr<UR4DACameraInitData> CameraInitData;
+	
 };

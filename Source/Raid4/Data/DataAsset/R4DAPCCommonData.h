@@ -3,20 +3,29 @@
 #pragma once
 
 #include <Engine/DataAsset.h>
-#include "../../Interface/R4CharacterDataInterface.h"
-#include "R4DACameraInitData.generated.h"
+#include "R4DAPCCommonData.generated.h"
 
 /**
- * PlayerCharacter 가 사용할 초기 Camera Data  
+ * 모든 PlayerCharacter가 사용할 초기 Data  
  */
 UCLASS()
-class RAID4_API UR4DACameraInitData : public UPrimaryDataAsset, public IR4CharacterDataInterface
+class RAID4_API UR4DAPCCommonData : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 public:
-	UR4DACameraInitData();
-	
-	virtual void LoadDataToCharacter(ACharacterBase* InCharacter) const override;
+	UR4DAPCCommonData() :
+	bUseControllerRotationYaw(false),
+	bOrientRotationToMovement(false),
+	bUseControllerDesiredRotation(false),
+	RotationRate(FRotator()),
+	TargetArmLength(0.f),
+	RelativeRotation(FRotator()),
+	bUsePawnControlRotation(false),
+	bInheritPitch(false),
+	bInheritYaw(false),
+	bInheritRoll(false),
+	bDoCollisionTest(false)
+	{ }
 	
 	UPROPERTY( EditAnywhere, Category = "Pawn" )
 	uint8 bUseControllerRotationYaw : 1;

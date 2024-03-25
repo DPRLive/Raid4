@@ -5,9 +5,11 @@
 #include "../Component/R4PlayerInputComponent.h"
 #include "../Component/R4CameraManageComponent.h"
 #include "../Component/R4PlayerSkillComponent.h"
+#include "../Data/DataAsset/R4DAPCCommonData.h"
 
 #include <Camera/CameraComponent.h>
 #include <GameFramework/SpringArmComponent.h>
+#include <GameFramework/CharacterMovementComponent.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(PlayerCharacter)
 
@@ -40,6 +42,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& InObjectInitializer
 void APlayerCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
+	_InitPlayerCharacterCommonData();
 }
 
 /**
@@ -92,4 +96,33 @@ void APlayerCharacter::OnInputSkillCompleted(ESkillIndex InSkillIndex)
 	{
 		skillComp->OnInputSkillCompleted(InSkillIndex);
 	}
+}
+
+/**
+ *  PlayerCharacter들의 공통된 데이터를 초기화한다.  
+ */
+void APlayerCharacter::_InitPlayerCharacterCommonData()
+{
+	if(PlayerCharacterCommonData == nullptr)
+	{
+		LOG_ERROR(R4Data, TEXT("PlayerCharacterCommonData is nullptr."));
+		return;
+	}
+
+	bUseControllerRotationYaw = PlayerCharacterCommonData->bUseControllerRotationYaw;
+	
+	if (UCharacterMovementComponent* moveComp = GetCharacterMovement())
+	{
+		moveComp->bOrientRotationToMovement = PlayerCharacterCommonData->bOrientRotationToMovement;
+		moveComp->bUseControllerDesiredRotation = PlayerCharacterCommonData->bUseControllerDesiredRotation;
+		moveComp->RotationRate = PlayerCharacterCommonData->RotationRate;
+	}
+
+	SpringArmComp->TargetArmLength = PlayerCharacterCommonData->TargetArmLength;
+	SpringArmComp->SetRelativeRotation(PlayerCharacterCommonData->RelativeRotation);
+	SpringArmComp->bUsePawnControlRotation = PlayerCharacterCommonData->bUsePawnControlRotation;
+	SpringArmComp->bInheritPitch = PlayerCharacterCommonData->bInheritPitch;
+	SpringArmComp->bInheritYaw = PlayerCharacterCommonData->bInheritYaw;
+	SpringArmComp->bInheritRoll = PlayerCharacterCommonData->bInheritRoll;
+	SpringArmComp->bDoCollisionTest = PlayerCharacterCommonData->bDoCollisionTest;
 }
