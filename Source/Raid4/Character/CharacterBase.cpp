@@ -37,7 +37,7 @@ void ACharacterBase::PostInitializeComponents()
 
 	// Character 테스트를 위한 Aurora 데이터 임시 로드
 	// TODO : 나중에 캐릭터에 따른 데이터 로드를 진행해야함.
-	InitCharacterData(1);
+	InitializeByDTPriKey(1);
 	
 }
 
@@ -50,15 +50,15 @@ void ACharacterBase::BeginPlay()
 }
 
 /**
- *  주어진 스탯 Data로 스탯을 초기화한다.
- *  @param InCharacterDataPk : Character DT의 primary key
+ *  주어진 Character Data PK로 데이터를 읽어 초기화한다.
+ *  @param InPk : Character DT의 primary key
  */
-void ACharacterBase::InitCharacterData(FPriKey InCharacterDataPk)
+void ACharacterBase::InitializeByDTPriKey(FPriKey InPk)
 {
-	const FCharacterRowPtr characterData(InCharacterDataPk);
+	const FCharacterRowPtr characterData(InPk);
 	if(!characterData.IsValid())
 	{
-		LOG_ERROR(R4Data, TEXT("CharacterData is Invalid. PK : [%d]"), InCharacterDataPk);
+		LOG_ERROR(R4Data, TEXT("CharacterData is Invalid. PK : [%d]"), InPk);
 		return;
 	}
 	
@@ -72,8 +72,8 @@ void ACharacterBase::InitCharacterData(FPriKey InCharacterDataPk)
 		meshComp->SetAnimInstanceClass(characterData->AnimInstance);
 	}
 
-	// 스탯 초기화
-	InitStatData(characterData->BaseStatRowPK);
+	// 스탯 컴포넌트 초기화
+	InitStatComponent(characterData->BaseStatRowPK);
 	
 	if (!HasAuthority())
 		return;
@@ -93,10 +93,10 @@ void ACharacterBase::InitCharacterData(FPriKey InCharacterDataPk)
 }
 
 /**
- *  주어진 스탯 Data로 스탯을 초기화한다.
+ *  StatComp와 필요한 초기화를 진행한다
  *  @param InStatPk : Stat DT의 primary key
  */
-void ACharacterBase::InitStatData(FPriKey InStatPk)
+void ACharacterBase::InitStatComponent(FPriKey InStatPk)
 {
 	// TODO : Bind Stats
 	// 이동속도 설정 바인드
@@ -104,7 +104,7 @@ void ACharacterBase::InitStatData(FPriKey InStatPk)
 
 	// 실제로 DT에서 Stat Data를 넣는것은 Server
 	if(HasAuthority())
-		StatComp->InitStat(InStatPk);
+		StatComp->InitializeByDTPriKey(InStatPk);
 }
 
 /**

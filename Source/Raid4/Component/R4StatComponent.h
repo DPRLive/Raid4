@@ -4,6 +4,8 @@
 
 #include "../Stat/R4StatData.h"
 #include "../Stat/R4StatMacro.h"
+#include "../Interface/R4DTBasedInitable.h"
+
 #include <Components/ActorComponent.h>
 #include "R4StatComponent.generated.h"
 
@@ -12,7 +14,7 @@
  * TODO : OnRep 관련 기능 추가
  */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class RAID4_API UR4StatComponent : public UActorComponent
+class RAID4_API UR4StatComponent : public UActorComponent, public IR4DTBasedInitable
 {
 	GENERATED_BODY()
 	
@@ -30,8 +32,9 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
-	// 스탯을 주어진 Pk로 초기화한다.
-	void InitStat(FPriKey InPk);
+	// ~ Begin IR4DTBasedInitable (스탯을 주어진 Pk로 초기화한다. ( By DT_Stat))
+	virtual void InitializeByDTPriKey(FPriKey InPk) override; 
+	// ~ End IR4DTBasedInitable
 	
 public:
 	// Accessors

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "../Interface/R4DTBasedInitable.h"
+
 #include <GameFramework/Character.h>
 #include "CharacterBase.generated.h"
 
@@ -14,7 +16,7 @@ struct FStatRow;
  * (NPC, PlayerCharacter 등) 캐릭터에 베이스가 되는 클래스
  */
 UCLASS()
-class RAID4_API ACharacterBase : public ACharacter
+class RAID4_API ACharacterBase : public ACharacter, public IR4DTBasedInitable
 {
 	GENERATED_BODY()
 
@@ -26,12 +28,14 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-protected:
-	// 주어진 Character Data PK로 데이터를 읽어 초기화한다.
-	virtual void InitCharacterData(FPriKey InCharacterDataPk);
+public:
+	// ~ Begin IR4DTBasedInitable (Character의 데이터를 초기화한다. ( By DT_Character))
+	virtual void InitializeByDTPriKey(FPriKey InPk) override; 
+	// ~ End IR4DTBasedInitable
 	
-	// 주어진 스탯 Data로 스탯을 초기화한다.
-	virtual void InitStatData(FPriKey InStatPk);
+protected:
+	// StatComp와 필요한 초기화를 진행한다
+	virtual void InitStatComponent(FPriKey InStatPk);
 	
 	// 이동 속도를 적용한다.
 	virtual void ApplyMovementSpeed(float InBaseMovementSpeed, float InModifierMovementSpeed) const;
