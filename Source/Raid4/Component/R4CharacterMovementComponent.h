@@ -21,6 +21,9 @@ public:
 
 	// 속도를 변경한다.
 	void SetMaxWalkSpeed(float InMaxWalkSpeed);
+
+	// 특정 위치로 이동한다.
+	void MoveToLocation(AController* InController, const FVector& InLoc);
 private:
 	// 가속 -> 최고 속도 / 감속 -> 0 에 도달할때 걸리는 시간(seconds) 설정.
 	UPROPERTY( EditAnywhere, Category = "Setting", meta = (AllowPrivateAccess = true, ClampMin = "0.001", UIMin = "0.001") )

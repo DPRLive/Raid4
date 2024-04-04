@@ -3,6 +3,8 @@
 
 #include "R4CharacterMovementComponent.h"
 
+#include <Blueprint/AIBlueprintHelperLibrary.h>
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4CharacterMovementComponent)
 
 UR4CharacterMovementComponent::UR4CharacterMovementComponent()
@@ -37,4 +39,13 @@ void UR4CharacterMovementComponent::SetMaxWalkSpeed(float InMaxWalkSpeed)
 	MaxWalkSpeed = InMaxWalkSpeed;
 	MaxAcceleration = MaxWalkSpeed / AccelerationTime;
 	BrakingDecelerationWalking = MaxWalkSpeed / AccelerationTime;
+}
+
+/**
+ *	특정 위치로 이동한다.
+ *	@param InLoc : World Location
+ */
+void UR4CharacterMovementComponent::MoveToLocation(AController* InController, const FVector& InLoc)
+{
+	UAIBlueprintHelperLibrary::SimpleMoveToLocation(InController, InLoc);
 }

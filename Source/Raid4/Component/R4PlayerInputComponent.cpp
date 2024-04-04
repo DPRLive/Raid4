@@ -2,14 +2,14 @@
 
 
 #include "R4PlayerInputComponent.h"
-#include "../Character/PlayerCharacter.h"
-#include "../Interface/R4PlayerSkillInputInterface.h"
+#include "../Interface/R4PlayerSkillInputable.h"
+#include "../Interface/R4MouseMovable.h"
+#include "../Interface/R4PlayerInputCompInterface.h"
 
 #include <EnhancedInputComponent.h>
 #include <EnhancedInputSubsystems.h>
 #include <GameFramework/PlayerController.h>
 #include <Engine/LocalPlayer.h>
-#include <Blueprint/AIBlueprintHelperLibrary.h>
 #include <GameFramework/CharacterMovementComponent.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4PlayerInputComponent)
@@ -31,9 +31,9 @@ void UR4PlayerInputComponent::InitializeComponent()
 	Super::InitializeComponent();
 
 	// Input Init을 대기한다.
-	if(APlayerCharacter* player = Cast<APlayerCharacter>(GetOwner()))
+	if(IR4PlayerInputCompInterface* owner = Cast<IR4PlayerInputCompInterface>(GetOwner()))
 	{
-		player->OnSetupPlayerInput.AddUObject(this, &UR4PlayerInputComponent::_InitializePlayerInput);
+		owner->GetOnSetupPlayerInput().AddUObject(this, &UR4PlayerInputComponent::_InitializePlayerInput);
 	}
 }
 
@@ -70,14 +70,14 @@ void UR4PlayerInputComponent::_InitializePlayerInput(UInputComponent* InPlayerIn
 		}
 	}
 
-	APawn* owner = Cast<APawn>(GetOwner());
+	IR4PlayerInputCompInterface* owner = Cast<IR4PlayerInputCompInterface>(GetOwner());
 	if(owner == nullptr)
 	{
-		LOG_WARN(R4Input, TEXT("Owner is nullptr."));
+		LOG_ERROR(R4Input, TEXT("Owner does not implement IR4PlayerInputCompInterface."));
 		return;
 	}
 
-	APlayerController* playerController = Cast<APlayerController>(owner->GetController());
+	const APlayerController* playerController = owner->GetPlayerController();
 	if(playerController == nullptr)
 	{
 		LOG_WARN(R4Input, TEXT("Owner's Controller is nullptr."));
@@ -102,9 +102,9 @@ void UR4PlayerInputComponent::_InitializePlayerInput(UInputComponent* InPlayerIn
  */
 void UR4PlayerInputComponent::OnInputMoveStarted()
 {
-	if(ACharacter* owner = Cast<ACharacter>(GetOwner()))
+	if(IR4MouseMovable* owner = Cast<IR4MouseMovable>(GetOwner()))
 	{
-		owner->GetMovementComponent()->StopMovementImmediately();
+		owner->StopMove();
 	}
 }
 
@@ -113,30 +113,30 @@ void UR4PlayerInputComponent::OnInputMoveStarted()
  */
 void UR4PlayerInputComponent::OnInputMoveTriggered()
 {
-	APawn* owner = Cast<APawn>(GetOwner());
-	if(owner == nullptr)
+	CachedTriggerTime += GetWorld()->GetDeltaSeconds();
+
+	IR4MouseMovable* mouseMoveObj = Cast<IR4MouseMovable>(GetOwner());
+	if(mouseMoveObj == nullptr)
 	{
 		LOG_WARN(R4Input, TEXT("Owner is nullptr."));
 		return;
 	}
 	
-	APlayerController* playerController = Cast<APlayerController>(owner->GetController());
-	if(playerController == nullptr)
+	APlayerController* playerController = nullptr;
+	if(IR4PlayerInputCompInterface* owner = Cast<IR4PlayerInputCompInterface>(GetOwner()))
 	{
-		LOG_WARN(R4Input, TEXT("Owner's Controller is nullptr."));
-		return;
+		playerController = owner->GetPlayerController();
 	}
 
-	CachedTriggerTime += GetWorld()->GetDeltaSeconds();
-	
 	FHitResult hit;
-	if(playerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, hit))
+	if(AActor* ownerActor = GetOwner(); ownerActor != nullptr && playerController != nullptr &&
+		playerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, hit))
 	{
-		FVector dir = hit.Location - owner->GetActorLocation();
+		FVector dir = hit.Location - ownerActor->GetActorLocation();
 		dir.Z = 0.f;
 		dir.Normalize();
 		
-		owner->AddMovementInput(dir);
+		mouseMoveObj->AddMovement(dir);
 		CachedLastHitLocation = hit.Location;
 	}
 }
@@ -146,30 +146,23 @@ void UR4PlayerInputComponent::OnInputMoveTriggered()
  */
 void UR4PlayerInputComponent::OnInputMoveCompleted()
 {
-	ACharacter* owner = Cast<ACharacter>(GetOwner());
-	if(owner == nullptr)
+	IR4MouseMovable* mouseMoveObj = Cast<IR4MouseMovable>(GetOwner());
+	if(mouseMoveObj == nullptr)
 	{
 		LOG_WARN(R4Input, TEXT("Owner is nullptr."));
-		return;
-	}
-
-	APlayerController* playerController = Cast<APlayerController>(owner->GetController());
-	if(playerController == nullptr)
-	{
-		LOG_WARN(R4Input, TEXT("Owner's Controller is nullptr."));
 		return;
 	}
 
 	// 짧은 입력이면, 위치로 이동 실행
 	if(CachedTriggerTime < ShortTriggerThreshold)
 	{
-		UAIBlueprintHelperLibrary::SimpleMoveToLocation(playerController, CachedLastHitLocation);
 		UtilEffect::SpawnNiagaraAtLocation_Local(FXCursor, CachedLastHitLocation, FRotator::ZeroRotator, FVector(1.f), GetWorld());
+		mouseMoveObj->MoveToLocation(CachedLastHitLocation);
 	}
 	else
 	{
 		// 긴 입력이었다면, 멈춤
-		owner->GetMovementComponent()->StopMovementImmediately();
+		mouseMoveObj->StopMove();
 	}
 	
 	CachedTriggerTime = 0.f;
@@ -180,7 +173,7 @@ void UR4PlayerInputComponent::OnInputMoveCompleted()
  */
 void UR4PlayerInputComponent::OnInputSkillStarted(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
-	if(IR4PlayerSkillInputInterface* owner = Cast<IR4PlayerSkillInputInterface>(GetOwner()))
+	if(IR4PlayerSkillInputable* owner = Cast<IR4PlayerSkillInputable>(GetOwner()))
 	{
 		owner->OnInputSkillStarted(InSkillIndex);
 	}
@@ -191,7 +184,7 @@ void UR4PlayerInputComponent::OnInputSkillStarted(const FInputActionValue& InVal
  */
 void UR4PlayerInputComponent::OnInputSkillTriggered(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
-	if(IR4PlayerSkillInputInterface* owner = Cast<IR4PlayerSkillInputInterface>(GetOwner()))
+	if(IR4PlayerSkillInputable* owner = Cast<IR4PlayerSkillInputable>(GetOwner()))
 	{
 		owner->OnInputSkillTriggered(InSkillIndex);
 	}
@@ -202,7 +195,7 @@ void UR4PlayerInputComponent::OnInputSkillTriggered(const FInputActionValue& InV
  */
 void UR4PlayerInputComponent::OnInputSkillCompleted(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
-	if(IR4PlayerSkillInputInterface* owner = Cast<IR4PlayerSkillInputInterface>(GetOwner()))
+	if(IR4PlayerSkillInputable* owner = Cast<IR4PlayerSkillInputable>(GetOwner()))
 	{
 		owner->OnInputSkillCompleted(InSkillIndex);
 	}

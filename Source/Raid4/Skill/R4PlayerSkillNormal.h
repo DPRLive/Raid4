@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../Interface/R4PlayerSkillInterface.h"
+#include "..\Interface\R4PlayerInputable.h"
 #include "R4SkillBase.h"
 #include "R4PlayerSkillNormal.generated.h"
 
@@ -10,7 +10,7 @@
  * 플레이어 일반 입력 스킬 ( 누르면 발동하는 거 )
  */
 UCLASS( Blueprintable, BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class RAID4_API UR4PlayerSkillNormal : public UR4SkillBase, public IR4PlayerSkillInterface
+class RAID4_API UR4PlayerSkillNormal : public UR4SkillBase, public IR4PlayerInputable
 {
 	GENERATED_BODY()
 
@@ -18,11 +18,11 @@ public:
 	UR4PlayerSkillNormal();
 	
 	// 스킬 입력 시작
-	virtual void OnInputSkillStarted() override;
+	virtual void OnInputStarted() override;
 
 	// 스킬 입력 중
-	virtual void OnInputSkillTriggered() override;
+	virtual void OnInputTriggered() override;
 
 	// 스킬 입력 종료
-	virtual void OnInputSkillCompleted() override;
+	virtual void OnInputCompleted() override;
 };

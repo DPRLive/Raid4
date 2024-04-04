@@ -16,7 +16,7 @@ UR4PlayerSkillNormal::UR4PlayerSkillNormal()
  *  스킬 입력 시작
  *  Normal 스킬은 시작할 때 한 번 Activate함.
  */
-void UR4PlayerSkillNormal::OnInputSkillStarted()
+void UR4PlayerSkillNormal::OnInputStarted()
 {
     ActivateSkill();
 }
@@ -24,13 +24,13 @@ void UR4PlayerSkillNormal::OnInputSkillStarted()
 /**
  *  스킬 입력 중
  */
-void UR4PlayerSkillNormal::OnInputSkillTriggered()
+void UR4PlayerSkillNormal::OnInputTriggered()
 {
 }
 
 /**
  *  스킬 입력 종료
  */
-void UR4PlayerSkillNormal::OnInputSkillCompleted()
+void UR4PlayerSkillNormal::OnInputCompleted()
 {
 }

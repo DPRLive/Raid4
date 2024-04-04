@@ -87,3 +87,9 @@ Plugins/Developer/*
 
 #ignore ParagonAsset
 Content/*Paragon*
+
+#ignore KTP_Effect
+Content/KTP_Effect*
+
+#ignore Megapack
+Content/*Megapack*

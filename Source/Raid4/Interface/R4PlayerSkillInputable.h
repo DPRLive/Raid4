@@ -3,11 +3,11 @@
 #pragma once
 
 #include <UObject/Interface.h>
-#include "R4PlayerSkillInputInterface.generated.h"
+#include "R4PlayerSkillInputable.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UR4PlayerSkillInputInterface : public UInterface
+class UR4PlayerSkillInputable : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -15,7 +15,7 @@ class UR4PlayerSkillInputInterface : public UInterface
 /**
  * 플레이어의 스킬 입력을 받아야 할 때 사용
  */
-class RAID4_API IR4PlayerSkillInputInterface
+class RAID4_API IR4PlayerSkillInputable
 {
 	GENERATED_BODY()
 
