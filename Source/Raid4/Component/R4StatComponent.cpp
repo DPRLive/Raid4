@@ -58,7 +58,7 @@ void UR4StatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 /**
  *  스탯을 주어진 Pk로 초기화한다.
  */
-void UR4StatComponent::InitializeByDTPriKey(FPriKey InPk)
+void UR4StatComponent::PushDTData(FPriKey InPk)
 {
 	const FStatRowPtr statPtr(InPk);
 	if(!statPtr.IsValid())

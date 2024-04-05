@@ -37,7 +37,7 @@ void ACharacterBase::PostInitializeComponents()
 
 	// Character 테스트를 위한 Aurora 데이터 임시 로드
 	// TODO : 나중에 캐릭터에 따른 데이터 로드를 진행해야함.
-	InitializeByDTPriKey(1);
+	PushDTData(1);
 	
 }
 
@@ -53,7 +53,7 @@ void ACharacterBase::BeginPlay()
  *  주어진 Character Data PK로 데이터를 읽어 초기화한다.
  *  @param InPk : Character DT의 primary key
  */
-void ACharacterBase::InitializeByDTPriKey(FPriKey InPk)
+void ACharacterBase::PushDTData(FPriKey InPk)
 {
 	const FCharacterRowPtr characterData(InPk);
 	if(!characterData.IsValid())
@@ -104,7 +104,7 @@ void ACharacterBase::InitStatComponent(FPriKey InStatPk)
 
 	// 실제로 DT에서 Stat Data를 넣는것은 Server
 	if(HasAuthority())
-		StatComp->InitializeByDTPriKey(InStatPk);
+		StatComp->PushDTData(InStatPk);
 }
 
 /**

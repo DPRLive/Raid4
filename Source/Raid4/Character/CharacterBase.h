@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../Interface/R4DTBasedInitable.h"
+#include "..\Interface\R4DTDataPushable.h"
 
 #include <GameFramework/Character.h>
 #include "CharacterBase.generated.h"
@@ -16,7 +16,7 @@ struct FStatRow;
  * (NPC, PlayerCharacter 등) 캐릭터에 베이스가 되는 클래스
  */
 UCLASS()
-class RAID4_API ACharacterBase : public ACharacter, public IR4DTBasedInitable
+class RAID4_API ACharacterBase : public ACharacter, public IR4DTDataPushable
 {
 	GENERATED_BODY()
 
@@ -29,9 +29,9 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	// ~ Begin IR4DTBasedInitable (Character의 데이터를 초기화한다. ( By DT_Character))
-	virtual void InitializeByDTPriKey(FPriKey InPk) override; 
-	// ~ End IR4DTBasedInitable
+	// ~ Begin IR4DTDataPushable (Character의 데이터를 초기화한다. ( By DT_Character))
+	virtual void PushDTData(FPriKey InPk) override; 
+	// ~ End IR4DTDataPushable
 	
 protected:
 	// StatComp와 필요한 초기화를 진행한다
