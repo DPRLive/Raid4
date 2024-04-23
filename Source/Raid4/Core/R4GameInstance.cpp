@@ -2,6 +2,8 @@
 
 
 #include "R4GameInstance.h"
+
+#include "ActorPool.h"
 #include "../Manager/DataTableManager.h"
 #include "Raid4/Data/DataTable/Row/ExampleRow.h"
 
@@ -24,6 +26,7 @@ void UR4GameInstance::Init()
 
 	SingletonManager.InitSingletons();
 
+	// TODO : 테스트 코드를 지워용
 	FExampleRowPtr row(1);
 	if(!row.IsValid())
 		return;
@@ -47,4 +50,5 @@ void UR4GameInstance::Shutdown()
 void UR4GameInstance::_AddSingletons()
 {
 	ADD_SINGLETON( FDataTableManager );
+	ADD_SINGLETON( FActorPool );
 }
