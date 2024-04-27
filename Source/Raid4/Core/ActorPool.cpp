@@ -2,6 +2,7 @@
 
 void FActorPool::InitSingleton()
 {
+	
 }
 
 void FActorPool::ClearSingleton()
@@ -12,12 +13,10 @@ void FActorPool::ClearSingleton()
 
 /**
  *  해당 UClass에 맞는 Actor를 pool에서 꺼내온다.
- *  Class Default Object를 기준으로 EnableTick, EnableColliison 여부를 결정 
  *  @param InUClass : 꺼내고 싶은 Class의 UClass. TSubclassOf<>로 감싸진 경우 그대로 넘겨야함!
  */
 AActor* FActorPool::GetPoolActor(UClass* InUClass, const FTransform& InWorldTrans)
 {
-	//return _CreatePoolActor(InUClass);
 	if(InUClass == nullptr)
 	{
 		LOG_ERROR(R4Log, TEXT("InUClass is nullptr."));
@@ -25,8 +24,7 @@ AActor* FActorPool::GetPoolActor(UClass* InUClass, const FTransform& InWorldTran
 	}
 	
 	// reflection을 통한 type check
-	if(!ensureMsgf(InUClass->IsChildOf<AActor>() && InUClass->ImplementsInterface(UR4ActorPoolable::StaticClass()),
-	TEXT("ActorPoolable actor must inherit AActor and IR4ActorPoolable.")))
+	if(!ensureMsgf(InUClass->IsChildOf<APoolableActor>(), TEXT("ActorPoolable actor must inherit Abstract Class APoolableActor.")))
 		return nullptr;
 	
 	AActor* retActor = _TryGetValidPoolActor(InUClass->GetFName());
@@ -35,9 +33,9 @@ AActor* FActorPool::GetPoolActor(UClass* InUClass, const FTransform& InWorldTran
 	if(retActor == nullptr)
 		retActor = _CreatePoolActor(InUClass);
 	
-	// Interface로 구현한 작업 처리
-	if(IR4ActorPoolable* poolActor = Cast<IR4ActorPoolable>(retActor))
-		poolActor->PreGetPoolActor();
+	// PoolableActor를 사용하기 위한 사용자 로직 처리
+	if(APoolableActor* poolActor = Cast<APoolableActor>(retActor))
+		poolActor->PostGetPoolActor();
 	
 	retActor->SetActorTransform(InWorldTrans);
 	return retActor;
@@ -45,8 +43,7 @@ AActor* FActorPool::GetPoolActor(UClass* InUClass, const FTransform& InWorldTran
 
 /**
  *  오브젝트를 Pool에 반납한다.
- *  반납 전 EnableCollison (false), HiddenInGame(true), SetActorTickEnabled(false) 작업이 기본으로 진행되나
- *  Actor의 bHidden 속성 말고는 Replicate 되지 않으므로 주의
+ *  반납 전 EnableCollison (false), HiddenInGame(true), SetActorTickEnabled(false) 작업이 기본으로 진행
  *  @return : nullptr = 없음 
  */
 bool FActorPool::ReturnPoolActor(AActor* InPoolActor)
@@ -67,11 +64,11 @@ bool FActorPool::ReturnPoolActor(AActor* InPoolActor)
 	// ActorPoolIter에서 관리되고 있는 경우에만 반납 성공
 	if(auto it = ActorPoolIters.Find(className); it != nullptr && *it)
 	{
-		_DeactivateActor(InPoolActor);
-	
-		// Interface로 구현한 작업 처리
-		if(IR4ActorPoolable* poolActor = Cast<IR4ActorPoolable>(InPoolActor))
-			poolActor->PreReturnPoolActor();
+		if(APoolableActor* poolActor = Cast<APoolableActor>(InPoolActor))
+		{
+			poolActor->DeactivateActor();			
+			poolActor->PreReturnPoolActor(); // PoolableActor를 반납하기 위한 사용자 로직 처리
+		}
 
 		(**it).Value.PushLast(InPoolActor);
 		
@@ -97,7 +94,12 @@ AActor* FActorPool::_TryGetValidPoolActor(FName InClassName)
 	{
 		// TMap에 없거나 iter가 없어도 최근에 사용을 요청했으므로 일단 넣어는 둠
 		ActorPool.AddHead({InClassName, TDeque<TWeakObjectPtr<AActor>>()});
-		ActorPoolIters.Emplace(InClassName, ActorPool.GetHead());
+
+		// 적당히 10개 정도 용량 확보
+		auto head = ActorPool.GetHead();
+		head->GetValue().Value.Reserve(10);
+		
+		ActorPoolIters.Emplace(InClassName, head);
 		return nullptr;
 	}
 	
@@ -117,7 +119,12 @@ AActor* FActorPool::_TryGetValidPoolActor(FName InClassName)
 		if (poolActor.IsValid()) // 유효하면 return
 		{
 			AActor* retActor = poolActor.Get();
-			_ActivateActor(retActor);
+			
+			if(APoolableActor* poolableActor = Cast<APoolableActor>(retActor))
+			{
+				poolableActor->ActivateActor();	// 활성화
+			}
+			
 			return retActor;
 		}
 	}
@@ -170,41 +177,4 @@ void FActorPool::_TrimPool()
 				return;
 		}
 	}
-}
-
-/**
- *  Pool에서 꺼낸 Actor를 활성화
- *  @param InPoolActor : Pool에서 꺼낸 액터
- */
-void FActorPool::_ActivateActor(AActor* InPoolActor)
-{
-	if(!::IsValid(InPoolActor))
-		return;
-	
-	// TODO : Tick on, off 자식까지 전파 안되니 처리 필요 enable collision, hidden 도 자식까지 전파 안되나 .. ?
-	UClass* uClass = InPoolActor->GetClass();
-	if(uClass == nullptr)
-		return;
-
-	// CDO대로 Actor Tick과 Collision Enable
-	if(AActor* defaultObj = uClass->GetDefaultObject<AActor>())
-	{
-		InPoolActor->SetNetDormancy(DORM_DormantAll);
-		InPoolActor->SetActorHiddenInGame(defaultObj->IsHidden());
-		InPoolActor->SetActorEnableCollision(defaultObj->GetActorEnableCollision()); // Component 까지 다 꺼버림
-		InPoolActor->SetActorTickEnabled(defaultObj->CanEverTick());
-	}
-}
-
-/**
- *  Pool에 반납할 Actor를 비활성화
- *  @param InPoolActor : Pool에 반납할 액터
- */
-void FActorPool::_DeactivateActor(AActor* InPoolActor)
-{
-	// TODO : SetActorHiddenInGame + Collision을 disable하면 연관성 x로 client에서 actor가 destroy됨
-	InPoolActor->SetActorHiddenInGame(true); // bHidden -> Replicate 됨
-	InPoolActor->SetActorEnableCollision(false); // replicate 안됨
-	InPoolActor->SetActorTickEnabled(false); // Replicate 안됨
-	InPoolActor->SetNetDormancy(DORM_Awake);
 }
