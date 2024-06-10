@@ -7,12 +7,13 @@
 
 class FCoolTimeHandler;
 class UAnimMontage;
+
 /**
- * Skill의 Base가 되는 클래스
- * Anim Montage를 실행하여 스킬을 시전.
+ * Skill의 Base가 되는 클래스.
+ * Anim Montage를 실행하고 필요하면 영향을 입힌다.
  * TODO : 할게 많음.
  */
-UCLASS( Blueprintable, BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( Abstract )
 class RAID4_API UR4SkillBase : public UActorComponent
 {
 	GENERATED_BODY()
@@ -38,12 +39,12 @@ public:
 protected:
 	// 서버로 스킬을 사용 했음을 알린다.
 	UFUNCTION( Server, Reliable, WithValidation )
-	void ServerRPC_ActivateSkill(float InActivateTime);
+	void ServerRPC_ActivateSkill(const TSoftObjectPtr<UAnimMontage>& InSkillAnim, float InActivateTime);
 
 protected:
 	// 스킬의 메인 애니메이션 Montage ( 해당 애니메이션을 플레이하여 스킬을 발동 )
 	UPROPERTY( EditAnywhere, Category = "Anim" )
-	TSoftObjectPtr<UAnimMontage> SkillAnim;
+	TObjectPtr<UAnimMontage> SkillAnim;
 
 private:
 	// 스킬 쿨타임을 위한 CoolTimeHandler

@@ -9,7 +9,18 @@ public class Raid4 : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		PrivatePCHHeaderFile = "Raid4.h";
 		
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Niagara", "AIModule", "NavigationSystem" });
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"Core", 
+			"CoreUObject", 
+			"Engine", 
+			"InputCore", 
+			"EnhancedInput", 
+			"Niagara", 
+			"AIModule", 
+			"NavigationSystem",
+			"AnimationCore"
+		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
 
