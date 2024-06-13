@@ -9,11 +9,34 @@ class FCoolTimeHandler;
 class UAnimMontage;
 
 /**
- * Skill의 Base가 되는 클래스.
- * Anim Montage를 실행하고 필요하면 영향을 입힌다.
- * TODO : 할게 많음.
+ * Skill을 위한 Animation의 정보.
+ * Animation과 특정 프레임 일 때 필요한 히트 체크 정보를 제공
  */
-UCLASS( Abstract )
+USTRUCT()
+struct FSkillAnimInfo
+{
+	GENERATED_BODY()
+	
+	FSkillAnimInfo()
+		: SkillAnim(nullptr)
+		{}
+	
+	// 발동할 Skill Anim
+	UPROPERTY( EditAnywhere )
+	TObjectPtr<UAnimMontage> SkillAnim;
+
+	// 레벨에서 무언가 탐지하는 Notify에 대한 행동 정의
+	// {Notify index ( AnimMontage에서 몇번째 Notify인지), 행동} 
+	// TODO : 행동을 정의 해야함
+	UPROPERTY( EditAnywhere )
+	TMap<int32, FString> DetectNotify;
+};
+
+/**
+ * Skill의 Base가 되는 클래스.
+ * 스킬을 위한 기본 기능들을 제공
+ */
+UCLASS( Abstract, HideCategories = (ComponentTick, Tags, Replication, ComponentReplication, Activation, Variable, Navigation, AssetUserData) )
 class RAID4_API UR4SkillBase : public UActorComponent
 {
 	GENERATED_BODY()
@@ -24,31 +47,24 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+
 public:
-	// 스킬을 준비
-	virtual void PrepareSkill();
+	// 스킬이 사용 가능 상태인지 판단한다.
+	virtual bool CanUseSkill();
 	
-	// 스킬이 끝나기 전 Cancel
-	virtual void CancelSkill();
-
-	// 스킬 사용 완료
-	virtual void CompleteSkill();
-
-	// 스킬을 사용
-	virtual void ActivateSkill();
 protected:
-	// 서버로 스킬을 사용 했음을 알린다.
-	UFUNCTION( Server, Reliable, WithValidation )
-	void ServerRPC_ActivateSkill(const TSoftObjectPtr<UAnimMontage>& InSkillAnim, float InActivateTime);
+	// Anim Montage를 Play한다.
+	virtual float PlaySkillAnim(const FSkillAnimInfo& InSkillAnimInfo, float InPlayRate = 1.f, const FName& InSectionName = NAME_None);
+
+	// Anim Montage를 stop
+	virtual void StopAllAnim();
 
 protected:
-	// 스킬의 메인 애니메이션 Montage ( 해당 애니메이션을 플레이하여 스킬을 발동 )
-	UPROPERTY( EditAnywhere, Category = "Anim" )
-	TObjectPtr<UAnimMontage> SkillAnim;
-
-private:
 	// 스킬 쿨타임을 위한 CoolTimeHandler
-	//TUniquePtr<FCoolTimeHandler> CoolTimeHandler;
+	TUniquePtr<FCoolTimeHandler> CoolTimeHandler;
 	
 	// 마지막으로 발동한 시간 (서버)
 	float CachedLastActivateTime;

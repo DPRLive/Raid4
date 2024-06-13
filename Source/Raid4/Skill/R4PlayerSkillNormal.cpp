@@ -14,11 +14,10 @@ UR4PlayerSkillNormal::UR4PlayerSkillNormal()
 
 /**
  *  스킬 입력 시작
- *  Normal 스킬은 시작할 때 한 번 Activate함.
  */
 void UR4PlayerSkillNormal::OnInputStarted()
 {
-    ActivateSkill();
+    PlaySkillAnim(SkillAnimInfo);
 }
 
 /**
