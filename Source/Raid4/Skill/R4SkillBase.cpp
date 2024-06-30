@@ -3,14 +3,11 @@
 
 #include "R4SkillBase.h"
 #include "../Handler/CoolTimeHandler.h"
-#include "../Interface/R4Overlapable.h"
+#include "../Interface/R4Detectable.h"
 
 #include <GameFramework/Character.h>
-#include <GameFramework/GameStateBase.h>
-
-#if WITH_EDITOR
 #include <Animation/AnimMontage.h>
-#endif
+#include <Animation/AnimNotifies/AnimNotify.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4SkillBase)
 
@@ -27,6 +24,25 @@ void UR4SkillBase::BeginPlay()
 	Super::BeginPlay();
 
 	CoolTimeHandler = MakeUnique<FCoolTimeHandler>();
+
+	// bind anim affect index <-> DetectNotify
+	for(const auto& [prop, value] : TPropertyValueRange<FStructProperty>(GetClass(), this))
+	{
+		// FSkillAnimInfo 타입의 struct를 찾아서 bind
+		if(prop->Struct == FSkillAnimInfo::StaticStruct())
+		{
+			FSkillAnimInfo* animInfo = prop->ContainerPtrToValuePtr<FSkillAnimInfo>(this);
+			UAnimMontage* anim = animInfo->SkillAnim;
+			if(!IsValid(anim))
+				return;
+			
+			for(auto& [notifyIdx, affect] : animInfo->DetectNotify)
+			{
+				if(anim->Notifies.IsValidIndex(notifyIdx))
+					BindAffect(anim->Notifies[notifyIdx].Notify, affect);
+			}
+		}
+	}
 }
 
 #if WITH_EDITOR
@@ -40,18 +56,18 @@ void UR4SkillBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 	// 변경된 프로퍼티가 FSkillAnimInfo 형식이면, 해당 Anim에서 Notify를 읽어와 배열을 자동으로 채움
 	if(FStructProperty* prop = CastField<FStructProperty>(PropertyChangedEvent.MemberProperty);
 		prop != nullptr &&
-		FStructUtils::TheSameLayout(prop->Struct, FSkillAnimInfo::StaticStruct(), true))
+		prop->Struct == FSkillAnimInfo::StaticStruct())
 	{
 		FSkillAnimInfo* animInfo = prop->ContainerPtrToValuePtr<FSkillAnimInfo>(this);
 		UAnimMontage* anim = animInfo->SkillAnim;
-		if(anim == nullptr)
+		if(!IsValid(anim))
 			return;
 
 		// Detect Notify의 index들을 찾아냄 
 		TSet<int32> idxs;
 		for(int32 i = 0; i < anim->Notifies.Num(); i++)
 		{
-			if(IR4Overlapable* detectNotify = Cast<IR4Overlapable>(anim->Notifies[i].Notify))
+			if(IR4Detectable* detectNotify = Cast<IR4Detectable>(anim->Notifies[i].Notify))
 				idxs.Emplace(i);
 		}
 
@@ -114,6 +130,33 @@ void UR4SkillBase::StopAllAnim()
 		owner->StopAnimMontage();
 
 	// TODO : clear reserved hitcheck
+}
+
+/**
+ *  Detectable과 Affect를 연결
+ *  @param InDetectable : 탐지하는 주체 Object
+ *  @param InAffectInfo : 입힐 영향
+ */
+void UR4SkillBase::BindAffect(UObject* InDetectable, const FString& InAffectInfo)
+{
+	if(!IsValid(InDetectable))
+		return;
+
+	if(IR4Detectable* detectableObj = Cast<IR4Detectable>(InDetectable))
+	{
+		auto affectLambda = [owner = TWeakObjectPtr<UR4SkillBase>(this), &affectInfo = InAffectInfo]
+				(const FDetectResult& InDetectResult)
+		{
+			if(owner.IsValid())
+				owner->ApplyAffect(InDetectResult, affectInfo);
+		};
+		
+		// Detect 시작 Bind
+		detectableObj->OnBeginDetect().AddLambda(affectLambda);
+
+		// Detect 종료 Bind
+		detectableObj->OnEndDetect().AddLambda(affectLambda);
+	}
 }
 
 /**

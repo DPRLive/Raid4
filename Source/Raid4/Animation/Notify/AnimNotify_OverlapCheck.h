@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "../../Interface/R4Detectable.h"
 #include <Animation/AnimNotifies/AnimNotify.h>
 #include "AnimNotify_OverlapCheck.generated.h"
 
@@ -31,7 +32,7 @@ struct FOverlapEffectInfo
  * Overlap을 체크하는 Notify
  */
 UCLASS()
-class RAID4_API UAnimNotify_OverlapCheck : public UAnimNotify
+class RAID4_API UAnimNotify_OverlapCheck : public UAnimNotify, public IR4Detectable
 {
 	GENERATED_BODY()
 
@@ -40,6 +41,12 @@ public:
 	
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
+public:
+	// ~ Begin IR4Detectable
+	virtual FOnDetectDelegate& OnBeginDetect() override { return OnBeginDetectDelegate; }
+	virtual FOnDetectDelegate& OnEndDetect() override { return OnEndDetectDelegate; }
+	// ~ End IR4Detectable
+	
 private:
 	// Overlap 결과를 처리
 	void _ProcessOverlapActor(const AActor* InActor) const;
@@ -47,6 +54,12 @@ private:
 	// Effect를 출력
 	void _SpawnNiagara(const AActor* InInstigator, const FOverlapResult& InResult) const;
 private:
+	// Detect시 broadcast
+	FOnDetectDelegate OnBeginDetectDelegate;
+
+	// Detect 종료 시 broadcast
+	FOnDetectDelegate OnEndDetectDelegate;
+	
 	// Overlap할 형태 결정
 	UPROPERTY( EditAnywhere, Category="AnimNotify", meta =(AllowPrivateAccess = true) )
 	EOverlapShape Shape;

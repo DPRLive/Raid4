@@ -4,6 +4,7 @@
 #include "AnimNotify_OverlapCheck.h"
 #include "../../Util/UtilOverlap.h"
 #include "../../Controller/R4PlayerController.h"
+#include "../../Detect/DetectResult.h"
 
 #include <Components/SkeletalMeshComponent.h>
 #include <GameFramework/Pawn.h>
@@ -61,9 +62,12 @@ void UAnimNotify_OverlapCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 		}
 		
 		// 결과를 처리한다
+		// TODO : 으엑
 		for (const FOverlapResult& overlapResult : overlapResults)
 		{
-			_ProcessOverlapActor(overlapResult.GetActor());
+			// _ProcessOverlapActor(overlapResult.GetActor());
+			if(OnBeginDetectDelegate.IsBound())
+				OnBeginDetectDelegate.Broadcast(FDetectResult(FVector(0.f), overlapResult.GetComponent(), overlapResult.GetActor()));
 			_SpawnNiagara(owner, overlapResult);
 		}
 	}
