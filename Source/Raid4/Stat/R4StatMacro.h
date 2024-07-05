@@ -23,10 +23,10 @@
     void SetCurrent##Name(float InCurrent##Name) { Name.SetCurrentValue( InCurrent##Name ); }
 
 #define R4STAT_STAT_DELEGATE( Name ) \
-    FOnChangeStatData& GetOnChange##Name() { return Name.OnChangeStatData; }
+    FOnChangeStatDataDelegate& OnChange##Name() { return Name.OnChangeStatDataDelegate; }
 
 #define R4STAT_CURRENT_VALUE_DELEGATE( Name ) \
-    FOnChangeCurrentStatData& GetOnChangeCurrent##Name() { return Name.OnChangeCurrentValue; }
+    FOnChangeCurrentStatDataDelegate& OnChangeCurrent##Name() { return Name.OnChangeCurrentValueDelegate; }
 
 #define R4STAT_STAT_INITTER( Name ) \
     void Init##Name(float InBaseValue) { Name.InitStatData(InBaseValue); }
@@ -52,14 +52,14 @@
 #define R4STAT_STAT_OnRep( Now, Prev ) \
     if(!FMath::IsNearlyEqual(Now.GetBaseValue(), Prev.GetBaseValue()) || !FMath::IsNearlyEqual(Now.GetModifierValue(), Prev.GetModifierValue())) \
     {                                                                                                                                            \
-        if(Now.OnChangeStatData.IsBound())                                                                                                       \
-            Now.OnChangeStatData.Broadcast(Now.GetBaseValue(), Now.GetModifierValue());                                                          \
+        if(Now.OnChangeStatDataDelegate.IsBound())                                                                                               \
+            Now.OnChangeStatDataDelegate.Broadcast(Now.GetBaseValue(), Now.GetModifierValue());                                                  \
     }
 
 #define R4STAT_CONSUMABLE_STAT_OnRep( Now, Prev ) \
     R4STAT_STAT_OnRep( Now, Prev )                                              \
     if(!FMath::IsNearlyEqual(Now.GetCurrentValue(), Prev.GetCurrentValue()))    \
     {                                                                           \
-        if(Now.OnChangeCurrentValue.IsBound())                                  \
-            Now.OnChangeCurrentValue.Broadcast(Now.GetCurrentValue());          \
+        if(Now.OnChangeCurrentValueDelegate.IsBound())                          \
+            Now.OnChangeCurrentValueDelegate.Broadcast(Now.GetCurrentValue());  \
     }

@@ -2,9 +2,9 @@
 
 
 #include "R4PlayerInputComponent.h"
-#include "../Interface/R4PlayerSkillInputable.h"
-#include "../Interface/R4MouseMovable.h"
-#include "../Interface/R4PlayerInputCompInterface.h"
+#include "../Skill/Player/R4PlayerSkillInterface.h"
+#include "../Movement/R4MouseMovable.h"
+#include "R4PlayerInputCompInterface.h"
 
 #include <EnhancedInputComponent.h>
 #include <EnhancedInputSubsystems.h>
@@ -33,7 +33,7 @@ void UR4PlayerInputComponent::InitializeComponent()
 	// Input Init을 대기한다.
 	if(IR4PlayerInputCompInterface* owner = Cast<IR4PlayerInputCompInterface>(GetOwner()))
 	{
-		owner->GetOnSetupPlayerInput().AddUObject(this, &UR4PlayerInputComponent::_InitializePlayerInput);
+		owner->OnSetupPlayerInput().AddUObject(this, &UR4PlayerInputComponent::_InitializePlayerInput);
 	}
 }
 
@@ -51,7 +51,7 @@ void UR4PlayerInputComponent::BeginPlay()
 void UR4PlayerInputComponent::_InitializePlayerInput(UInputComponent* InPlayerInputComponent)
 {
 	// 액션 바인딩
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InPlayerInputComponent))
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InPlayerInputComponent); IsValid(EnhancedInputComponent))
 	{
 		EnhancedInputComponent->ClearActionBindings();
 
@@ -78,14 +78,14 @@ void UR4PlayerInputComponent::_InitializePlayerInput(UInputComponent* InPlayerIn
 	}
 
 	const APlayerController* playerController = owner->GetPlayerController();
-	if(playerController == nullptr)
+	if(!IsValid(playerController))
 	{
 		LOG_WARN(R4Input, TEXT("Owner's Controller is nullptr."));
 		return;
 	}
 	
 	// IMC 바인딩
-	if(UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(playerController->GetLocalPlayer()))
+	if(UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(playerController->GetLocalPlayer()); IsValid(subsystem))
 	{
 		if(subsystem->HasMappingContext(InputMapping))
 		{
@@ -129,8 +129,10 @@ void UR4PlayerInputComponent::OnInputMoveTriggered()
 	}
 
 	FHitResult hit;
-	if(AActor* ownerActor = GetOwner(); ownerActor != nullptr && playerController != nullptr &&
-		playerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, hit))
+	if(AActor* ownerActor = GetOwner();
+		IsValid(ownerActor)
+		&& playerController != nullptr
+		&& playerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, hit))
 	{
 		FVector dir = hit.Location - ownerActor->GetActorLocation();
 		dir.Z = 0.f;
@@ -173,7 +175,7 @@ void UR4PlayerInputComponent::OnInputMoveCompleted()
  */
 void UR4PlayerInputComponent::OnInputSkillStarted(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
-	if(IR4PlayerSkillInputable* owner = Cast<IR4PlayerSkillInputable>(GetOwner()))
+	if(IR4PlayerSkillInterface* owner = Cast<IR4PlayerSkillInterface>(GetOwner()))
 	{
 		owner->OnInputSkillStarted(InSkillIndex);
 	}
@@ -184,7 +186,7 @@ void UR4PlayerInputComponent::OnInputSkillStarted(const FInputActionValue& InVal
  */
 void UR4PlayerInputComponent::OnInputSkillTriggered(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
-	if(IR4PlayerSkillInputable* owner = Cast<IR4PlayerSkillInputable>(GetOwner()))
+	if(IR4PlayerSkillInterface* owner = Cast<IR4PlayerSkillInterface>(GetOwner()))
 	{
 		owner->OnInputSkillTriggered(InSkillIndex);
 	}
@@ -195,7 +197,7 @@ void UR4PlayerInputComponent::OnInputSkillTriggered(const FInputActionValue& InV
  */
 void UR4PlayerInputComponent::OnInputSkillCompleted(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
-	if(IR4PlayerSkillInputable* owner = Cast<IR4PlayerSkillInputable>(GetOwner()))
+	if(IR4PlayerSkillInterface* owner = Cast<IR4PlayerSkillInterface>(GetOwner()))
 	{
 		owner->OnInputSkillCompleted(InSkillIndex);
 	}

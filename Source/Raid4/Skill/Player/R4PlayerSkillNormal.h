@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "../Interface/R4PlayerInputable.h"
-#include "R4SkillBase.h"
+#include "../../Input/R4PlayerInputable.h"
+#include "../R4SkillBase.h"
 #include "R4PlayerSkillNormal.generated.h"
 
 /**

@@ -2,7 +2,7 @@
 
 
 #include "R4StatComponent.h"
-#include "../Data/DataTable/Row/StatRow.h"
+#include "R4StatRow.h"
 
 #include <Net/UnrealNetwork.h>
 
@@ -60,7 +60,7 @@ void UR4StatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
  */
 void UR4StatComponent::PushDTData(FPriKey InPk)
 {
-	const FStatRowPtr statPtr(InPk);
+	const FR4StatRowPtr statPtr(InPk);
 	if(!statPtr.IsValid())
 	{
 		LOG_ERROR(R4Data, TEXT("StatData is Invalid. PK : [%d]"), InPk);

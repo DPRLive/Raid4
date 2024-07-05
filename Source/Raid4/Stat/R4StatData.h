@@ -8,8 +8,8 @@
  */
 
 // Stat Change Delegate Type
-DECLARE_MULTICAST_DELEGATE_TwoParams( FOnChangeStatData, float /* BaseStat */, float /* ModifierStat */ )
-DECLARE_MULTICAST_DELEGATE_OneParam( FOnChangeCurrentStatData, float /* Current Stat */);
+DECLARE_MULTICAST_DELEGATE_TwoParams( FOnChangeStatDataDelegate, float /* BaseStat */, float /* ModifierStat */ )
+DECLARE_MULTICAST_DELEGATE_OneParam( FOnChangeCurrentStatDataDelegate, float /* Current Stat */);
 
 USTRUCT( BlueprintType )
 struct RAID4_API FR4StatData
@@ -30,11 +30,11 @@ public:
 	FORCEINLINE float GetModifierValue() const { return ModifierValue; }
 
 	// Setter
-	FORCEINLINE void SetBaseValue(float InBaseValue) { BaseValue = InBaseValue; if( OnChangeStatData.IsBound() ) OnChangeStatData.Broadcast(BaseValue, ModifierValue); }
-	FORCEINLINE void SetModifierValue(float InModifierValue) { ModifierValue = InModifierValue; if( OnChangeStatData.IsBound() ) OnChangeStatData.Broadcast(BaseValue, ModifierValue); }
+	FORCEINLINE void SetBaseValue(float InBaseValue) { BaseValue = InBaseValue; if( OnChangeStatDataDelegate.IsBound() ) OnChangeStatDataDelegate.Broadcast(BaseValue, ModifierValue); }
+	FORCEINLINE void SetModifierValue(float InModifierValue) { ModifierValue = InModifierValue; if( OnChangeStatDataDelegate.IsBound() ) OnChangeStatDataDelegate.Broadcast(BaseValue, ModifierValue); }
 
 	// Stat 변경 delegate
-	FOnChangeStatData OnChangeStatData;
+	FOnChangeStatDataDelegate OnChangeStatDataDelegate;
 	
 private:
 	// 기본 값
@@ -69,10 +69,10 @@ public:
 	FORCEINLINE float GetCurrentValue() const { return CurrentValue; }
 
 	// Setter
-	FORCEINLINE void SetCurrentValue(float InCurrentValue) { CurrentValue = InCurrentValue; if( OnChangeCurrentValue.IsBound() ) OnChangeCurrentValue.Broadcast(CurrentValue); }
+	FORCEINLINE void SetCurrentValue(float InCurrentValue) { CurrentValue = InCurrentValue; if( OnChangeCurrentValueDelegate.IsBound() ) OnChangeCurrentValueDelegate.Broadcast(CurrentValue); }
 
 	// Current Value 변경 delegate
-	FOnChangeCurrentStatData OnChangeCurrentValue;
+	FOnChangeCurrentStatDataDelegate OnChangeCurrentValueDelegate;
 	
 private:
 	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true) )

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "../R4RowBase.h"
+#include "R4RowBase.h"
 #include "ExampleRow.generated.h"
 
 // 데이터 테이블 예시

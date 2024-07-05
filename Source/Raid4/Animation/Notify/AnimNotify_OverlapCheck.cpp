@@ -25,14 +25,14 @@ void UAnimNotify_OverlapCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 	
 	// 클라에서 Notify 시 Server로는 가지 않지만 서버에서도 클라로 히트체크를 굳이 보내지 않도록 함
 	const APawn* owner = Cast<APawn>(MeshComp->GetOwner());
-	if(owner == nullptr)
+	if(!IsValid(owner))
 		return;
 
 	const AController* controller = owner->GetController();
-	if(controller == nullptr)
+	if(!IsValid(controller))
 		return;
 	
-	if (const UWorld* world = MeshComp->GetWorld(); controller->IsLocalController())
+	if (const UWorld* world = MeshComp->GetWorld(); IsValid(world) && controller->IsLocalController())
 	{
 		// Relative Location을 더한 위치, 회전을 구함
 		// TODO : UI용 마우스 위치 버전을 만들어야해! 아하하! 마우스로 회전 기능도 만들어야해!
@@ -96,13 +96,14 @@ void UAnimNotify_OverlapCheck::_ProcessOverlapActor(const AActor* InActor) const
 void UAnimNotify_OverlapCheck::_SpawnNiagara(const AActor* InInstigator, const FOverlapResult& InResult) const
 {
 	const APawn* owner = Cast<APawn>(InInstigator);
-	if(owner == nullptr)
+	if(!IsValid(owner))
 		return;
 
 	// TODO : AIController를 고려해야함
 	AR4PlayerController* controller = Cast<AR4PlayerController>(owner->GetController());
-	if(controller == nullptr)
+	if(!IsValid(controller))
 		return;
+	
 	// TODO : Cascade를 추가해야 에셋들을 좀 쓰겄는디..;
 	for(const auto& [particle, type] : Particles)
 	{

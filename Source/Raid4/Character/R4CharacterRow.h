@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "../R4RowBase.h"
-#include "CharacterRow.generated.h"
+#include "../Data/R4RowBase.h"
+#include "R4CharacterRow.generated.h"
 
 class USkeletalMesh;
 class UAnimInstance;
@@ -11,11 +11,11 @@ class UR4SkillBase;
  * Character에 적용할 정보들을 담는 Row 
  */
 USTRUCT()
-struct FCharacterRow : public FR4RowBase
+struct FR4CharacterRow : public FR4RowBase
 {
 	GENERATED_BODY()
 
-	FCharacterRow() : BaseStatRowPK(DTConst::G_InvalidPK) {}
+	FR4CharacterRow() : BaseStatRowPK(DTConst::G_InvalidPK) {}
 
 	// 캐릭터에 사용할 Skeletal Mesh 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Mesh" )
@@ -34,4 +34,4 @@ struct FCharacterRow : public FR4RowBase
 	TMap<ESkillIndex, TSubclassOf<UR4SkillBase>> Skills;
 };
 
-GENERATE_DT_PTR_H( FCharacterRow );
+GENERATE_DT_PTR_H( FR4CharacterRow );

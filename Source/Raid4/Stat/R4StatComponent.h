@@ -4,7 +4,7 @@
 
 #include "../Stat/R4StatData.h"
 #include "../Stat/R4StatMacro.h"
-#include "..\Interface\R4DTDataPushable.h"
+#include "../Data/R4DTDataPushable.h"
 
 #include <Components/ActorComponent.h>
 #include "R4StatComponent.generated.h"

@@ -2,15 +2,15 @@
 
 #pragma once
 
-#include "R4SkillComponent.h"
-#include "../Interface/R4PlayerSkillInputable.h"
+#include "../R4SkillComponent.h"
+#include "R4PlayerSkillInterface.h"
 #include "R4PlayerSkillComponent.generated.h"
 
 /**
  * Player용 Skill Component
  */
 UCLASS()
-class RAID4_API UR4PlayerSkillComponent : public UR4SkillComponent, public IR4PlayerSkillInputable
+class RAID4_API UR4PlayerSkillComponent : public UR4SkillComponent, public IR4PlayerSkillInterface
 {
 	GENERATED_BODY()
 

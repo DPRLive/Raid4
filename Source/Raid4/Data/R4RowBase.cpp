@@ -22,7 +22,7 @@ void FR4RowBase::OnDataTableChanged(const UDataTable* InDataTable, const FName I
 
 #if WITH_EDITOR
 	// 에디터에서 수정할 경우, Primary Key의 중복 또는 Invalid 검사를 진행 후 알려준다.
-	if(!InDataTable)
+	if(!IsValid(InDataTable))
 		return;
 
 	// Invalid PK (0) 인 경우

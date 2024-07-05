@@ -26,5 +26,5 @@ public:
 
 	// PlayerController 에서의 Input Bind 시 InputComp를 받아오기 위한 delegate getter
 	DECLARE_MULTICAST_DELEGATE_OneParam( FSetupPlayerInputDelegate, UInputComponent* /* InInputComponent */ )
-	virtual FSetupPlayerInputDelegate& GetOnSetupPlayerInput() = 0;
+	virtual FSetupPlayerInputDelegate& OnSetupPlayerInput() = 0;
 };

@@ -1,25 +1,24 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CharacterBase.h"
-#include "../Component/R4StatComponent.h"
-#include "../Component/R4CharacterMovementComponent.h"
-#include "../Component/R4SkillComponent.h"
-#include "../Component/R4AttackComponent.h"
-#include "../Data/DataTable/Row/CharacterRow.h"
+#include "R4CharacterBase.h"
+#include "../Stat/R4StatComponent.h"
+#include "../Movement/R4CharacterMovementComponent.h"
+#include "../Skill/R4SkillComponent.h"
+#include "R4CharacterRow.h"
 #include "../Skill/R4SkillBase.h"
-#include "../Component/R4CharacterRPCComponent.h"
+#include "R4CharacterRPCComponent.h"
 
 #include <Components/SkeletalMeshComponent.h>
 #include <Engine/SkeletalMesh.h>
 #include <Animation/AnimInstance.h>
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(CharacterBase)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(R4CharacterBase)
 
 /**
  *  생성자, Move Comp를 R4 Character Movement Component 로 변경
  */
-ACharacterBase::ACharacterBase(const FObjectInitializer& InObjectInitializer)
+AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer)
 	: Super(InObjectInitializer.SetDefaultSubobjectClass<UR4CharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -28,15 +27,13 @@ ACharacterBase::ACharacterBase(const FObjectInitializer& InObjectInitializer)
 
 	SkillComp = CreateDefaultSubobject<UR4SkillComponent>(TEXT("SkillComp"));
 
-	// AttackComp = CreateDefaultSubobject<UR4AttackComponent>(TEXT("AttackComp"));
-
 	RPCComp = CreateDefaultSubobject<UR4CharacterRPCComponent>(TEXT("RPCComp"));
 }
 
 /**
  *  PostInit
  */
-void ACharacterBase::PostInitializeComponents()
+void AR4CharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
@@ -44,13 +41,13 @@ void ACharacterBase::PostInitializeComponents()
 	// TODO : 나중에 캐릭터에 따른 데이터 로드를 진행해야함.
 	PushDTData(1);
 
-	OnCharacterDead.AddDynamic(this, &ACharacterBase::Dead);
+	OnCharacterDeadDelegate.AddDynamic(this, &AR4CharacterBase::Dead);
 }
 
 /**
  *  begin play
  */
-void ACharacterBase::BeginPlay()
+void AR4CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 }
@@ -59,19 +56,19 @@ void ACharacterBase::BeginPlay()
  *  주어진 Character Data PK로 데이터를 읽어 초기화한다.
  *  @param InPk : Character DT의 primary key
  */
-void ACharacterBase::PushDTData(FPriKey InPk)
+void AR4CharacterBase::PushDTData(FPriKey InPk)
 {
-	const FCharacterRowPtr characterData(InPk);
+	const FR4CharacterRowPtr characterData(InPk);
 	if(!characterData.IsValid())
 	{
 		LOG_ERROR(R4Data, TEXT("CharacterData is Invalid. PK : [%d]"), InPk);
 		return;
 	}
 	
-	if(USkeletalMeshComponent* meshComp = GetMesh())
+	if(USkeletalMeshComponent* meshComp = GetMesh(); IsValid(meshComp))
 	{
 		// 스켈레탈 메시 설정
-		if(USkeletalMesh* skelMesh = characterData->SkeletalMesh.LoadSynchronous())
+		if(USkeletalMesh* skelMesh = characterData->SkeletalMesh.LoadSynchronous(); IsValid(skelMesh))
 			meshComp->SetSkeletalMesh(skelMesh);
 
 		// 애니메이션 설정
@@ -90,7 +87,7 @@ void ACharacterBase::PushDTData(FPriKey InPk)
 	// TODO : 배열 주면 Skill Comp에서 읽어가게 하는게 좋을거 같단말이야
 	for (const TPair<ESkillIndex, TSubclassOf<UR4SkillBase>>& skill : characterData->Skills)
 	{
-		if (UR4SkillBase* instanceSkill = NewObject<UR4SkillBase>(this, skill.Value))
+		if (UR4SkillBase* instanceSkill = NewObject<UR4SkillBase>(this, skill.Value); IsValid(instanceSkill))
 		{
 			instanceSkill->RegisterComponent();
 			SkillComp->Server_AddSkill(skill.Key, instanceSkill);
@@ -101,32 +98,32 @@ void ACharacterBase::PushDTData(FPriKey InPk)
 /**
  *  Damage를 처리한다
  */
-void ACharacterBase::ReceiveDamage(float InDamage)
-{
-	// TODO : 데미지 계산
-
-	// 데미지 입기
-	float damagedHp = FMath::Clamp(StatComp->GetCurrentHp() - InDamage, 0.f, StatComp->GetCurrentHp());
-	StatComp->SetCurrentHp(damagedHp);
-
-	// 죽었다고 알림
-	if(FMath::IsNearlyZero(damagedHp) && OnCharacterDead.IsBound())
-		OnCharacterDead.Broadcast();
-}
+// void ACharacterBase::ReceiveDamage(float InDamage)
+// {
+// 	// TODO : 데미지 계산
+//
+// 	// 데미지 입기
+// 	float damagedHp = FMath::Clamp(StatComp->GetCurrentHp() - InDamage, 0.f, StatComp->GetCurrentHp());
+// 	StatComp->SetCurrentHp(damagedHp);
+//
+// 	// 죽었다고 알림
+// 	if(FMath::IsNearlyZero(damagedHp) && OnCharacterDead.IsBound())
+// 		OnCharacterDead.Broadcast();
+// }
 
 /**
  *  Damage 주기를 처리
  */
-void ACharacterBase::ApplyDamage(const int32 InPk, AActor* InVictim)
-{
-	//AttackComp->ApplyDamage(InPk, InVictim);
-}
+// void ACharacterBase::ApplyDamage(const int32 InPk, AActor* InVictim)
+// {
+// 	//AttackComp->ApplyDamage(InPk, InVictim);
+// }
 
 /**
  *  Replicate를 거쳐서 anim을 play
  *  @return : AnimMontage의 링크를 포함한 특정 Section에 대한 시간
  */
-float ACharacterBase::PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
+float AR4CharacterBase::PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
 {
 	return RPCComp->PlayAnim(AnimMontage, StartSectionName, InPlayRate);
 }
@@ -134,7 +131,7 @@ float ACharacterBase::PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRat
 /**
  *  Replicate를 거쳐서 anim을 Stop
  */
-void ACharacterBase::StopAnimMontage(UAnimMontage* AnimMontage)
+void AR4CharacterBase::StopAnimMontage(UAnimMontage* AnimMontage)
 {
 	RPCComp->StopAllAnim();
 }
@@ -143,10 +140,10 @@ void ACharacterBase::StopAnimMontage(UAnimMontage* AnimMontage)
  *  StatComp와 필요한 초기화를 진행한다
  *  @param InStatPk : Stat DT의 primary key
  */
-void ACharacterBase::InitStatComponent(FPriKey InStatPk)
+void AR4CharacterBase::InitStatComponent(FPriKey InStatPk)
 {
 	// TODO : Bind Stats
-	StatComp->GetOnChangeMovementSpeed().AddUObject(this, &ACharacterBase::ApplyMovementSpeed); // 이동속도 설정 바인드
+	StatComp->OnChangeMovementSpeed().AddUObject(this, &AR4CharacterBase::ApplyMovementSpeed); // 이동속도 설정 바인드
 	
 	// 실제로 DT에서 Stat Data를 넣는것은 Server
 	if(HasAuthority())
@@ -156,10 +153,10 @@ void ACharacterBase::InitStatComponent(FPriKey InStatPk)
 /**
  *  이동 속도를 적용한다.
  */
-void ACharacterBase::ApplyMovementSpeed(float InBaseMovementSpeed, float InModifierMovementSpeed) const
+void AR4CharacterBase::ApplyMovementSpeed(float InBaseMovementSpeed, float InModifierMovementSpeed) const
 {
 	// 이동 속도를 변경한다.
-	if(UR4CharacterMovementComponent* moveComp = GetCharacterMovement<UR4CharacterMovementComponent>())
+	if(UR4CharacterMovementComponent* moveComp = GetCharacterMovement<UR4CharacterMovementComponent>(); IsValid(moveComp))
 	{
 		moveComp->SetMaxWalkSpeed(InBaseMovementSpeed + InModifierMovementSpeed);
 	}
@@ -168,7 +165,7 @@ void ACharacterBase::ApplyMovementSpeed(float InBaseMovementSpeed, float InModif
 /**
  *  죽음을 처리한다.
  */
-void ACharacterBase::Dead()
+void AR4CharacterBase::Dead()
 {
 	LOG_WARN(LogTemp, TEXT("DEAD"));
 }

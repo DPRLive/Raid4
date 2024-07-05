@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../../Interface/R4Detectable.h"
+#include "../../Detect/R4Detectable.h"
 #include <Animation/AnimNotifies/AnimNotify.h>
 #include "AnimNotify_OverlapCheck.generated.h"
 

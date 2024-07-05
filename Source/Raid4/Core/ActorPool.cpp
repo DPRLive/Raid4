@@ -17,7 +17,7 @@ void FActorPool::ClearSingleton()
  */
 AActor* FActorPool::GetPoolActor(UClass* InUClass, const FTransform& InWorldTrans)
 {
-	if(InUClass == nullptr)
+	if(!::IsValid(InUClass))
 	{
 		LOG_ERROR(R4Log, TEXT("InUClass is nullptr."));
 		return nullptr;
@@ -30,7 +30,7 @@ AActor* FActorPool::GetPoolActor(UClass* InUClass, const FTransform& InWorldTran
 	AActor* retActor = _TryGetValidPoolActor(InUClass->GetFName());
 	
 	// 없는경우 새로 생성 후 리턴
-	if(retActor == nullptr)
+	if(!::IsValid(retActor))
 		retActor = _CreatePoolActor(InUClass);
 	
 	// PoolableActor를 사용하기 위한 사용자 로직 처리
@@ -52,7 +52,7 @@ bool FActorPool::ReturnPoolActor(AActor* InPoolActor)
 		return false;
 	
 	UClass* uClass = InPoolActor->GetClass();
-	if(uClass == nullptr)
+	if(!::IsValid(uClass))
 		return false;
 	
 	FName className = uClass->GetFName();
@@ -64,7 +64,7 @@ bool FActorPool::ReturnPoolActor(AActor* InPoolActor)
 	// ActorPoolIter에서 관리되고 있는 경우에만 반납 성공
 	if(auto it = ActorPoolIters.Find(className); it != nullptr && *it)
 	{
-		if(APoolableActor* poolActor = Cast<APoolableActor>(InPoolActor))
+		if(APoolableActor* poolActor = Cast<APoolableActor>(InPoolActor); ::IsValid(poolActor))
 		{
 			poolActor->DeactivateActor();			
 			poolActor->PreReturnPoolActor(); // PoolableActor를 반납하기 위한 사용자 로직 처리

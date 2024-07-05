@@ -2,7 +2,7 @@
 
 
 #include "R4PlayerSkillComponent.h"
-#include "..\Interface\R4PlayerInputable.h"
+#include "../../Input/R4PlayerInputable.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4PlayerSkillComponent)
 

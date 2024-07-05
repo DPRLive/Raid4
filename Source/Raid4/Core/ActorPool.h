@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "SingletonBase.h"
-#include "../Actor/PoolableActor.h"
+#include "PoolableActor.h"
 
 #include <Containers/Deque.h>
 
@@ -69,7 +69,7 @@ template <CPoolActor T>
 T* FActorPool::GetPoolActor(const FTransform& InWorldTrans)
 {
 	UClass* uClass = T::StaticClass();
-	if(uClass == nullptr)
+	if(!::IsValid(uClass))
 	{
 		LOG_ERROR(R4Log, TEXT("T::StaticClass is nullptr."));
 		return nullptr;
@@ -78,7 +78,7 @@ T* FActorPool::GetPoolActor(const FTransform& InWorldTrans)
 	AActor* retActor = _TryGetValidPoolActor(uClass->GetFName());
 
 	// 없는경우 새로 생성 후 리턴
-	if(retActor == nullptr)
+	if(!::IsValid(retActor))
 		retActor = _CreatePoolActor(uClass);
 	
 	// PoolableActor를 사용하기 위한 사용자 로직 처리

@@ -21,7 +21,7 @@ void AR4PlayerController::ServerRPC_NotifySpawnNiagaraAtLocation_Implementation(
 	for (AR4PlayerController* playerController : TActorRange<AR4PlayerController>(GetWorld()))
 	{
 		// 요청한 애 빼고 플레이 시킨다.
-		if (playerController && this != playerController)
+		if (IsValid(playerController) && this != playerController)
 		{
 			playerController->ClientRPC_SpawnNiagaraAtLocation(InNiagaraSystem, InLocation, InRotation, InScale, InWorld);
 		}
@@ -44,7 +44,7 @@ void AR4PlayerController::ServerRPC_NotifySpawnNiagaraAttached_Implementation(co
 	for (AR4PlayerController* playerController : TActorRange<AR4PlayerController>(GetWorld()))
 	{
 		// 요청한 애 빼고 플레이 시킨다.
-		if (playerController && this != playerController)
+		if (IsValid(playerController) && this != playerController)
 		{
 			playerController->ClientRPC_SpawnNiagaraAttached(InNiagaraSystem, InAttachComp, InSocketName, InLocation, InRotation);
 		}

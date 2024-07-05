@@ -144,7 +144,7 @@ float UR4CharacterRPCComponent::PlayAnim(UAnimMontage* InAnimMontage, const FNam
 	if(RepAnimInfo.SectionIndex == INDEX_NONE) // INDEX가 NONE이면 시작 Section Index를 설정
 		RepAnimInfo.SectionIndex = InAnimMontage->GetSectionIndexFromPosition(0);
 	
-	if(AGameStateBase* gameState = GetWorld() ? GetWorld()->GetGameState() : nullptr)
+	if(AGameStateBase* gameState = (IsValid(GetWorld()) ? GetWorld()->GetGameState() : nullptr) ; IsValid(gameState))
 		RepAnimInfo.StartServerTime = gameState->GetServerWorldTimeSeconds();
 	
 	// Owner 인 경우 Play
@@ -208,11 +208,11 @@ void UR4CharacterRPCComponent::_ServerRPC_StopAllAnim_Implementation()
 void UR4CharacterRPCComponent::_OnRep_AnimInfo(const FPlayAnimInfo& InPrevAnimInfo)
 {
 	ACharacter* owner = Cast<ACharacter>(GetOwner());
-	if(owner == nullptr)
+	if(!IsValid(owner))
 		return;
 	
 	UAnimInstance* anim = owner->GetMesh() ? owner->GetMesh()->GetAnimInstance() : nullptr;
-	if(anim == nullptr)
+	if(!IsValid(anim))
 		return;
 		
 	// nullptr이면, 정지
@@ -228,7 +228,7 @@ void UR4CharacterRPCComponent::_OnRep_AnimInfo(const FPlayAnimInfo& InPrevAnimIn
 
 	// 아니면 플레이
 	AGameStateBase* gameState = GetWorld() ? GetWorld()->GetGameState() : nullptr;
-	if(gameState == nullptr)
+	if(!IsValid(gameState))
 		return;
 	
 	// RPC로 인한 딜레이를 적용

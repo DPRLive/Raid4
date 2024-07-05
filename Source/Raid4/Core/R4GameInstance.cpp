@@ -5,7 +5,8 @@
 
 #include "ActorPool.h"
 #include "../Manager/DataTableManager.h"
-#include "Raid4/Data/DataTable/Row/ExampleRow.h"
+// TODO : delete test code
+#include "Raid4/Data/ExampleRow.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4GameInstance)
 

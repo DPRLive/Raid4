@@ -1,24 +1,24 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "PlayerCharacter.h"
-#include "../Component/R4PlayerInputComponent.h"
-#include "../Component/R4CameraManageComponent.h"
-#include "../Component/R4PlayerSkillComponent.h"
-#include "../Component/R4CharacterMovementComponent.h"
-#include "../Data/DataAsset/R4DAPCCommonData.h"
+#include "R4PlayerCharacter.h"
+#include "../../Input/R4PlayerInputComponent.h"
+#include "../../Camera/R4CameraManageComponent.h"
+#include "../../Skill/Player/R4PlayerSkillComponent.h"
+#include "../../Movement/R4CharacterMovementComponent.h"
+#include "R4DAPCCommonData.h"
 
 #include <Camera/CameraComponent.h>
 #include <GameFramework/SpringArmComponent.h>
 #include <GameFramework/CharacterMovementComponent.h>
 #include <GameFramework/PlayerController.h>
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(PlayerCharacter)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(R4PlayerCharacter)
 
 /**
  *  생성자. Skill Comp를 Player용으로 변경. 찾아보니 SetDefaultSubobjectClass를 여러번 .으로 이어서 쓸 수 있다
  */
-APlayerCharacter::APlayerCharacter(const FObjectInitializer& InObjectInitializer)
+AR4PlayerCharacter::AR4PlayerCharacter(const FObjectInitializer& InObjectInitializer)
 	: Super(InObjectInitializer.SetDefaultSubobjectClass<UR4PlayerSkillComponent>(FName(TEXT("SkillComp"))))
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -41,7 +41,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& InObjectInitializer
 /**
  *  Post Init
  */
-void APlayerCharacter::PostInitializeComponents()
+void AR4PlayerCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
@@ -51,7 +51,7 @@ void APlayerCharacter::PostInitializeComponents()
 /**
  *  begin play
  */
-void APlayerCharacter::BeginPlay()
+void AR4PlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 }
@@ -59,19 +59,19 @@ void APlayerCharacter::BeginPlay()
 /**
  *  SetupPlayerInputComponent, Player Controller가 Pose 할 때 호출
  */
-void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent)
+void AR4PlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(InPlayerInputComponent);
 
-	if(OnSetupPlayerInput.IsBound())
-		OnSetupPlayerInput.Broadcast(InPlayerInputComponent);
+	if(OnSetupPlayerInputDelegate.IsBound())
+		OnSetupPlayerInputDelegate.Broadcast(InPlayerInputComponent);
 	
 }
 
 /**
  *  PlayerController를 리턴
  */
-APlayerController* APlayerCharacter::GetPlayerController()
+APlayerController* AR4PlayerCharacter::GetPlayerController()
 {
 	return Cast<APlayerController>(GetController());
 }
@@ -79,9 +79,9 @@ APlayerController* APlayerCharacter::GetPlayerController()
 /**
  *  이동 멈춤
  */
-void APlayerCharacter::StopMove()
+void AR4PlayerCharacter::StopMove()
 {
-	if(UPawnMovementComponent* moveComp = GetMovementComponent())
+	if(UPawnMovementComponent* moveComp = GetMovementComponent(); IsValid(moveComp))
 	{
 		moveComp->StopMovementImmediately();
 	}
@@ -90,7 +90,7 @@ void APlayerCharacter::StopMove()
 /**
  *  이동 입력
  */
-void APlayerCharacter::AddMovement(const FVector& InWorldDir)
+void AR4PlayerCharacter::AddMovement(const FVector& InWorldDir)
 {
 	AddMovementInput(InWorldDir);
 }
@@ -98,9 +98,9 @@ void APlayerCharacter::AddMovement(const FVector& InWorldDir)
 /**
  *  특정 위치로 이동
  */
-void APlayerCharacter::MoveToLocation(const FVector& InLoc)
+void AR4PlayerCharacter::MoveToLocation(const FVector& InLoc)
 {
-	if(UR4CharacterMovementComponent* moveComp = Cast<UR4CharacterMovementComponent>(GetMovementComponent()))
+	if(UR4CharacterMovementComponent* moveComp = Cast<UR4CharacterMovementComponent>(GetMovementComponent()); IsValid(moveComp))
 	{
 		moveComp->MoveToLocation(GetController(), InLoc);
 	}
@@ -109,9 +109,9 @@ void APlayerCharacter::MoveToLocation(const FVector& InLoc)
 /**
  *  스킬 입력 시작 처리
  */
-void APlayerCharacter::OnInputSkillStarted(ESkillIndex InSkillIndex)
+void AR4PlayerCharacter::OnInputSkillStarted(ESkillIndex InSkillIndex)
 {
-	if(IR4PlayerSkillInputable* skillComp = Cast<IR4PlayerSkillInputable>(SkillComp))
+	if(IR4PlayerSkillInterface* skillComp = Cast<IR4PlayerSkillInterface>(SkillComp))
 	{
 		skillComp->OnInputSkillStarted(InSkillIndex);
 	}
@@ -120,9 +120,9 @@ void APlayerCharacter::OnInputSkillStarted(ESkillIndex InSkillIndex)
 /**
  *  스킬 입력 처리
  */
-void APlayerCharacter::OnInputSkillTriggered(ESkillIndex InSkillIndex)
+void AR4PlayerCharacter::OnInputSkillTriggered(ESkillIndex InSkillIndex)
 {
-	if(IR4PlayerSkillInputable* skillComp = Cast<IR4PlayerSkillInputable>(SkillComp))
+	if(IR4PlayerSkillInterface* skillComp = Cast<IR4PlayerSkillInterface>(SkillComp))
 	{
 		skillComp->OnInputSkillTriggered(InSkillIndex);
 	}
@@ -131,9 +131,9 @@ void APlayerCharacter::OnInputSkillTriggered(ESkillIndex InSkillIndex)
 /**
  *  스킬 입력 종료 처리
  */
-void APlayerCharacter::OnInputSkillCompleted(ESkillIndex InSkillIndex)
+void AR4PlayerCharacter::OnInputSkillCompleted(ESkillIndex InSkillIndex)
 {
-	if(IR4PlayerSkillInputable* skillComp = Cast<IR4PlayerSkillInputable>(SkillComp))
+	if(IR4PlayerSkillInterface* skillComp = Cast<IR4PlayerSkillInterface>(SkillComp))
 	{
 		skillComp->OnInputSkillCompleted(InSkillIndex);
 	}
@@ -142,9 +142,9 @@ void APlayerCharacter::OnInputSkillCompleted(ESkillIndex InSkillIndex)
 /**
  *  PlayerCharacter들의 공통된 데이터를 초기화한다.  
  */
-void APlayerCharacter::_InitPlayerCharacterCommonData()
+void AR4PlayerCharacter::_InitPlayerCharacterCommonData()
 {
-	if(PlayerCharacterCommonData == nullptr)
+	if(!IsValid(PlayerCharacterCommonData))
 	{
 		LOG_ERROR(R4Data, TEXT("PlayerCharacterCommonData is nullptr."));
 		return;
@@ -152,7 +152,7 @@ void APlayerCharacter::_InitPlayerCharacterCommonData()
 
 	bUseControllerRotationYaw = PlayerCharacterCommonData->bUseControllerRotationYaw;
 	
-	if (UCharacterMovementComponent* moveComp = GetCharacterMovement())
+	if (UCharacterMovementComponent* moveComp = GetCharacterMovement(); IsValid(moveComp))
 	{
 		moveComp->bOrientRotationToMovement = PlayerCharacterCommonData->bOrientRotationToMovement;
 		moveComp->bUseControllerDesiredRotation = PlayerCharacterCommonData->bUseControllerDesiredRotation;

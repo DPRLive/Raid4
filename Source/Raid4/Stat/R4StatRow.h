@@ -1,17 +1,17 @@
 ﻿#pragma once
 
-#include "../R4RowBase.h"
-#include "StatRow.generated.h"
+#include "../Data/R4RowBase.h"
+#include "R4StatRow.generated.h"
 
 /**
  * 객체의 기본 스탯을 정의할 Row
  */
 USTRUCT()
-struct FStatRow : public FR4RowBase
+struct FR4StatRow : public FR4RowBase
 {
 	GENERATED_BODY()
 
-	FStatRow() : Hp(0.f), HpRegenPerSec(0.f), Mp(0.f), MpRegenPerSec(0.f), AttackPower(0.f), Armor(0.f), CoolDownReduction(0.f), CriticalChance(0.f), BaseAttackSpeed(0.f), MovementSpeed(0.f) {}
+	FR4StatRow() : Hp(0.f), HpRegenPerSec(0.f), Mp(0.f), MpRegenPerSec(0.f), AttackPower(0.f), Armor(0.f), CoolDownReduction(0.f), CriticalChance(0.f), BaseAttackSpeed(0.f), MovementSpeed(0.f) {}
 	
 	// 기본 체력
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
@@ -54,4 +54,4 @@ struct FStatRow : public FR4RowBase
 	float MovementSpeed;
 };
 
-GENERATE_DT_PTR_H( FStatRow );
+GENERATE_DT_PTR_H( FR4StatRow );

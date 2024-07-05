@@ -3,7 +3,7 @@
 
 #include "R4SkillBase.h"
 #include "../Handler/CoolTimeHandler.h"
-#include "../Interface/R4Detectable.h"
+#include "../Detect/R4Detectable.h"
 
 #include <GameFramework/Character.h>
 #include <Animation/AnimMontage.h>
@@ -111,7 +111,7 @@ bool UR4SkillBase::CanUseSkill()
  */
 float UR4SkillBase::PlaySkillAnim(const FSkillAnimInfo& InSkillAnimInfo, float InPlayRate, const FName& InSectionName)
 {
-	if(ACharacter* owner = Cast<ACharacter>(GetOwner()))
+	if(ACharacter* owner = Cast<ACharacter>(GetOwner()); IsValid(owner))
 	{
 		return owner->PlayAnimMontage(InSkillAnimInfo.SkillAnim, InPlayRate, InSectionName);
 
@@ -126,7 +126,7 @@ float UR4SkillBase::PlaySkillAnim(const FSkillAnimInfo& InSkillAnimInfo, float I
  */
 void UR4SkillBase::StopAllAnim()
 {
-	if(ACharacter* owner = Cast<ACharacter>(GetOwner()))
+	if(ACharacter* owner = Cast<ACharacter>(GetOwner()); IsValid(owner))
 		owner->StopAnimMontage();
 
 	// TODO : clear reserved hitcheck

@@ -26,8 +26,8 @@ public:
 	float ReduceCoolTime(float InReduceTime);
 	
 	// 쿨타임이 완료되면 broadcast할 delegate
-	DECLARE_MULTICAST_DELEGATE( FCompletedCoolTime )
-	FCompletedCoolTime OnCompletedCoolTime;
+	DECLARE_MULTICAST_DELEGATE( FCompletedCoolTimeDelegate )
+	FCompletedCoolTimeDelegate OnCompletedCoolTimeDelegate;
 	
 private:
 	// Timer를 사용하기 위한 Handle

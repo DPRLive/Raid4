@@ -1,8 +1,8 @@
 ﻿#include "DataTableManager.h"
 
-#include "../Data/DataTable/Row/ExampleRow.h"
-#include "../Data/DataTable/Row/StatRow.h"
-#include "../Data/DataTable/Row/CharacterRow.h"
+#include "../Data/ExampleRow.h"
+#include "../Stat/R4StatRow.h"
+#include "../Character/R4CharacterRow.h"
 
 /**
  * 데이터 초기화 (로드)
@@ -19,7 +19,8 @@ void FDataTableManager::ClearSingleton()
 {
     for(const auto& clearFunc : ClearFuncs)
     {
-        if(clearFunc) clearFunc();
+        if(clearFunc)
+        	clearFunc();
     }
     ClearFuncs.Empty();
 }
@@ -30,7 +31,7 @@ void FDataTableManager::ClearSingleton()
 void FDataTableManager::_LoadDataTableAll()
 {
 	LOAD_DATATABLE( FExampleRow, ExampleRow, TEXT("DT_Example") );
-	LOAD_DATATABLE( FStatRow, StatRow, TEXT("DT_CharacterBaseStat") );
-	LOAD_DATATABLE( FCharacterRow, CharacterRow, TEXT("DT_Character") );
+	LOAD_DATATABLE( FR4StatRow, R4StatRow, TEXT("DT_CharacterBaseStat") );
+	LOAD_DATATABLE( FR4CharacterRow, R4CharacterRow, TEXT("DT_Character") );
 }
 

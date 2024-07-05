@@ -15,12 +15,12 @@
 * @param InProfileName : Overlap 체크에 사용할 Collision Profile
 * @param InParams : Overlap 체크 시 사용할 추가 Param
 */
-bool UtilOverlap::BoxOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, const UWorld* InWorld, const FVector& InLoc, const FQuat& InRot, const FVector& InBoxHalfExtent, const FName InProfileName, const FCollisionQueryParams& InParams, bool InbShowDebug, const FColor& InDebugColor, float InDebugTime)
+bool UtilOverlap::BoxOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, const UWorld* InWorld, const FVector& InLoc, const FQuat& InRot, const FVector& InBoxHalfExtent, const FName InProfileName, const FCollisionQueryParams& InParams, bool InIsShowDebug, const FColor& InDebugColor, float InDebugTime)
 {
-	bool bOverlap = InWorld ? InWorld->OverlapMultiByProfile(OutOverlaps, InLoc, InRot, InProfileName, FCollisionShape::MakeBox(InBoxHalfExtent), InParams) : false;
+	bool bOverlap = IsValid(InWorld) ? InWorld->OverlapMultiByProfile(OutOverlaps, InLoc, InRot, InProfileName, FCollisionShape::MakeBox(InBoxHalfExtent), InParams) : false;
 
 #if UE_ENABLE_DEBUG_DRAWING
-	if(InWorld && InbShowDebug)
+	if(InWorld && InIsShowDebug)
 		DrawDebugBox(InWorld, InLoc, InBoxHalfExtent, InRot, InDebugColor, false, InDebugTime);
 #endif
 
@@ -36,12 +36,12 @@ bool UtilOverlap::BoxOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, const
 * @param InProfileName : Overlap 체크에 사용할 Collision Profile
 * @param InParams : Overlap 체크 시 사용할 추가 Param
 */
-bool UtilOverlap::SphereOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, const UWorld* InWorld, const FVector& InLoc, float InRadius, const FName InProfileName, const FCollisionQueryParams& InParams, bool InbShowDebug, const FColor& InDebugColor, float InDebugTime)
+bool UtilOverlap::SphereOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, const UWorld* InWorld, const FVector& InLoc, float InRadius, const FName InProfileName, const FCollisionQueryParams& InParams, bool InIsShowDebug, const FColor& InDebugColor, float InDebugTime)
 {
-	bool bOverlap = InWorld ? InWorld->OverlapMultiByProfile(OutOverlaps, InLoc, FQuat::Identity, InProfileName, FCollisionShape::MakeSphere(InRadius), InParams) : false;
+	bool bOverlap = IsValid(InWorld) ? InWorld->OverlapMultiByProfile(OutOverlaps, InLoc, FQuat::Identity, InProfileName, FCollisionShape::MakeSphere(InRadius), InParams) : false;
 
 #if UE_ENABLE_DEBUG_DRAWING
-	if(InWorld && InbShowDebug)
+	if(InWorld && InIsShowDebug)
 		DrawDebugSphere(InWorld, InLoc, InRadius, 32, InDebugColor, false, InDebugTime);
 #endif
 
@@ -59,12 +59,12 @@ bool UtilOverlap::SphereOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, co
 * @param InProfileName : Overlap 체크에 사용할 Collision Profile
 * @param InParams : Overlap 체크 시 사용할 추가 Param
 */
-bool UtilOverlap::CapsuleOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, const UWorld* InWorld, const FVector& InLoc, const FQuat& InRot, float InRadius, float InHalfHeight, const FName InProfileName, const FCollisionQueryParams& InParams, bool InbShowDebug, const FColor& InDebugColor, float InDebugTime)
+bool UtilOverlap::CapsuleOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, const UWorld* InWorld, const FVector& InLoc, const FQuat& InRot, float InRadius, float InHalfHeight, const FName InProfileName, const FCollisionQueryParams& InParams, bool InIsShowDebug, const FColor& InDebugColor, float InDebugTime)
 {
-	bool bOverlap = InWorld ? InWorld->OverlapMultiByProfile(OutOverlaps, InLoc, FQuat::Identity, InProfileName, FCollisionShape::MakeCapsule(InRadius, InHalfHeight), InParams) : false;
+	bool bOverlap = IsValid(InWorld) ? InWorld->OverlapMultiByProfile(OutOverlaps, InLoc, FQuat::Identity, InProfileName, FCollisionShape::MakeCapsule(InRadius, InHalfHeight), InParams) : false;
 
 #if UE_ENABLE_DEBUG_DRAWING
-	if(InWorld && InbShowDebug)
+	if(InWorld && InIsShowDebug)
 		DrawDebugCapsule(InWorld, InLoc, InHalfHeight, InRadius, InRot, InDebugColor, false, InDebugTime);
 #endif
 
@@ -82,9 +82,9 @@ bool UtilOverlap::CapsuleOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, c
 * @param InProfileName : Overlap 체크에 사용할 Collision Profile
 * @param InParams : Overlap 체크 시 사용할 추가 Param
 */
-bool UtilOverlap::SectorOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, const UWorld* InWorld, const FTransform& InTrans, float InRadius, float InHalfHeight, float InDegree, const FName InProfileName, const FCollisionQueryParams& InParams, bool InbShowDebug, const FColor& InDebugColor, float InDebugTime)
+bool UtilOverlap::SectorOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, const UWorld* InWorld, const FTransform& InTrans, float InRadius, float InHalfHeight, float InDegree, const FName InProfileName, const FCollisionQueryParams& InParams, bool InIsShowDebug, const FColor& InDebugColor, float InDebugTime)
 {
-	if(!InWorld)
+	if(!IsValid(InWorld))
 		return false;
 
 	// 각도 0~360으로 제한
@@ -100,7 +100,7 @@ bool UtilOverlap::SectorOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, co
 		FTransform planeTrans;
 		planeTrans.SetRotation(InTrans.TransformRotation(FRotator(0.f, halfDegree, 0.f).Quaternion()));
 		planeTrans.SetLocation(InTrans.GetLocation() + planeTrans.GetUnitAxis(EAxis::X) * InRadius / 2);
-		BoxOverlapByProfile(planeOverlapArr, InWorld, planeTrans.GetLocation(), planeTrans.GetRotation(), FVector(InRadius / 2, 0.f, InHalfHeight), InProfileName, InParams, InbShowDebug, FColor::Silver, InDebugTime);
+		BoxOverlapByProfile(planeOverlapArr, InWorld, planeTrans.GetLocation(), planeTrans.GetRotation(), FVector(InRadius / 2, 0.f, InHalfHeight), InProfileName, InParams, InIsShowDebug, FColor::Silver, InDebugTime);
 		
 		for(FOverlapResult& res : planeOverlapArr)
 			planeOverlaps.Emplace(MoveTemp(res.OverlapObjectHandle));
@@ -110,7 +110,7 @@ bool UtilOverlap::SectorOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, co
 		// 반 시계 방향 쪽 평면 체크
 		planeTrans.SetRotation(InTrans.TransformRotation(FRotator(0.f, -halfDegree, 0.f).Quaternion()));
 		planeTrans.SetLocation(InTrans.GetLocation() + planeTrans.GetUnitAxis(EAxis::X) * InRadius / 2);
-		BoxOverlapByProfile(planeOverlapArr, InWorld, planeTrans.GetLocation(), planeTrans.GetRotation(), FVector(InRadius / 2, 0.f, InHalfHeight), InProfileName, InParams, InbShowDebug, FColor::Silver, InDebugTime);
+		BoxOverlapByProfile(planeOverlapArr, InWorld, planeTrans.GetLocation(), planeTrans.GetRotation(), FVector(InRadius / 2, 0.f, InHalfHeight), InProfileName, InParams, InIsShowDebug, FColor::Silver, InDebugTime);
 
 		for(FOverlapResult& res : planeOverlapArr)
 			planeOverlaps.Emplace(MoveTemp(res.OverlapObjectHandle));
@@ -118,7 +118,7 @@ bool UtilOverlap::SectorOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, co
 	
 	// 부채꼴의 반지름과 높이로 만든 박스로 체크한다.
 	TArray<FOverlapResult> boxOverlaps;
-	BoxOverlapByProfile(boxOverlaps, InWorld, InTrans.GetLocation(), InTrans.GetRotation(), FVector(InRadius, InRadius, InHalfHeight), InProfileName, InParams, InbShowDebug, FColor::Silver, InDebugTime);
+	BoxOverlapByProfile(boxOverlaps, InWorld, InTrans.GetLocation(), InTrans.GetRotation(), FVector(InRadius, InRadius, InHalfHeight), InProfileName, InParams, InIsShowDebug, FColor::Silver, InDebugTime);
 
 	// 박스에 체크 된 것들 거르기
 	for(FOverlapResult& overlapResult : boxOverlaps)
@@ -137,7 +137,7 @@ bool UtilOverlap::SectorOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, co
 		float dot = FVector::DotProduct(projVector.GetSafeNormal(), InTrans.GetUnitAxis(EAxis::X)); // 내적으로 Cos 값을 구함
 
 #if UE_ENABLE_DEBUG_DRAWING
-		if( InWorld && InbShowDebug )
+		if( IsValid(InWorld) && InIsShowDebug )
 		{
 			DrawDebugPoint(InWorld, closestPoint, 3, InDebugColor, false, InDebugTime);
 			DrawDebugLine(InWorld, InTrans.GetLocation(), InTrans.GetLocation() + projVector, InDebugColor, false, InDebugTime, 0, 2);
@@ -152,7 +152,7 @@ bool UtilOverlap::SectorOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, co
 	}
 
 #if UE_ENABLE_DEBUG_DRAWING
-	if( InWorld && InbShowDebug )
+	if( IsValid(InWorld) && InIsShowDebug )
 	{
 		DrawDebugHelper::DrawDebugSector(InWorld, InTrans, InRadius, InHalfHeight, FMath::DegreesToRadians(InDegree), 32, InDebugColor, false, InDebugTime);
 	}

@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "../Core/SingletonBase.h"
-#include "../Data/DataTable/R4RowBase.h"
+#include "../Data/R4RowBase.h"
 
 /**
  * 데이터 테이블을 편하게 등록하기 위한 매크로
@@ -21,8 +21,8 @@ public:															\
 
 // 여기에 전방 선언 //
 struct FExampleRow;
-struct FStatRow;
-struct FCharacterRow;
+struct FR4StatRow;
+struct FR4CharacterRow;
 ////////////////////
 
 /**
@@ -33,8 +33,8 @@ class FDataTableManager : public TSingletonBase<FDataTableManager>
 private:
 	// 데이터 테이블을 선언 //
 	DECLARE_DATATABLE( FExampleRow, ExampleRow );
-	DECLARE_DATATABLE( FStatRow, StatRow );
-	DECLARE_DATATABLE( FCharacterRow, CharacterRow );
+	DECLARE_DATATABLE( FR4StatRow, R4StatRow );
+	DECLARE_DATATABLE( FR4CharacterRow, R4CharacterRow );
 	///////////////////////
 
 public:

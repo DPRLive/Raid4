@@ -34,25 +34,6 @@ struct FSkillAnimInfo
 	TMap<int32, FString> DetectNotify;
 };
 
-USTRUCT()
-struct FSkillAnimInfo2
-{
-	GENERATED_BODY()
-	
-	FSkillAnimInfo2()
-		: SkillAnim(nullptr)
-	{}
-	
-	// 발동할 Skill Anim
-	UPROPERTY( EditAnywhere )
-	TObjectPtr<UAnimMontage> SkillAnim;
-
-	// 레벨에서 무언가 탐지하는 Notify에 대한 행동 정의
-	// {Notify index ( AnimMontage에서 몇번째 Notify인지), 행동} 
-	// TODO : 행동을 정의 해야함
-	UPROPERTY( EditAnywhere )
-	TMap<int32, FString> DetectNotify;
-};
 /**
  * Skill의 Base가 되는 클래스.
  * 스킬을 위한 기본 기능들을 제공
@@ -94,7 +75,4 @@ protected:
 	
 	// 마지막으로 발동한 시간 (서버)
 	float CachedLastActivateTime;
-
-	UPROPERTY( EditAnywhere )
-	FSkillAnimInfo2 test;
 };

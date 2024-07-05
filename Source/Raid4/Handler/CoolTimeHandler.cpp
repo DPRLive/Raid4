@@ -25,10 +25,13 @@ FCoolTimeHandler::~FCoolTimeHandler()
  */
 void FCoolTimeHandler::SetCoolTime(float InCoolTime)
 {
+	if(!IsValid(R4GetWorld()))
+		return;
+	
 	R4GetWorld()->GetTimerManager().SetTimer(Handle, [this]
 	{
-	    if(OnCompletedCoolTime.IsBound())
-	        OnCompletedCoolTime.Broadcast();
+	    if(OnCompletedCoolTimeDelegate.IsBound())
+	        OnCompletedCoolTimeDelegate.Broadcast();
 	}, InCoolTime, false);
 }
 
@@ -37,6 +40,9 @@ void FCoolTimeHandler::SetCoolTime(float InCoolTime)
  */
 void FCoolTimeHandler::ClearCoolTime()
 {
+	if(!IsValid(R4GetWorld()))
+		return;
+	
     R4GetWorld()->GetTimerManager().ClearTimer(Handle);
 }
 
@@ -46,7 +52,7 @@ void FCoolTimeHandler::ClearCoolTime()
  */
 float FCoolTimeHandler::GetCoolTime() const
 {
-    if(R4GetWorld()->GetTimerManager().IsTimerActive(Handle))
+    if(IsValid(R4GetWorld()) && R4GetWorld()->GetTimerManager().IsTimerActive(Handle))
         return R4GetWorld()->GetTimerManager().GetTimerRemaining(Handle);
 
     return 0.f;
@@ -66,8 +72,8 @@ float FCoolTimeHandler::ReduceCoolTime(float InReduceTime)
 	{
 		ClearCoolTime();
 
-		if(OnCompletedCoolTime.IsBound())
-			OnCompletedCoolTime.Broadcast();
+		if(OnCompletedCoolTimeDelegate.IsBound())
+			OnCompletedCoolTimeDelegate.Broadcast();
 		
 		return newCoolTime;
 	}
