@@ -3,10 +3,12 @@
 #pragma once
 
 #include "../Data/R4DTDataPushable.h"
-#include <GameFramework/Character.h>
+#include "../Damage/R4Damageable.h"
 
+#include <GameFramework/Character.h>
 #include "R4CharacterBase.generated.h"
 
+class UR4DamageControlComponent;
 class UR4CharacterRPCComponent;
 class UR4SkillComponent;
 class UR4StatComponent;
@@ -15,7 +17,7 @@ class UR4StatComponent;
  * (NPC, PlayerCharacter 등) 캐릭터에 베이스가 되는 클래스
  */
 UCLASS()
-class RAID4_API AR4CharacterBase : public ACharacter, public IR4DTDataPushable//, public IR4Damageable, public IR4Attackable
+class RAID4_API AR4CharacterBase : public ACharacter, public IR4DTDataPushable, public IR4Damageable
 {
 	GENERATED_BODY()
 
@@ -33,11 +35,14 @@ public:
 
 	// Replicate를 거쳐서 anim을 stop
 	virtual void StopAnimMontage(UAnimMontage* AnimMontage) override;
-public:
+
 	// ~ Begin IR4DTDataPushable (Character의 데이터를 초기화한다. ( By DT_Character))
 	virtual void PushDTData(FPriKey InPk) override; 
 	// ~ End IR4DTDataPushable
-	
+
+	// ~ Begin IR4Damageable
+	virtual void ReceiveDamage(AActor* InInstigator, float InDamage) override;
+	// ~ End IR4Damageable
 protected:
 	// StatComp와 필요한 초기화를 진행한다
 	virtual void InitStatComponent(FPriKey InStatPk);
@@ -67,4 +72,8 @@ protected:
 	// 여러가지 Character를 위한 RPC 기능을 부여해주는 Component
 	UPROPERTY( )
 	TObjectPtr<UR4CharacterRPCComponent> RPCComp;
+
+	// 데미지 받을때 계산을 도와주는 Damage Control Comp
+	UPROPERTY( VisibleAnywhere, Category = "Damage", meta = (AllowPrivateAccess = true) )
+	TObjectPtr<UR4DamageControlComponent> DamageControlComp;
 };

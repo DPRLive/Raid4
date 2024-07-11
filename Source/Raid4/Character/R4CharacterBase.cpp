@@ -2,12 +2,13 @@
 
 
 #include "R4CharacterBase.h"
+#include "R4CharacterRPCComponent.h"
+#include "R4CharacterRow.h"
 #include "../Stat/R4StatComponent.h"
 #include "../Movement/R4CharacterMovementComponent.h"
 #include "../Skill/R4SkillComponent.h"
-#include "R4CharacterRow.h"
 #include "../Skill/R4SkillBase.h"
-#include "R4CharacterRPCComponent.h"
+#include "../Damage/R4DamageControlComponent.h"
 
 #include <Components/SkeletalMeshComponent.h>
 #include <Engine/SkeletalMesh.h>
@@ -28,6 +29,8 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 	SkillComp = CreateDefaultSubobject<UR4SkillComponent>(TEXT("SkillComp"));
 
 	RPCComp = CreateDefaultSubobject<UR4CharacterRPCComponent>(TEXT("RPCComp"));
+
+	DamageControlComp = CreateDefaultSubobject<UR4DamageControlComponent>(TEXT("DamageControlComp"));
 }
 
 /**
@@ -96,20 +99,26 @@ void AR4CharacterBase::PushDTData(FPriKey InPk)
 }
 
 /**
- *  Damage를 처리한다
+ *  Damage를 처리한다. 음수의 데미지는 처리되지 않음.
+ *  @param InInstigator : 가해자
+ *  @param InDamage : 입힐 데미지
  */
-// void ACharacterBase::ReceiveDamage(float InDamage)
-// {
-// 	// TODO : 데미지 계산
-//
-// 	// 데미지 입기
-// 	float damagedHp = FMath::Clamp(StatComp->GetCurrentHp() - InDamage, 0.f, StatComp->GetCurrentHp());
-// 	StatComp->SetCurrentHp(damagedHp);
-//
-// 	// 죽었다고 알림
-// 	if(FMath::IsNearlyZero(damagedHp) && OnCharacterDead.IsBound())
-// 		OnCharacterDead.Broadcast();
-// }
+void AR4CharacterBase::ReceiveDamage(AActor* InInstigator, float InDamage)
+{
+	// 최종적으로 받을 데미지를 계산
+	DamageControlComp->PushNewDamage(InDamage);
+	float calculatedDamage = DamageControlComp->GetCalculatedDamage();
+
+	// TODO : barrier를 흠. 흐음..
+
+	// StatComp에 적용
+	float damagedHp = FMath::Clamp(StatComp->GetCurrentHp() - calculatedDamage, 0.f, StatComp->GetCurrentHp());
+	StatComp->SetCurrentHp(damagedHp);
+	
+	// 죽었다면 죽었다고 알림
+	if(FMath::IsNearlyZero(damagedHp) && OnCharacterDeadDelegate.IsBound())
+		OnCharacterDeadDelegate.Broadcast();
+}
 
 /**
  *  Damage 주기를 처리
