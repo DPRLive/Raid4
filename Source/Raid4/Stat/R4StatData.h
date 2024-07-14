@@ -62,6 +62,7 @@ public:
 	virtual ~FR4ConsumableStatData() override = default;
 	
 	// Initializer
+	// TODO : delegate clear
 	FORCEINLINE virtual void InitStatData(float InBaseValue = 0.f) override
 	{ Super::InitStatData(InBaseValue); SetCurrentValue(GetBaseValue() + GetModifierValue()); }
 	
