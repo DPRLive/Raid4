@@ -152,6 +152,7 @@ void UR4SkillBase::BindAffect(UObject* InDetectable, const FString& InAffectInfo
 		};
 		
 		// Detect 시작 Bind
+		// TODO : 사용 후 지워야겠지?
 		detectableObj->OnBeginDetect().AddLambda(affectLambda);
 
 		// Detect 종료 Bind

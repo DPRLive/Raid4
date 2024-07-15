@@ -30,6 +30,9 @@ void UR4PlayerInputComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 
+	if(!IsValid(GetOwner()))
+		return;
+		
 	// Input Init을 대기한다.
 	if(IR4PlayerInputCompInterface* owner = Cast<IR4PlayerInputCompInterface>(GetOwner()))
 	{
@@ -56,20 +59,23 @@ void UR4PlayerInputComponent::_InitializePlayerInput(UInputComponent* InPlayerIn
 		EnhancedInputComponent->ClearActionBindings();
 
 		// 이동 입력 액션 바인딩
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &UR4PlayerInputComponent::OnInputMoveStarted);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &UR4PlayerInputComponent::OnInputMoveTriggered);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &UR4PlayerInputComponent::OnInputMoveCompleted);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &UR4PlayerInputComponent::_OnInputMoveStarted);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &UR4PlayerInputComponent::_OnInputMoveTriggered);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &UR4PlayerInputComponent::_OnInputMoveCompleted);
 
 		// 스킬 입력 액션 바인딩
 		for( const TPair<ESkillIndex, TObjectPtr<UInputAction>>& skillAction : SkillActions )
 		{
 			// 스킬 index도 같이 넘긴다.
-			EnhancedInputComponent->BindAction(skillAction.Value, ETriggerEvent::Started, this, &UR4PlayerInputComponent::OnInputSkillStarted, skillAction.Key);
-			EnhancedInputComponent->BindAction(skillAction.Value, ETriggerEvent::Triggered, this, &UR4PlayerInputComponent::OnInputSkillTriggered, skillAction.Key);
-			EnhancedInputComponent->BindAction(skillAction.Value, ETriggerEvent::Completed, this, &UR4PlayerInputComponent::OnInputSkillCompleted, skillAction.Key);
+			EnhancedInputComponent->BindAction(skillAction.Value, ETriggerEvent::Started, this, &UR4PlayerInputComponent::_OnInputSkillStarted, skillAction.Key);
+			EnhancedInputComponent->BindAction(skillAction.Value, ETriggerEvent::Triggered, this, &UR4PlayerInputComponent::_OnInputSkillTriggered, skillAction.Key);
+			EnhancedInputComponent->BindAction(skillAction.Value, ETriggerEvent::Completed, this, &UR4PlayerInputComponent::_OnInputSkillCompleted, skillAction.Key);
 		}
 	}
 
+	if(!IsValid(GetOwner()))
+		return;
+	
 	IR4PlayerInputCompInterface* owner = Cast<IR4PlayerInputCompInterface>(GetOwner());
 	if(owner == nullptr)
 	{
@@ -100,8 +106,11 @@ void UR4PlayerInputComponent::_InitializePlayerInput(UInputComponent* InPlayerIn
 /**
  *  이동 입력 시작
  */
-void UR4PlayerInputComponent::OnInputMoveStarted()
+void UR4PlayerInputComponent::_OnInputMoveStarted()
 {
+	if(!IsValid(GetOwner()))
+		return;
+	
 	if(IR4MouseMovable* owner = Cast<IR4MouseMovable>(GetOwner()))
 	{
 		owner->StopMove();
@@ -111,8 +120,11 @@ void UR4PlayerInputComponent::OnInputMoveStarted()
 /**
  *  이동 입력 Triggered
  */
-void UR4PlayerInputComponent::OnInputMoveTriggered()
+void UR4PlayerInputComponent::_OnInputMoveTriggered()
 {
+	if(!IsValid(GetOwner()))
+		return;
+	
 	CachedTriggerTime += GetWorld()->GetDeltaSeconds();
 
 	IR4MouseMovable* mouseMoveObj = Cast<IR4MouseMovable>(GetOwner());
@@ -131,7 +143,7 @@ void UR4PlayerInputComponent::OnInputMoveTriggered()
 	FHitResult hit;
 	if(AActor* ownerActor = GetOwner();
 		IsValid(ownerActor)
-		&& playerController != nullptr
+		&& IsValid(playerController)
 		&& playerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, hit))
 	{
 		FVector dir = hit.Location - ownerActor->GetActorLocation();
@@ -146,8 +158,11 @@ void UR4PlayerInputComponent::OnInputMoveTriggered()
 /**
  *  이동 입력 종료
  */
-void UR4PlayerInputComponent::OnInputMoveCompleted()
+void UR4PlayerInputComponent::_OnInputMoveCompleted()
 {
+	if(!IsValid(GetOwner()))
+		return;
+	
 	IR4MouseMovable* mouseMoveObj = Cast<IR4MouseMovable>(GetOwner());
 	if(mouseMoveObj == nullptr)
 	{
@@ -173,8 +188,11 @@ void UR4PlayerInputComponent::OnInputMoveCompleted()
 /**
  *  스킬 입력 시작
  */
-void UR4PlayerInputComponent::OnInputSkillStarted(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
+void UR4PlayerInputComponent::_OnInputSkillStarted(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
+	if(!IsValid(GetOwner()))
+		return;
+	
 	if(IR4PlayerSkillInterface* owner = Cast<IR4PlayerSkillInterface>(GetOwner()))
 	{
 		owner->OnInputSkillStarted(InSkillIndex);
@@ -184,8 +202,11 @@ void UR4PlayerInputComponent::OnInputSkillStarted(const FInputActionValue& InVal
 /**
  *  스킬 입력 중
  */
-void UR4PlayerInputComponent::OnInputSkillTriggered(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
+void UR4PlayerInputComponent::_OnInputSkillTriggered(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
+	if(!IsValid(GetOwner()))
+		return;
+	
 	if(IR4PlayerSkillInterface* owner = Cast<IR4PlayerSkillInterface>(GetOwner()))
 	{
 		owner->OnInputSkillTriggered(InSkillIndex);
@@ -195,8 +216,11 @@ void UR4PlayerInputComponent::OnInputSkillTriggered(const FInputActionValue& InV
 /**
  *  스킬 입력 종료
  */
-void UR4PlayerInputComponent::OnInputSkillCompleted(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
+void UR4PlayerInputComponent::_OnInputSkillCompleted(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
+	if(!IsValid(GetOwner()))
+		return;
+	
 	if(IR4PlayerSkillInterface* owner = Cast<IR4PlayerSkillInterface>(GetOwner()))
 	{
 		owner->OnInputSkillCompleted(InSkillIndex);

@@ -32,14 +32,14 @@ private:
 	void _InitializePlayerInput(UInputComponent* InPlayerInputComponent);
 	
 	// Move Input Func
-	void OnInputMoveStarted();
-	void OnInputMoveTriggered();
-	void OnInputMoveCompleted();
+	void _OnInputMoveStarted();
+	void _OnInputMoveTriggered();
+	void _OnInputMoveCompleted();
 
 	// Skill Input Func
-	void OnInputSkillStarted(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
-	void OnInputSkillTriggered(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
-	void OnInputSkillCompleted(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
+	void _OnInputSkillStarted(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
+	void _OnInputSkillTriggered(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
+	void _OnInputSkillCompleted(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
 	
 	// MappingContext
 	UPROPERTY( EditAnywhere, Category = "Data|Mapping", meta = (AllowPrivateAccess = true) )
