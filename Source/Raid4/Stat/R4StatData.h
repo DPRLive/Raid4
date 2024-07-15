@@ -21,9 +21,9 @@ public:
 
 	virtual ~FR4StatData() = default;
 	
-	// Initializer, SetBaseValue()를 사용하여 delegate로 알림
-	FORCEINLINE virtual void InitStatData(float InBaseValue = 0.f)
-	{ ModifierValue = 0.f; SetBaseValue(InBaseValue); }
+	// Initializer, 0으로 초기화, delegate clear
+	FORCEINLINE virtual void InitStatData()
+	{ BaseValue = 0.f; ModifierValue = 0.f; OnChangeStatDataDelegate.Clear();}
 
 	// Getter
 	FORCEINLINE float GetBaseValue() const { return BaseValue; }
@@ -61,10 +61,9 @@ public:
 
 	virtual ~FR4ConsumableStatData() override = default;
 	
-	// Initializer
-	// TODO : delegate clear
-	FORCEINLINE virtual void InitStatData(float InBaseValue = 0.f) override
-	{ Super::InitStatData(InBaseValue); SetCurrentValue(GetBaseValue() + GetModifierValue()); }
+	// Initializer, 0으로 초기화, delegate clear
+	FORCEINLINE virtual void InitStatData() override
+	{ Super::InitStatData(); CurrentValue = 0.f, OnChangeCurrentValueDelegate.Clear(); }
 	
 	// Getter
 	FORCEINLINE float GetCurrentValue() const { return CurrentValue; }

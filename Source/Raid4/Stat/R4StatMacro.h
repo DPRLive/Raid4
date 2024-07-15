@@ -29,7 +29,7 @@
     FOnChangeCurrentStatDataDelegate& OnChangeCurrent##Name() { return Name.OnChangeCurrentValueDelegate; }
 
 #define R4STAT_STAT_INITTER( Name ) \
-    void Init##Name(float InBaseValue) { Name.InitStatData(InBaseValue); }
+    void Init##Name() { Name.InitStatData(); }
 
 #define R4STAT_STAT_ACCESSORS( Name )       \
     R4STAT_STAT_INITTER( Name )             \

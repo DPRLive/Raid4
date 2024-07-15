@@ -51,7 +51,7 @@ public:
 	// ~ End IR4StatusBarInterface
 protected:
 	// StatComp와 필요한 초기화를 진행한다
-	virtual void InitStatComponent(FPriKey InStatPk);
+	virtual void InitStatComponent();
 	
 	// 이동 속도를 적용한다.
 	virtual void ApplyMovementSpeed(float InBaseMovementSpeed, float InModifierMovementSpeed) const;

@@ -32,7 +32,10 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
-	// ~ Begin IR4DTDataPushable (스탯을 주어진 Pk로 초기화한다. ( By DT_Stat))
+	// 스탯을 초기화 (0으로 설정)
+	virtual void InitStats();
+	
+	// ~ Begin IR4DTDataPushable (주어진 Pk로 스탯 데이터를 채운다. ( By DT_Stat))
 	virtual void PushDTData(FPriKey InPk) override; 
 	// ~ End IR4DTDataPushable
 	
@@ -40,8 +43,6 @@ public:
 	// Accessors
 	R4STAT_CONSUMABLE_STAT_ACCESSORS( Hp );
 	R4STAT_STAT_ACCESSORS( HpRegenPerSec );
-	R4STAT_CONSUMABLE_STAT_ACCESSORS( Mp );
-	R4STAT_STAT_ACCESSORS( MpRegenPerSec );
 	R4STAT_STAT_ACCESSORS( AttackPower );
 	R4STAT_STAT_ACCESSORS( Armor );
 	R4STAT_STAT_ACCESSORS( CoolDownReduction );
@@ -57,14 +58,6 @@ private:
 	// 초당 체력 재생력
 	UPROPERTY( ReplicatedUsing = _OnRep_HpRegenPerSec, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
 	FR4StatData HpRegenPerSec;
-	
-	// MP (마나)
-	UPROPERTY( ReplicatedUsing = _OnRep_Mp, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
-	FR4ConsumableStatData Mp;
-
-	// 초당 마나 재생력
-	UPROPERTY( ReplicatedUsing = _OnRep_MpRegenPerSec, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
-	FR4StatData MpRegenPerSec;
 	
 	// 공격력
 	UPROPERTY( ReplicatedUsing = _OnRep_AttackPower, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
@@ -97,12 +90,6 @@ private:
 	
 	UFUNCTION()
 	void _OnRep_HpRegenPerSec(const FR4StatData& InPrevHpRegenPerSec);
-
-	UFUNCTION()
-	void _OnRep_Mp(const FR4ConsumableStatData& InPrevMp);
-
-	UFUNCTION()
-	void _OnRep_MpRegenPerSec(const FR4StatData& InPrevMpRegenPerSec);
 
 	UFUNCTION()
 	void _OnRep_AttackPower(const FR4StatData& InPrevAttackPower);

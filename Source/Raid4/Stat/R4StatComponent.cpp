@@ -42,11 +42,9 @@ void UR4StatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	// Replicate all players
 	DOREPLIFETIME(UR4StatComponent, Hp);
-	DOREPLIFETIME(UR4StatComponent, Mp);
 	
 	// Replicate Only Owner
 	DOREPLIFETIME_CONDITION(UR4StatComponent, HpRegenPerSec, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UR4StatComponent, MpRegenPerSec, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UR4StatComponent, AttackPower, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UR4StatComponent, Armor, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UR4StatComponent, CoolDownReduction, COND_OwnerOnly);
@@ -56,7 +54,22 @@ void UR4StatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 }
 
 /**
- *  스탯을 주어진 Pk로 초기화한다.
+ *  스탯을 초기화 (0으로 설정)
+ */
+void UR4StatComponent::InitStats()
+{
+	InitHp();
+	InitHpRegenPerSec();
+	InitAttackPower();
+	InitArmor();
+	InitCoolDownReduction();
+	InitCriticalChance();
+	InitBaseAttackSpeed();
+	InitMovementSpeed();
+}
+
+/**
+ *  주어진 Pk로 스탯 데이터를 채운다.
  */
 void UR4StatComponent::PushDTData(FPriKey InPk)
 {
@@ -67,16 +80,14 @@ void UR4StatComponent::PushDTData(FPriKey InPk)
 		return;
 	}
 
-	InitHp(statPtr->Hp);
-	InitHpRegenPerSec(statPtr->HpRegenPerSec);
-	InitMp(statPtr->Mp);
-	InitMpRegenPerSec(statPtr->MpRegenPerSec);
-	InitAttackPower(statPtr->AttackPower);
-	InitArmor(statPtr->Armor);
-	InitCoolDownReduction(statPtr->CoolDownReduction);
-	InitCriticalChance(statPtr->CriticalChance);
-	InitBaseAttackSpeed(statPtr->BaseAttackSpeed);
-	InitMovementSpeed(statPtr->MovementSpeed);
+	SetBaseHp(statPtr->Hp); SetCurrentHp(Hp.GetBaseValue() + Hp.GetCurrentValue());
+	SetBaseHpRegenPerSec(statPtr->HpRegenPerSec);
+	SetBaseAttackPower(statPtr->AttackPower);
+	SetBaseArmor(statPtr->Armor);
+	SetBaseCoolDownReduction(statPtr->CoolDownReduction);
+	SetBaseCriticalChance(statPtr->CriticalChance);
+	SetBaseBaseAttackSpeed(statPtr->BaseAttackSpeed);
+	SetBaseMovementSpeed(statPtr->MovementSpeed);
 }
 
 /**
@@ -92,16 +103,6 @@ void UR4StatComponent::_OnRep_Hp(const FR4ConsumableStatData& InPrevHp)
 void UR4StatComponent::_OnRep_HpRegenPerSec(const FR4StatData& InPrevHpRegenPerSec)
 {
 	R4STAT_STAT_OnRep(HpRegenPerSec, InPrevHpRegenPerSec);
-}
-
-void UR4StatComponent::_OnRep_Mp(const FR4ConsumableStatData& InPrevMp)
-{
-	R4STAT_CONSUMABLE_STAT_OnRep(Mp, InPrevMp);
-}
-
-void UR4StatComponent::_OnRep_MpRegenPerSec(const FR4StatData& InPrevMpRegenPerSec)
-{
-	R4STAT_STAT_OnRep(MpRegenPerSec, InPrevMpRegenPerSec);
 }
 
 void UR4StatComponent::_OnRep_AttackPower(const FR4StatData& InPrevAttackPower)

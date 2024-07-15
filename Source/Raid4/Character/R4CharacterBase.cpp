@@ -42,10 +42,8 @@ void AR4CharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	// Character 테스트를 위한 Aurora 데이터 임시 로드
-	// TODO : 나중에 캐릭터에 따른 데이터 로드를 진행해야함.
-	PushDTData(1);
-
+	InitStatComponent();
+	
 	OnCharacterDeadDelegate.AddDynamic(this, &AR4CharacterBase::Dead);
 }
 
@@ -55,6 +53,10 @@ void AR4CharacterBase::PostInitializeComponents()
 void AR4CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Character 테스트를 위한 Aurora 데이터 임시 로드
+	// TODO : 나중에 캐릭터에 따른 데이터 로드를 진행해야함.
+	PushDTData(1);
 }
 
 /**
@@ -79,14 +81,14 @@ void AR4CharacterBase::PushDTData(FPriKey InPk)
 		// 애니메이션 설정
 		meshComp->SetAnimInstanceClass(characterData->AnimInstance);
 	}
-
-	// 스탯 컴포넌트 초기화
-	InitStatComponent(characterData->BaseStatRowPK);
 	
 	if (!HasAuthority())
 		return;
 
 	///// Only Server /////
+	
+	// 스탯 컴포넌트에 데이터 입력
+	StatComp->PushDTData(characterData->BaseStatRowPK);
 
 	// 스킬 컴포넌트에 스킬을 적용.
 	// TODO : 배열 주면 Skill Comp에서 읽어가게 하는게 좋을거 같단말이야
@@ -147,15 +149,6 @@ void AR4CharacterBase::SetupStatusBarWidget(UUserWidget* InWidget)
 	}
 }
 
-
-/**
- *  Damage 주기를 처리
- */
-// void ACharacterBase::ApplyDamage(const int32 InPk, AActor* InVictim)
-// {
-// 	//AttackComp->ApplyDamage(InPk, InVictim);
-// }
-
 /**
  *  Replicate를 거쳐서 anim을 play
  *  @return : AnimMontage의 링크를 포함한 특정 Section에 대한 시간
@@ -175,13 +168,10 @@ void AR4CharacterBase::StopAnimMontage(UAnimMontage* AnimMontage)
 
 /**
  *  StatComp와 필요한 초기화를 진행한다
- *  @param InStatPk : Stat DT의 primary key
  */
-void AR4CharacterBase::InitStatComponent(FPriKey InStatPk)
+void AR4CharacterBase::InitStatComponent()
 {
-	// 실제로 DT에서 Stat Data를 넣는것은 Server
-	if(HasAuthority())
-		StatComp->PushDTData(InStatPk);
+	StatComp->InitStats();
 	
 	// TODO : Bind Stats
 	StatComp->OnChangeMovementSpeed().AddUObject(this, &AR4CharacterBase::ApplyMovementSpeed); // 이동속도 설정 바인드

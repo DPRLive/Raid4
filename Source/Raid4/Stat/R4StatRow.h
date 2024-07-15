@@ -11,7 +11,7 @@ struct FR4StatRow : public FR4RowBase
 {
 	GENERATED_BODY()
 
-	FR4StatRow() : Hp(0.f), HpRegenPerSec(0.f), Mp(0.f), MpRegenPerSec(0.f), AttackPower(0.f), Armor(0.f), CoolDownReduction(0.f), CriticalChance(0.f), BaseAttackSpeed(0.f), MovementSpeed(0.f) {}
+	FR4StatRow() : Hp(0.f), HpRegenPerSec(0.f), AttackPower(0.f), Armor(0.f), CoolDownReduction(0.f), CriticalChance(0.f), BaseAttackSpeed(0.f), MovementSpeed(0.f) {}
 	
 	// 기본 체력
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
@@ -20,14 +20,6 @@ struct FR4StatRow : public FR4RowBase
 	// 기본 초당 체력 재생력
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
 	float HpRegenPerSec;
-	
-	// 기본 마나
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
-	float Mp;
-
-	// 기본 초당 마나 재생력
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
-	float MpRegenPerSec;
 	
 	// 기본 공격력
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
