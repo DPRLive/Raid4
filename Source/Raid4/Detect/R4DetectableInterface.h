@@ -3,7 +3,7 @@
 #pragma once
 
 #include <UObject/Interface.h>
-#include "R4Detectable.generated.h"
+#include "R4DetectableInterface.generated.h"
 
 struct FDetectResult;
 
@@ -12,7 +12,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam( FOnDetectDelegate, const FDetectResult& /* 
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UR4Detectable : public UInterface
+class UR4DetectableInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -20,7 +20,7 @@ class UR4Detectable : public UInterface
 /**
  * 레벨에서 무언가 탐지를 할 수 있는 오브젝트 정의 시 사용
  */
-class RAID4_API IR4Detectable
+class RAID4_API IR4DetectableInterface
 {
 	GENERATED_BODY()
 

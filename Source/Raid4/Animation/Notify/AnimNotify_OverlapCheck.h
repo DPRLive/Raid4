@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../../Detect/R4Detectable.h"
+#include "../../Detect/R4DetectableInterface.h"
 #include <Animation/AnimNotifies/AnimNotify.h>
 #include "AnimNotify_OverlapCheck.generated.h"
 
@@ -32,7 +32,7 @@ struct FOverlapEffectInfo
  * Overlap을 체크하는 Notify
  */
 UCLASS()
-class RAID4_API UAnimNotify_OverlapCheck : public UAnimNotify, public IR4Detectable
+class RAID4_API UAnimNotify_OverlapCheck : public UAnimNotify, public IR4DetectableInterface
 {
 	GENERATED_BODY()
 

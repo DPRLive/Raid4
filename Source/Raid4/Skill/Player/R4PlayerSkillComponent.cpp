@@ -2,7 +2,7 @@
 
 
 #include "R4PlayerSkillComponent.h"
-#include "../../Input/R4PlayerInputable.h"
+#include "../../Input/R4PlayerInputableInterface.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4PlayerSkillComponent)
 
@@ -18,7 +18,7 @@ void UR4PlayerSkillComponent::OnInputSkillStarted(ESkillIndex InSkillIndex)
 	const uint8 realIdx = static_cast<uint8>(InSkillIndex);
 	if(SkillInstancePtrs.IsValidIndex(realIdx))
 	{
-		if(IR4PlayerInputable* playerSkill = Cast<IR4PlayerInputable>(SkillInstancePtrs[realIdx]))
+		if(IR4PlayerInputableInterface* playerSkill = Cast<IR4PlayerInputableInterface>(SkillInstancePtrs[realIdx]))
 		{
 			playerSkill->OnInputStarted();
 		}
@@ -30,7 +30,7 @@ void UR4PlayerSkillComponent::OnInputSkillTriggered(ESkillIndex InSkillIndex)
 	const uint8 realIdx = static_cast<uint8>(InSkillIndex);
 	if(SkillInstancePtrs.IsValidIndex(realIdx))
 	{
-		if(IR4PlayerInputable* playerSkill = Cast<IR4PlayerInputable>(SkillInstancePtrs[realIdx]))
+		if(IR4PlayerInputableInterface* playerSkill = Cast<IR4PlayerInputableInterface>(SkillInstancePtrs[realIdx]))
 		{
 			playerSkill->OnInputTriggered();
 		}
@@ -42,7 +42,7 @@ void UR4PlayerSkillComponent::OnInputSkillCompleted(ESkillIndex InSkillIndex)
 	const uint8 realIdx = static_cast<uint8>(InSkillIndex);
 	if(SkillInstancePtrs.IsValidIndex(realIdx))
 	{
-		if(IR4PlayerInputable* playerSkill = Cast<IR4PlayerInputable>(SkillInstancePtrs[realIdx]))
+		if(IR4PlayerInputableInterface* playerSkill = Cast<IR4PlayerInputableInterface>(SkillInstancePtrs[realIdx]))
 		{
 			playerSkill->OnInputCompleted();
 		}

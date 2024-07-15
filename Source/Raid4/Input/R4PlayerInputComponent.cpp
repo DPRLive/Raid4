@@ -3,7 +3,7 @@
 
 #include "R4PlayerInputComponent.h"
 #include "../Skill/Player/R4PlayerSkillInterface.h"
-#include "../Movement/R4MouseMovable.h"
+#include "../Movement/R4MouseMoveInterface.h"
 #include "R4PlayerInputCompInterface.h"
 
 #include <EnhancedInputComponent.h>
@@ -111,7 +111,7 @@ void UR4PlayerInputComponent::_OnInputMoveStarted()
 	if(!IsValid(GetOwner()))
 		return;
 	
-	if(IR4MouseMovable* owner = Cast<IR4MouseMovable>(GetOwner()))
+	if(IR4MouseMoveInterface* owner = Cast<IR4MouseMoveInterface>(GetOwner()))
 	{
 		owner->StopMove();
 	}
@@ -127,7 +127,7 @@ void UR4PlayerInputComponent::_OnInputMoveTriggered()
 	
 	CachedTriggerTime += GetWorld()->GetDeltaSeconds();
 
-	IR4MouseMovable* mouseMoveObj = Cast<IR4MouseMovable>(GetOwner());
+	IR4MouseMoveInterface* mouseMoveObj = Cast<IR4MouseMoveInterface>(GetOwner());
 	if(mouseMoveObj == nullptr)
 	{
 		LOG_WARN(R4Input, TEXT("Owner is nullptr."));
@@ -163,7 +163,7 @@ void UR4PlayerInputComponent::_OnInputMoveCompleted()
 	if(!IsValid(GetOwner()))
 		return;
 	
-	IR4MouseMovable* mouseMoveObj = Cast<IR4MouseMovable>(GetOwner());
+	IR4MouseMoveInterface* mouseMoveObj = Cast<IR4MouseMoveInterface>(GetOwner());
 	if(mouseMoveObj == nullptr)
 	{
 		LOG_WARN(R4Input, TEXT("Owner is nullptr."));

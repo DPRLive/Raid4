@@ -3,11 +3,11 @@
 #pragma once
 
 #include <UObject/Interface.h>
-#include "R4MouseMovable.generated.h"
+#include "R4MouseMoveInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UR4MouseMovable : public UInterface
+class UR4MouseMoveInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -16,7 +16,7 @@ class UR4MouseMovable : public UInterface
  * 마우스 이동을 지원하는 객체를 위한 인터페이스
  * (PlayerInputComp 사용 시 사용)
  */
-class RAID4_API IR4MouseMovable
+class RAID4_API IR4MouseMoveInterface
 {
 	GENERATED_BODY()
 

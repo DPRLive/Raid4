@@ -4,7 +4,7 @@
 
 #include "../Stat/R4StatData.h"
 #include "../Stat/R4StatMacro.h"
-#include "../Data/R4DTDataPushable.h"
+#include "../Data/R4DTDataPushInterface.h"
 
 #include <Components/ActorComponent.h>
 #include "R4StatComponent.generated.h"
@@ -14,7 +14,7 @@
  * TODO : OnRep 관련 기능 추가
  */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class RAID4_API UR4StatComponent : public UActorComponent, public IR4DTDataPushable
+class RAID4_API UR4StatComponent : public UActorComponent, public IR4DTDataPushInterface
 {
 	GENERATED_BODY()
 	

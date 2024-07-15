@@ -3,11 +3,11 @@
 #pragma once
 
 #include <UObject/Interface.h>
-#include "R4DTDataPushable.generated.h"
+#include "R4DTDataPushInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE()
-class UR4DTDataPushable : public UInterface
+class UR4DTDataPushInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -15,7 +15,7 @@ class UR4DTDataPushable : public UInterface
 /**
  * DT 데이터를 받을 수 있는 오브젝트를 정의할 때 사용
  */
-class RAID4_API IR4DTDataPushable
+class RAID4_API IR4DTDataPushInterface
 {
 	GENERATED_BODY()
 

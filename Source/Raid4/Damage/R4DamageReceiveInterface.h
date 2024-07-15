@@ -3,11 +3,11 @@
 #pragma once
 
 #include <UObject/Interface.h>
-#include "R4Damageable.generated.h"
+#include "R4DamageReceiveInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UR4Damageable : public UInterface
+class UR4DamageReceiveInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -15,7 +15,7 @@ class UR4Damageable : public UInterface
 /**
  * Damage를 입을 수 있는 (공격 당할 수 있는) 객체를 위한 인터페이스
  */
-class RAID4_API IR4Damageable
+class RAID4_API IR4DamageReceiveInterface
 {
 	GENERATED_BODY()
 

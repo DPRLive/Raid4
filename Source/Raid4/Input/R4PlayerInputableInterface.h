@@ -3,11 +3,11 @@
 #pragma once
 
 #include <UObject/Interface.h>
-#include "R4PlayerInputable.generated.h"
+#include "R4PlayerInputableInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UR4PlayerInputable : public UInterface
+class UR4PlayerInputableInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -15,7 +15,7 @@ class UR4PlayerInputable : public UInterface
 /**
  * 객체가 플레이어 입력 처리를 해야할 때를 위한 인터페이스 
  */
-class RAID4_API IR4PlayerInputable
+class RAID4_API IR4PlayerInputableInterface
 {
 	GENERATED_BODY()
 

@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "../Data/R4DTDataPushable.h"
-#include "../Damage/R4Damageable.h"
+#include "../Data/R4DTDataPushInterface.h"
+#include "../Damage/R4DamageReceiveInterface.h"
 #include "../UI/StatusBar/R4StatusBarInterface.h"
 
 #include <GameFramework/Character.h>
@@ -19,7 +19,7 @@ class UR4StatComponent;
  * (NPC, PlayerCharacter 등) 캐릭터에 베이스가 되는 클래스
  */
 UCLASS()
-class RAID4_API AR4CharacterBase : public ACharacter, public IR4DTDataPushable, public IR4Damageable, public IR4StatusBarInterface
+class RAID4_API AR4CharacterBase : public ACharacter, public IR4DTDataPushInterface, public IR4DamageReceiveInterface, public IR4StatusBarInterface
 {
 	GENERATED_BODY()
 

@@ -6,7 +6,7 @@
 #include "R4SkillBase.generated.h"
 
 struct FDetectResult;
-class IR4Detectable;
+class IR4DetectableInterface;
 class FCoolTimeHandler;
 class UAnimMontage;
 

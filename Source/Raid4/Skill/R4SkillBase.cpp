@@ -3,7 +3,7 @@
 
 #include "R4SkillBase.h"
 #include "../Handler/CoolTimeHandler.h"
-#include "../Detect/R4Detectable.h"
+#include "../Detect/R4DetectableInterface.h"
 
 #include <GameFramework/Character.h>
 #include <Animation/AnimMontage.h>
@@ -67,7 +67,7 @@ void UR4SkillBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 		TSet<int32> idxs;
 		for(int32 i = 0; i < anim->Notifies.Num(); i++)
 		{
-			if(IR4Detectable* detectNotify = Cast<IR4Detectable>(anim->Notifies[i].Notify))
+			if(IR4DetectableInterface* detectNotify = Cast<IR4DetectableInterface>(anim->Notifies[i].Notify))
 				idxs.Emplace(i);
 		}
 
@@ -142,7 +142,7 @@ void UR4SkillBase::BindAffect(UObject* InDetectable, const FString& InAffectInfo
 	if(!IsValid(InDetectable))
 		return;
 
-	if(IR4Detectable* detectableObj = Cast<IR4Detectable>(InDetectable))
+	if(IR4DetectableInterface* detectableObj = Cast<IR4DetectableInterface>(InDetectable))
 	{
 		auto affectLambda = [owner = TWeakObjectPtr<UR4SkillBase>(this), &affectInfo = InAffectInfo]
 				(const FDetectResult& InDetectResult)

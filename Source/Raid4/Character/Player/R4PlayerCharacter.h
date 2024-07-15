@@ -4,7 +4,7 @@
 
 #include "../R4CharacterBase.h"
 #include "../../Skill/Player/R4PlayerSkillInterface.h"
-#include "../../Movement/R4MouseMovable.h"
+#include "../../Movement/R4MouseMoveInterface.h"
 #include "../../Input/R4PlayerInputCompInterface.h"
 #include "R4PlayerCharacter.generated.h"
 
@@ -18,7 +18,7 @@ class UCameraComponent;
  *  PlayerCharacter의 베이스가 되는 클래스
  */
 UCLASS()
-class RAID4_API AR4PlayerCharacter : public AR4CharacterBase, public IR4PlayerInputCompInterface, public IR4MouseMovable, public IR4PlayerSkillInterface
+class RAID4_API AR4PlayerCharacter : public AR4CharacterBase, public IR4PlayerInputCompInterface, public IR4MouseMoveInterface, public IR4PlayerSkillInterface
 {
 	GENERATED_BODY()
 	
