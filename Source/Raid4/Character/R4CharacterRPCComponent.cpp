@@ -5,7 +5,6 @@
 
 #include <Net/UnrealNetwork.h>
 #include <GameFramework/Character.h>
-#include <GameFramework/GameStateBase.h>
 #include <Components/SkeletalMeshComponent.h>
 #include <Animation/AnimInstance.h>
 #include <Animation/AnimMontage.h>
@@ -143,9 +142,9 @@ float UR4CharacterRPCComponent::PlayAnim(UAnimMontage* InAnimMontage, const FNam
 
 	if(RepAnimInfo.SectionIndex == INDEX_NONE) // INDEX가 NONE이면 시작 Section Index를 설정
 		RepAnimInfo.SectionIndex = InAnimMontage->GetSectionIndexFromPosition(0);
-	
-	if(AGameStateBase* gameState = (IsValid(GetWorld()) ? GetWorld()->GetGameState() : nullptr) ; IsValid(gameState))
-		RepAnimInfo.StartServerTime = gameState->GetServerWorldTimeSeconds();
+
+	if(float serverTime = R4GetServerTimeSeconds(GetWorld()); !FMath::IsNearlyEqual(serverTime, -1.f))
+		RepAnimInfo.StartServerTime = serverTime;
 	
 	// Owner 인 경우 Play
 	if(GetOwnerRole() == ROLE_AutonomousProxy || GetOwnerRole() == ROLE_Authority)
@@ -227,13 +226,13 @@ void UR4CharacterRPCComponent::_OnRep_AnimInfo(const FPlayAnimInfo& InPrevAnimIn
 	}
 
 	// 아니면 플레이
-	AGameStateBase* gameState = GetWorld() ? GetWorld()->GetGameState() : nullptr;
-	if(!IsValid(gameState))
+	float serverTime = R4GetServerTimeSeconds(GetWorld());
+	if(FMath::IsNearlyEqual(serverTime, -1.f))
 		return;
 	
 	// RPC로 인한 딜레이를 적용
 	// TODO : Server -> Client 상 pkt lag이 있다면, 보정이 힘들 수 있음. ( ServerWorldTimeSecond도 Replicate 되기 때문 )
-	float delayTime = gameState->GetServerWorldTimeSeconds() - RepAnimInfo.StartServerTime;
+	float delayTime = serverTime - RepAnimInfo.StartServerTime;
 	delayTime = FMath::Clamp(delayTime, 0.f, delayTime);
 	
 	float startPos = GetDelayedStartAnimPos(RepAnimInfo.AnimMontage.Get(), RepAnimInfo.SectionIndex, delayTime); 

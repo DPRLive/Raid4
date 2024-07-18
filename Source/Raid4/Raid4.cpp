@@ -1,7 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Raid4.h"
-#include "Modules/ModuleManager.h"
+
+#include <GameFramework/GameStateBase.h>
+#include <Modules/ModuleManager.h>
 
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, Raid4, "Raid4" );
 
@@ -10,7 +12,7 @@ IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, Raid4, "Raid4" );
  */
 UWorld* R4GetWorld(UObject* InObject)
 {
-	if (InObject != nullptr)
+	if (!IsValid(InObject))
 		return InObject->GetWorld();
 	
 	if (FWorldContext* world = GEngine->GetWorldContextFromGameViewport(GEngine->GameViewport))
@@ -20,4 +22,14 @@ UWorld* R4GetWorld(UObject* InObject)
 
 	LOG_SCREEN(FColor::Red, TEXT( "Failed to Get World!!" ));
 	return nullptr;
+}
+
+double R4GetServerTimeSeconds(UWorld* InWorld)
+{
+	UWorld* world = IsValid(InWorld) ? InWorld : R4GetWorld();
+
+	if(AGameStateBase* gameState = (IsValid(world) ? world->GetGameState() : nullptr) ; IsValid(gameState))
+		return gameState->GetServerWorldTimeSeconds();
+
+	return -1.f;
 }

@@ -19,3 +19,6 @@
 
 // 월드를 반환한다.
 UWorld* R4GetWorld( UObject* InObject = nullptr );
+
+// 서버 시간을 반환한다.
+double R4GetServerTimeSeconds( UWorld* InWorld );
