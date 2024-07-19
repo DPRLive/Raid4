@@ -5,6 +5,7 @@
 #include "../Data/R4DTDataPushInterface.h"
 #include "../Damage/R4DamageReceiveInterface.h"
 #include "../UI/StatusBar/R4StatusBarInterface.h"
+#include "../Stat/R4StatInterface.h"
 
 #include <GameFramework/Character.h>
 
@@ -19,7 +20,9 @@ class UR4StatComponent;
  * (NPC, PlayerCharacter 등) 캐릭터에 베이스가 되는 클래스
  */
 UCLASS()
-class RAID4_API AR4CharacterBase : public ACharacter, public IR4DTDataPushInterface, public IR4DamageReceiveInterface, public IR4StatusBarInterface
+class RAID4_API AR4CharacterBase : public ACharacter,
+public IR4DTDataPushInterface, public IR4StatInterface,
+public IR4DamageReceiveInterface, public IR4StatusBarInterface
 {
 	GENERATED_BODY()
 
@@ -49,6 +52,10 @@ public:
 	// ~ Begin IR4StatusBarInterface
 	virtual void SetupStatusBarWidget(UUserWidget* InWidget) override;
 	// ~ End IR4StatusBarInterface
+
+	// ~ Begin IR4StatInterface
+	FORCEINLINE virtual UR4StatComponent* GetStatComponent() override { return StatComp; }
+	// ~ End IR4StatInterface
 protected:
 	// StatComp와 필요한 초기화를 진행한다
 	virtual void InitStatComponent();
