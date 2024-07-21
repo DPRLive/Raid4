@@ -12,7 +12,7 @@ IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, Raid4, "Raid4" );
  */
 UWorld* R4GetWorld(UObject* InObject)
 {
-	if (!IsValid(InObject))
+	if (IsValid(InObject))
 		return InObject->GetWorld();
 	
 	if (FWorldContext* world = GEngine->GetWorldContextFromGameViewport(GEngine->GameViewport))

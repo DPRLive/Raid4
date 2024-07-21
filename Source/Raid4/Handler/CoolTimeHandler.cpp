@@ -40,7 +40,7 @@ void FCoolTimeHandler::SetCoolTime(float InCoolTime)
  */
 void FCoolTimeHandler::ClearCoolTime()
 {
-	if(!IsValid(R4GetWorld()))
+	if(!IsValid(R4GetWorld()) || !Handle.IsValid())
 		return;
 	
     R4GetWorld()->GetTimerManager().ClearTimer(Handle);
