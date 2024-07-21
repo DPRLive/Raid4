@@ -3,7 +3,9 @@
 #pragma once
 
 #include "../../Detect/R4DetectableInterface.h"
+
 #include <Animation/AnimNotifies/AnimNotify.h>
+#include <PhysicsEngine/BodyInstance.h>
 #include "AnimNotify_OverlapCheck.generated.h"
 
 class UNiagaraSystem;
@@ -40,11 +42,11 @@ public:
 	UAnimNotify_OverlapCheck();
 	
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
-
+	
 public:
 	// ~ Begin IR4Detectable
-	virtual FOnDetectDelegate& OnBeginDetect() override { return OnBeginDetectDelegate; }
-	virtual FOnDetectDelegate& OnEndDetect() override { return OnEndDetectDelegate; }
+	FORCEINLINE virtual FOnDetectDelegate& OnBeginDetect() override { return OnBeginDetectDelegate; }
+	FORCEINLINE virtual FOnDetectDelegate& OnEndDetect() override { return OnEndDetectDelegate; }
 	// ~ End IR4Detectable
 	
 private:
@@ -61,7 +63,7 @@ private:
 	FOnDetectDelegate OnEndDetectDelegate;
 	
 	// Overlap할 형태 결정
-	UPROPERTY( EditAnywhere, Category="AnimNotify", meta =(AllowPrivateAccess = true) )
+	UPROPERTY( EditAnywhere, Category="Collision", meta =(AllowPrivateAccess = true) )
 	EOverlapShape Shape;
 	
 	/**
@@ -71,23 +73,23 @@ private:
 	 *	Capsule : Radius, HalfHeight
 	 *	Circle Arc : Radius, HalfHeight, Angle (0 ~ 360)
 	 */
-	UPROPERTY( EditAnywhere, Category="AnimNotify", meta =(AllowPrivateAccess = true) )
+	UPROPERTY( EditAnywhere, Category="Collision", meta =(AllowPrivateAccess = true) )
 	FVector ShapeParam;
 	
 	// overlap을 체크할 Mesh로부터의 (일반적으로 캐릭터 양발 중심 정도) 상대 위치.
-	UPROPERTY( EditAnywhere, Category="AnimNotify", meta =(AllowPrivateAccess = true) )
+	UPROPERTY( EditAnywhere, Category="Collision", meta =(AllowPrivateAccess = true) )
 	FVector RelativeLoc;
 	
 	/**
 	 *	Overlap시 상대적인 Rotation.
 	 *	X : Roll, Y : Pitch, Z : Yaw
 	 */
-	UPROPERTY( EditAnywhere, Category="AnimNotify", meta =(AllowPrivateAccess = true) )
+	UPROPERTY( EditAnywhere, Category="Collision", meta =(AllowPrivateAccess = true) )
 	FRotator RelativeRot;
 	
-	// Overlap 체크 시 사용할 Collision Profile Name
-	UPROPERTY( EditAnywhere, Category="AnimNotify", meta =(AllowPrivateAccess = true) )
-	FName Profile;
+	// Overlap 체크 시 사용할 Collision Response를 위한 BodyInstance
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Collision", meta=(ShowOnlyInnerProperties, SkipUCSModifiedProperties, AllowPrivateAccess = true))
+	FBodyInstance BodyInstance;
 
 	// Overlap 시 출력할 파티클들
 	UPROPERTY( EditAnywhere, Category="AnimNotify", meta =(AllowPrivateAccess = true) )

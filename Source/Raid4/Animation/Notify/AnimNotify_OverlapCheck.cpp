@@ -43,21 +43,24 @@ void UAnimNotify_OverlapCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 		FCollisionQueryParams params;
 		params.AddIgnoredActor(owner); // 나는 무시
 		TArray<FOverlapResult> overlapResults;
+
+		FCollisionResponseParams responseParams(BodyInstance.GetResponseToChannels());
 		
+		//BodyInstance.
 		switch (Shape) // 모양에 맞춰 overlap 체크
 		{
 		case EOverlapShape::Box:
-			UtilOverlap::BoxOverlapByProfile(overlapResults, world, center, quat, ShapeParam, Profile, params, bDrawDebug, DebugColor, DebugTime);
+			UtilOverlap::BoxOverlapByChannel(overlapResults, world, center, quat, ShapeParam, BodyInstance.GetObjectType(), params, responseParams, bDrawDebug, DebugColor, DebugTime);
 			break;
 		case EOverlapShape::Sphere:
-			UtilOverlap::SphereOverlapByProfile(overlapResults, world, center, ShapeParam.X, Profile, params, bDrawDebug, DebugColor, DebugTime);
+			UtilOverlap::SphereOverlapByChannel(overlapResults, world, center, ShapeParam.X, BodyInstance.GetObjectType(), params, responseParams, bDrawDebug, DebugColor, DebugTime);
 			break;
 		case EOverlapShape::Capsule:
-			UtilOverlap::CapsuleOverlapByProfile(overlapResults, world, center, quat, ShapeParam.X, ShapeParam.Y, Profile, params, bDrawDebug, DebugColor, DebugTime);
+			UtilOverlap::CapsuleOverlapByChannel(overlapResults, world, center, quat, ShapeParam.X, ShapeParam.Y, BodyInstance.GetObjectType(), params, responseParams, bDrawDebug, DebugColor, DebugTime);
 			break;
 		case EOverlapShape::Sector:
 			// meshTrans.GetUnitAxis(EAxis::X) 는 MeshComp의 로컬 X축을 구함
-			UtilOverlap::SectorOverlapByProfile(overlapResults, world, FTransform(quat, center), ShapeParam.X, ShapeParam.Y, ShapeParam.Z, Profile, params, bDrawDebug, DebugColor, DebugTime);
+			UtilOverlap::SectorOverlapByChannel(overlapResults, world, FTransform(quat, center), ShapeParam.X, ShapeParam.Y, ShapeParam.Z, BodyInstance.GetObjectType(), params, responseParams, bDrawDebug, DebugColor, DebugTime);
 			break;
 		}
 		
@@ -65,7 +68,7 @@ void UAnimNotify_OverlapCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 		// TODO : 으엑
 		for (const FOverlapResult& overlapResult : overlapResults)
 		{
-			// _ProcessOverlapActor(overlapResult.GetActor());
+			_ProcessOverlapActor(overlapResult.GetActor());
 			if(OnBeginDetectDelegate.IsBound())
 				OnBeginDetectDelegate.Broadcast(FDetectResult(FVector(0.f), overlapResult.GetComponent(), overlapResult.GetActor()));
 			_SpawnNiagara(owner, overlapResult);
