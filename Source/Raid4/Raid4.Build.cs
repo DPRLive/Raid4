@@ -19,7 +19,8 @@ public class Raid4 : ModuleRules
 			"Niagara", 
 			"AIModule", 
 			"NavigationSystem",
-			"AnimationCore"
+			"AnimationCore",
+			"GameplayTags"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
