@@ -47,28 +47,6 @@ void UR4StatBaseComponent::BindTagToStat(const FGameplayTag& InTag, FR4Consumabl
 }
 
 /**
- *	Tag <-> Stat Getter
- */
-FR4StatData* UR4StatBaseComponent::GetStatByTag(const FGameplayTag& InTag)
-{
-	if(auto value = TagStats.Find(InTag))
-		return *value;
-
-	return nullptr;
-}
-
-/**
- *	Tag <-> Stat Getter
- */
-FR4ConsumableStatData* UR4StatBaseComponent::GetConsumableStatByTag(const FGameplayTag& InTag)
-{
-	if(auto value = TagConsumableStats.Find(InTag))
-		return *value;
-
-	return nullptr;
-}
-
-/**
  *	Tag <-> Stat 바인드 Clear
  */
 void UR4StatBaseComponent::ClearTagStats()
