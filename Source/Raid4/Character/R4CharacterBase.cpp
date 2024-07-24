@@ -4,17 +4,17 @@
 #include "R4CharacterBase.h"
 #include "R4CharacterRPCComponent.h"
 #include "R4CharacterRow.h"
-#include "../Stat/R4StatComponent.h"
+#include "../Stat/CharacterStat/R4CharacterStatComponent.h"
 #include "../Movement/R4CharacterMovementComponent.h"
 #include "../Skill/R4SkillComponent.h"
 #include "../Skill/R4SkillBase.h"
 #include "../Damage/R4DamageControlComponent.h"
+#include "../Buff/R4BuffComponent.h"
 #include "../UI/StatusBar/R4StatusBarWidget.h"
 
 #include <Components/SkeletalMeshComponent.h>
 #include <Engine/SkeletalMesh.h>
 #include <Animation/AnimInstance.h>
-
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4CharacterBase)
 
@@ -26,13 +26,15 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	StatComp = CreateDefaultSubobject<UR4StatComponent>(TEXT("StatComp"));
+	StatComp = CreateDefaultSubobject<UR4CharacterStatComponent>(TEXT("StatComp"));
 
 	SkillComp = CreateDefaultSubobject<UR4SkillComponent>(TEXT("SkillComp"));
 
-	RPCComp = CreateDefaultSubobject<UR4CharacterRPCComponent>(TEXT("RPCComp"));
-
+	BuffComp = CreateDefaultSubobject<UR4BuffComponent>(TEXT("BuffComp"));
+	
 	DamageControlComp = CreateDefaultSubobject<UR4DamageControlComponent>(TEXT("DamageControlComp"));
+
+	RPCComp = CreateDefaultSubobject<UR4CharacterRPCComponent>(TEXT("RPCComp"));
 }
 
 /**
@@ -42,7 +44,8 @@ void AR4CharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	InitStatComponent();
+	// 컴포넌트간 연결
+	BindStatComponent();
 	
 	OnCharacterDeadDelegate.AddDynamic(this, &AR4CharacterBase::Dead);
 }
@@ -54,9 +57,26 @@ void AR4CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// TODO : 데이터 집어넣는건 PlayerController가 Character PK를 들고 있다가 OnPossess 와 OnRep_Owner 되면 넣는걸로 하면 될 듯
 	// Character 테스트를 위한 Aurora 데이터 임시 로드
-	// TODO : 나중에 캐릭터에 따른 데이터 로드를 진행해야함.
 	PushDTData(1);
+}
+
+/**
+ *  Replicate를 거쳐서 anim을 play
+ *  @return : AnimMontage의 링크를 포함한 특정 Section에 대한 시간
+ */
+float AR4CharacterBase::PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
+{
+	return RPCComp->PlayAnim(AnimMontage, StartSectionName, InPlayRate);
+}
+
+/**
+ *  Replicate를 거쳐서 anim을 Stop
+ */
+void AR4CharacterBase::StopAnimMontage(UAnimMontage* AnimMontage)
+{
+	RPCComp->StopAllAnim();
 }
 
 /**
@@ -81,14 +101,14 @@ void AR4CharacterBase::PushDTData(FPriKey InPk)
 		// 애니메이션 설정
 		meshComp->SetAnimInstanceClass(characterData->AnimInstance);
 	}
+
+	// 스탯 컴포넌트에 데이터 입력
+	StatComp->PushDTData(characterData->BaseStatRowPK);
 	
 	if (!HasAuthority())
 		return;
-
-	///// Only Server /////
 	
-	// 스탯 컴포넌트에 데이터 입력
-	StatComp->PushDTData(characterData->BaseStatRowPK);
+	///// Only Server /////
 
 	// 스킬 컴포넌트에 스킬을 적용.
 	// TODO : 배열 주면 Skill Comp에서 읽어가게 하는게 좋을거 같단말이야
@@ -100,6 +120,14 @@ void AR4CharacterBase::PushDTData(FPriKey InPk)
 			SkillComp->Server_AddSkill(skill.Key, instanceSkill);
 		}
 	}
+}
+
+/**
+ *  StatComp를 리턴
+ */
+UR4StatBaseComponent* AR4CharacterBase::GetStatComponent()
+{
+	return StatComp;
 }
 
 /**
@@ -134,7 +162,7 @@ void AR4CharacterBase::SetupStatusBarWidget(UUserWidget* InWidget)
 		// 초기화
 		statusBar->UpdateTotalHp(StatComp->GetBaseHp() + StatComp->GetModifierHp());
 		statusBar->UpdateCurrentHp(StatComp->GetCurrentHp());
-		
+        
 		// 총 체력 변경시 호출
 		StatComp->OnChangeHp().AddWeakLambda(statusBar, [statusBar](float InBaseHp, float InModifierHp)
 		{
@@ -150,30 +178,23 @@ void AR4CharacterBase::SetupStatusBarWidget(UUserWidget* InWidget)
 }
 
 /**
- *  Replicate를 거쳐서 anim을 play
- *  @return : AnimMontage의 링크를 포함한 특정 Section에 대한 시간
- */
-float AR4CharacterBase::PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
+*  Buff를 받는 함수.
+*  @param InBuffClass : 버프 클래스
+*  @param InModifyDesc : 버프 factor
+*/
+void AR4CharacterBase::ReceiveBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffModifyDesc& InModifyDesc)
 {
-	return RPCComp->PlayAnim(AnimMontage, StartSectionName, InPlayRate);
+	// BuffComp에게 넘겨준다.
+	if(GetLocalRole() == ROLE_Authority)
+		BuffComp->Server_AddBuff(InBuffClass, InModifyDesc);
 }
 
 /**
- *  Replicate를 거쳐서 anim을 Stop
+ *  StatComp와 필요한 바인딩을 진행
  */
-void AR4CharacterBase::StopAnimMontage(UAnimMontage* AnimMontage)
+void AR4CharacterBase::BindStatComponent()
 {
-	RPCComp->StopAllAnim();
-}
-
-/**
- *  StatComp와 필요한 초기화를 진행한다
- */
-void AR4CharacterBase::InitStatComponent()
-{
-	StatComp->InitStats();
-	
-	// TODO : Bind Stats
+	// Bind Stats
 	StatComp->OnChangeMovementSpeed().AddUObject(this, &AR4CharacterBase::ApplyMovementSpeed); // 이동속도 설정 바인드
 }
 
@@ -194,5 +215,6 @@ void AR4CharacterBase::ApplyMovementSpeed(float InBaseMovementSpeed, float InMod
  */
 void AR4CharacterBase::Dead()
 {
+	// TODO : Set Collision, Hide widget, stat, skill reset 등 해야함
 	LOG_WARN(LogTemp, TEXT("DEAD"));
 }

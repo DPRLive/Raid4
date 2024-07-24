@@ -5,7 +5,7 @@
 #include <UObject/Interface.h>
 #include "R4StatInterface.generated.h"
 
-class UR4StatComponent;
+class UR4StatBaseComponent;
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
@@ -24,5 +24,5 @@ class RAID4_API IR4StatInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	// StatComp를 리턴
-	virtual UR4StatComponent* GetStatComponent() = 0;
+	virtual UR4StatBaseComponent* GetStatComponent() = 0;
 };

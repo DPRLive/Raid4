@@ -2,24 +2,23 @@
 
 #pragma once
 
-#include "../Stat/R4StatData.h"
-#include "../Stat/R4StatMacro.h"
-#include "../Data/R4DTDataPushInterface.h"
-
-#include <Components/ActorComponent.h>
-#include "R4StatComponent.generated.h"
+#include "../R4StatData.h"
+#include "../R4StatMacro.h"
+#include "../../Data/R4DTDataPushInterface.h"
+#include "../R4StatBaseComponent.h"
+#include "R4CharacterStatComponent.generated.h"
 
 /**
  * 객체에게 스탯 기능을 추가하는 컴포넌트
  * TODO : OnRep 관련 기능 추가
  */
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class RAID4_API UR4StatComponent : public UActorComponent, public IR4DTDataPushInterface
+UCLASS( ClassGroup=(Stat), meta=(BlueprintSpawnableComponent) )
+class RAID4_API UR4CharacterStatComponent : public UR4StatBaseComponent, public IR4DTDataPushInterface
 {
 	GENERATED_BODY()
 	
 public:	
-	UR4StatComponent();
+	UR4CharacterStatComponent();
 
 	// 컴포넌트 초기화
 	virtual void InitializeComponent() override;
@@ -32,8 +31,8 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
-	// 스탯을 초기화 (0으로 설정)
-	virtual void InitStats();
+	// Stat을 재설정 (Current Value = Base Value, Modifier Value = 0.f 로 밀어버림)
+	virtual void ResetStat() override;
 	
 	// ~ Begin IR4DTDataPushable (주어진 Pk로 스탯 데이터를 채운다. ( By DT_Stat))
 	virtual void PushDTData(FPriKey InPk) override; 
