@@ -3,10 +3,8 @@
 #pragma once
 
 #include <Components/ActorComponent.h>
+#include "R4StatData.h"
 #include "R4StatBaseComponent.generated.h"
-
-struct FR4StatData;
-struct FR4ConsumableStatData;
 
 /**
  * Stat Component의 Base가 되는 클래스
@@ -56,17 +54,15 @@ private:
 template <typename T>
 T* UR4StatBaseComponent::GetStatByTag(const FGameplayTag& InTag)
 {
-	if constexpr (std::is_same_v<T, FR4StatData>)
+	if(auto value = TagConsumableStats.Find(InTag))
+		return *value;
+
+	// derived = Base 방지
+	if constexpr (std::is_same_v<FR4StatData, T>)
 	{
 		if(auto value = TagStats.Find(InTag))
-			return *value; 
-	}
-	
-	if constexpr (std::is_same_v<T, FR4ConsumableStatData>)
-	{
-		if(auto value = TagConsumableStats.Find(InTag))
 			return *value;
 	}
-
+	
 	return nullptr;
 }

@@ -30,8 +30,19 @@ public:
 	FORCEINLINE float GetModifierValue() const { return ModifierValue; }
 
 	// Setter
-	FORCEINLINE void SetBaseValue(float InBaseValue) { BaseValue = InBaseValue; if( OnChangeStatDataDelegate.IsBound() ) OnChangeStatDataDelegate.Broadcast(BaseValue, ModifierValue); }
-	FORCEINLINE void SetModifierValue(float InModifierValue) { ModifierValue = InModifierValue; if( OnChangeStatDataDelegate.IsBound() ) OnChangeStatDataDelegate.Broadcast(BaseValue, ModifierValue); }
+	FORCEINLINE virtual void SetBaseValue(float InBaseValue)
+	{
+		BaseValue = InBaseValue;
+		if( OnChangeStatDataDelegate.IsBound() )
+			OnChangeStatDataDelegate.Broadcast(BaseValue, ModifierValue);
+	}
+	
+	FORCEINLINE virtual void SetModifierValue(float InModifierValue)
+	{
+		ModifierValue = InModifierValue;
+		if( OnChangeStatDataDelegate.IsBound() )
+			OnChangeStatDataDelegate.Broadcast(BaseValue, ModifierValue);
+	}
 
 	// Stat 변경 delegate
 	FOnChangeStatDataDelegate OnChangeStatDataDelegate;
@@ -63,13 +74,35 @@ public:
 	
 	// Initializer, 0으로 초기화, delegate clear
 	FORCEINLINE virtual void InitStatData() override
-	{ Super::InitStatData(); CurrentValue = 0.f, OnChangeCurrentValueDelegate.Clear(); }
+	{
+		Super::InitStatData();
+		CurrentValue = 0.f; OnChangeCurrentValueDelegate.Clear();
+	}
 	
 	// Getter
 	FORCEINLINE float GetCurrentValue() const { return CurrentValue; }
 
 	// Setter
-	FORCEINLINE void SetCurrentValue(float InCurrentValue) { CurrentValue = InCurrentValue; if( OnChangeCurrentValueDelegate.IsBound() ) OnChangeCurrentValueDelegate.Broadcast(CurrentValue); }
+	// Current Value가 Base + ModifyValue를 넘지 못하도록 Clamp
+	FORCEINLINE virtual void SetBaseValue(float InBaseValue) override
+	{
+		Super::SetBaseValue(InBaseValue);
+		SetCurrentValue(FMath::Min(CurrentValue, GetBaseValue() + GetModifierValue()));
+	}
+
+	// Current Value가 Base + ModifyValue를 넘지 못하도록 Clamp
+	FORCEINLINE virtual void SetModifierValue(float InModifierValue) override
+	{
+		Super::SetModifierValue(InModifierValue);
+		SetCurrentValue(FMath::Min(CurrentValue, GetBaseValue() + GetModifierValue()));
+	}
+	
+	FORCEINLINE void SetCurrentValue(float InCurrentValue)
+	{
+		CurrentValue = InCurrentValue;
+		if( OnChangeCurrentValueDelegate.IsBound() )
+			OnChangeCurrentValueDelegate.Broadcast(CurrentValue);
+	}
 
 	// Current Value 변경 delegate
 	FOnChangeCurrentStatDataDelegate OnChangeCurrentValueDelegate;
