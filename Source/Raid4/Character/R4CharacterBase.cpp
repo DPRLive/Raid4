@@ -33,7 +33,7 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 	BuffComp = CreateDefaultSubobject<UR4BuffComponent>(TEXT("BuffComp"));
 	
 	DamageControlComp = CreateDefaultSubobject<UR4DamageControlComponent>(TEXT("DamageControlComp"));
-
+	
 	RPCComp = CreateDefaultSubobject<UR4CharacterRPCComponent>(TEXT("RPCComp"));
 }
 
@@ -60,6 +60,15 @@ void AR4CharacterBase::BeginPlay()
 	// TODO : 데이터 집어넣는건 PlayerController가 Character PK를 들고 있다가 OnPossess 와 OnRep_Owner 되면 넣는걸로 하면 될 듯
 	// Character 테스트를 위한 Aurora 데이터 임시 로드
 	PushDTData(1);
+
+	// test
+	if(HasAuthority())
+	{
+		FR4BuffModifyDesc desc;
+		desc.TimeFactor = 10.f;
+		desc.ValueFactor = 100.f;
+		BuffComp->Server_AddBuff(TestingBuff, desc);
+	}
 }
 
 /**
@@ -215,6 +224,6 @@ void AR4CharacterBase::ApplyMovementSpeed(float InBaseMovementSpeed, float InMod
  */
 void AR4CharacterBase::Dead()
 {
-	// TODO : Set Collision, Hide widget, stat, skill reset 등 해야함
+	// TODO : Set Collision, Hide widget, stat, skill reset 등 해야함, Respawn을 위한 reset 기능도 추가
 	LOG_WARN(LogTemp, TEXT("DEAD"));
 }

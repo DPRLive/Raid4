@@ -10,6 +10,7 @@
 
 #include <GameFramework/Character.h>
 
+#include "Raid4/Buff/R4BuffModifyDesc.h"
 #include "R4CharacterBase.generated.h"
 
 class UR4CharacterStatComponent;
@@ -32,7 +33,12 @@ public:
 	AR4CharacterBase(const FObjectInitializer& InObjectInitializer);
 	
 	virtual void PostInitializeComponents() override;
-	
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UR4BuffBase> TestingBuff;
+
+	// UPROPERTY(EditDefaultsOnly)
+	// FR4BuffModifyDesc TestingDesc;
 protected:
 	virtual void BeginPlay() override;
 

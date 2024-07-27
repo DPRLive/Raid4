@@ -41,3 +41,13 @@ enum class EOverlapEffectType : uint8
 	Instigator			UMETA( DisplayName = "시전자에게 출력" ),
 	ClosestPoint		UMETA( DisplayName = "시전자를 기준으로 한 오버랩 된 위치" )
 };
+
+/**
+ *  값의 타입
+ */
+UENUM( BlueprintType )
+enum class EValueType : uint8
+{
+	Percent			UMETA( DisplayName = "%" ),
+	Absolute		UMETA( DisplayName = "상수 값" ),
+};
