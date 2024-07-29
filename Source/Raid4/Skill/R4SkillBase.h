@@ -7,7 +7,7 @@
 
 struct FDetectResult;
 class IR4DetectableInterface;
-class FCoolTimeHandler;
+class FTimerHandler;
 class UAnimMontage;
 
 /**
@@ -69,9 +69,10 @@ protected:
 
 	// Detectable과 Affect를 연결
 	void BindAffect(UObject* InDetectable, const FString& InString /* TODO : Affect*/);
+	
 protected:
 	// 스킬 쿨타임을 위한 CoolTimeHandler
-	TUniquePtr<FCoolTimeHandler> CoolTimeHandler;
+	TSharedPtr<FTimerHandler> CoolTimeHandler;
 	
 	// 마지막으로 발동한 시간 (서버)
 	float CachedLastActivateTime;

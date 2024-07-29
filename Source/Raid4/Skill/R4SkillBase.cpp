@@ -2,7 +2,7 @@
 
 
 #include "R4SkillBase.h"
-#include "../Handler/CoolTimeHandler.h"
+#include "../Handler/TimerHandler.h"
 #include "../Detect/R4DetectableInterface.h"
 
 #include <GameFramework/Character.h>
@@ -23,7 +23,7 @@ void UR4SkillBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CoolTimeHandler = MakeUnique<FCoolTimeHandler>();
+	CoolTimeHandler = MakeShared<FTimerHandler>(this);
 
 	// bind anim affect index <-> DetectNotify
 	for(const auto& [prop, value] : TPropertyValueRange<FStructProperty>(GetClass(), this))
@@ -103,7 +103,7 @@ void UR4SkillBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
  */
 bool UR4SkillBase::CanUseSkill()
 {
-	return FMath::IsNearlyEqual(0.f, CoolTimeHandler->GetCoolTime());
+	return FMath::IsNearlyEqual(0.f, CoolTimeHandler->GetRemainingTime());
 }
 
 /**
