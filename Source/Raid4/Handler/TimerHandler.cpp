@@ -9,6 +9,7 @@ FTimerHandler::FTimerHandler(UObject* InUObject)
 	Owner = InUObject;
 	CachedFunction = TFunction<void()>();
 	CachedDuration = 0.f;
+	CachedElapsedTime = 0.f;
 }
 
 /**
@@ -42,6 +43,7 @@ void FTimerHandler::SetTimer(float InDuration)
 		return;
 	
 	CachedDuration = InDuration;
+	CachedElapsedTime = 0.f;
 	
 	world->GetTimerManager().SetTimer(Handle, [thisPtr = TWeakPtr<FTimerHandler>(AsWeak())]
 	{
@@ -54,6 +56,7 @@ void FTimerHandler::SetTimer(float InDuration)
 			thisHandler->CachedFunction();
 
 		thisHandler->OnCompletedTimerDelegate.ExecuteIfBound();
+		
 	}, InDuration, false);
 }
 
@@ -71,6 +74,7 @@ void FTimerHandler::SetLoopTimer(float InInterval)
 		return;
 
 	CachedDuration = -1.f;
+	CachedElapsedTime = 0.f;
 	
 	world->GetTimerManager().SetTimer(Handle, [thisPtr = TWeakPtr<FTimerHandler>(AsWeak())]
 	{
@@ -78,6 +82,7 @@ void FTimerHandler::SetLoopTimer(float InInterval)
 			return;
 
 		TSharedPtr<FTimerHandler> thisHandler = thisPtr.Pin();
+		thisHandler->CachedElapsedTime += thisHandler->GetElapsedTime();
 		
 		if(thisHandler->CachedFunction)
 			thisHandler->CachedFunction();
@@ -100,6 +105,7 @@ void FTimerHandler::SetLoopDurationTimer(float InInterval, float InDuration)
 		return;
 		
 	CachedDuration = InDuration;
+	CachedElapsedTime = 0.f;
 	
 	world->GetTimerManager().SetTimer(Handle,[thisPtr = TWeakPtr<FTimerHandler>(AsWeak())]
 	{
@@ -107,9 +113,10 @@ void FTimerHandler::SetLoopDurationTimer(float InInterval, float InDuration)
 			return;
 
 		TSharedPtr<FTimerHandler> thisHandler = thisPtr.Pin();
-
+		thisHandler->CachedElapsedTime += thisHandler->GetElapsedTime();
+		
 		// 타이머 걸고 난 뒤 지난 시간과 비교
-		if(thisHandler->GetElapsedTime() >= thisHandler->CachedDuration)
+		if(thisHandler->CachedElapsedTime >= thisHandler->CachedDuration)
 		{
 			thisHandler->ClearTimer();
 			return;
@@ -117,7 +124,7 @@ void FTimerHandler::SetLoopDurationTimer(float InInterval, float InDuration)
 
 		if(thisHandler->CachedFunction)
 			thisHandler->CachedFunction();
-		
+
 	}, InInterval, true);
 }
 
@@ -126,6 +133,8 @@ void FTimerHandler::SetLoopDurationTimer(float InInterval, float InDuration)
  */
 void FTimerHandler::ClearTimer()
 {
+	CachedElapsedTime = 0.f;
+	
 	if(!Owner.IsValid())
 		return;
 
@@ -173,16 +182,16 @@ float FTimerHandler::GetRemainingTime() const
 
 /**
  * 타이머를 걸고 난 뒤 지난 시간을 리턴
- * @return : 타이머를 걸고 난 뒤 지난 시간, 걸려 있지 않은 경우 0.f를 return
+ * @return : 타이머를 걸고 난 뒤 지난 시간, 걸려 있지 않은 경우 -1.f를 return
  */
 float FTimerHandler::GetElapsedTime() const
 {
 	if(!Owner.IsValid())
-		return 0.f;
+		return -1.f;
 	
 	UWorld* world = R4GetWorld(Owner.Get());
 	if(!IsValid(world) || !Handle.IsValid())
-		return 0.f;
+		return -1.f;
 
 	return world->GetTimerManager().GetTimerElapsed(Handle);
 }

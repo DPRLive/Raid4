@@ -54,6 +54,10 @@ public:
 	// 타이머를 걸고 난 뒤 지난 시간을 리턴
 	float GetElapsedTime() const;
 
+	// 타이머를 걸고 난 뒤 총 지난 시간을 리턴
+	// loop시 해당 함수 사용해야함
+	float GetTotalElapsedTime() const { return GetElapsedTime() + CachedElapsedTime; }
+	
 	// Timer가 종료 (clear 또는 끝까지 갈) 시 broadcast할 delegate
 	FSimpleDelegate OnCompletedTimerDelegate;
 	
@@ -70,6 +74,9 @@ private:
 	
 	// Duration을 캐싱. -1.f : loop
 	float CachedDuration;
+
+	// 지난 시간을 캐싱.
+	float CachedElapsedTime;
 };
 
 /**
