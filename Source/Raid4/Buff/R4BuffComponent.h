@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "R4BuffModifyDesc.h"
+#include "R4BuffDesc.h"
 
 #include <Components/ActorComponent.h>
 #include "R4BuffComponent.generated.h"
@@ -20,9 +20,8 @@ struct FBuffAppliedInfo
 	FBuffAppliedInfo ()
 		: BuffClass(nullptr)
 		, AppliedServerTime(0.f)
-		, EndServerTime(0.f)
 		, ServerBuffInstance(nullptr)
-		, BuffModifyDesc(FR4BuffModifyDesc())
+		, BuffModifyDesc(FR4BuffDesc())
 		{ }
 	
 	// 걸린 버프 클래스
@@ -33,17 +32,13 @@ struct FBuffAppliedInfo
 	UPROPERTY( VisibleInstanceOnly, Transient )
 	double AppliedServerTime;
 
-	// 버프가 끝나야 하는 시간 (서버 타임)
-	UPROPERTY( VisibleInstanceOnly, Transient )
-	double EndServerTime;
-	
 	// 버프의 인스턴스. (서버에서만 존재)
 	UPROPERTY( NotReplicated, VisibleInstanceOnly, Transient )
 	TObjectPtr<UR4BuffBase> ServerBuffInstance;
 
-	// 버프의 factor
+	// Buff Desc
 	UPROPERTY( VisibleInstanceOnly, Transient )
-	FR4BuffModifyDesc BuffModifyDesc;
+	FR4BuffDesc BuffModifyDesc;
 };
 
 /**
@@ -64,15 +59,13 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
 	// 버프를 추가
-	void Server_AddBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffModifyDesc& InModifyDesc);
+	void Server_AddBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc* InModifyDesc = nullptr);
 
 private:
-	// 버프들을 업데이트
-	void _Server_UpdateBuffs(float InDeltaTime);
-	
+	//인스턴스를 비교하여 버프 관리 목록에서 제거
+	bool _Server_RemoveBuffInfo(UR4BuffBase* InBuffInstance);
+
 private:
 	// 적용된 버프 정보들을 관리. (서버 및 오너)
 	UPROPERTY( Replicated, Transient, VisibleInstanceOnly, Category = "Buff" )

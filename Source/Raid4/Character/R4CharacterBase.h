@@ -10,7 +10,7 @@
 
 #include <GameFramework/Character.h>
 
-#include "Raid4/Buff/R4BuffModifyDesc.h"
+#include "Raid4/Buff/R4BuffDesc.h"
 #include "R4CharacterBase.generated.h"
 
 class UR4CharacterStatComponent;
@@ -37,8 +37,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UR4BuffBase> TestingBuff;
 
-	// UPROPERTY(EditDefaultsOnly)
-	// FR4BuffModifyDesc TestingDesc;
+	UPROPERTY( EditDefaultsOnly, Category = "BuffInfo", meta = (AllowPrivateAccess = true))
+	FR4BuffDesc TestingDesc;
 protected:
 	virtual void BeginPlay() override;
 
@@ -66,7 +66,7 @@ public:
 	// ~ End IR4StatusBarInterface
 	
 	// ~ Begin IR4BuffReceiveInterface
-	virtual void ReceiveBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffModifyDesc& InModifyDesc) override;
+	virtual void ReceiveBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc& InModifyDesc) override;
 	// ~ End IR4BuffReceiveInterface
 protected:
 	// StatComp와 필요한 바인딩을 진행

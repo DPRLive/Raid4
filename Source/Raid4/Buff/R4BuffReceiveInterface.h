@@ -5,7 +5,7 @@
 #include <UObject/Interface.h>
 #include "R4BuffReceiveInterface.generated.h"
 
-struct FR4BuffModifyDesc;
+struct FR4BuffDesc;
 class UR4BuffBase;
 
 // This class does not need to be modified.
@@ -29,5 +29,5 @@ public:
 	*  @param InBuffClass : 버프 클래스
 	*  @param InModifyDesc : 버프 factor
 	*/
-	virtual void ReceiveBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffModifyDesc& InModifyDesc) = 0;
+	virtual void ReceiveBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc& InModifyDesc) = 0;
 };

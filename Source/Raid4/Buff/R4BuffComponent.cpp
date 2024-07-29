@@ -9,12 +9,9 @@
 
 UR4BuffComponent::UR4BuffComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
 	SetIsReplicatedByDefault(true);
-	
-	// 적당히 갱신시간 타협
-	SetComponentTickInterval(Buff::G_BuffTickInterval);
 }
 
 void UR4BuffComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -27,30 +24,19 @@ void UR4BuffComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 void UR4BuffComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// Server 에서만 Tick
-	if(GetOwnerRole() != ROLE_Authority)
-		SetComponentTickEnabled(false);
-}
-
-void UR4BuffComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// 버프를 업데이트
-	_Server_UpdateBuffs(DeltaTime);
 }
 
 /**
  *	버프를 추가 (서버)
  */
-void UR4BuffComponent::Server_AddBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffModifyDesc& InModifyDesc)
+void UR4BuffComponent::Server_AddBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc* InModifyDesc)
 {
 	if(GetOwnerRole() != ROLE_Authority)
 		return;
 	
 	FBuffAppliedInfo buffInfo;
 
+	// TODO : Object pool ?
 	buffInfo.ServerBuffInstance = NewObject<UR4BuffBase>(this, InBuffClass);
 
 	// 버프 인스턴스가 유효하지 않으면 리턴
@@ -60,40 +46,43 @@ void UR4BuffComponent::Server_AddBuff(TSubclassOf<UR4BuffBase> InBuffClass, cons
 	// 버프 적용
 	buffInfo.ServerBuffInstance->ApplyBuff(GetOwner(), InModifyDesc);
 	
-	buffInfo.BuffClass = InBuffClass;
-	buffInfo.AppliedServerTime = R4GetServerTimeSeconds(GetWorld());
-	buffInfo.EndServerTime = buffInfo.AppliedServerTime + buffInfo.ServerBuffInstance->GetDuration();
-	buffInfo.BuffModifyDesc = InModifyDesc;
-	
-	// 지속시간이 0이 아니면
-	if(!FMath::IsNearlyEqual(0.f, buffInfo.ServerBuffInstance->GetDuration()))
+	// 지속시간이 필요하다면
+	if(buffInfo.ServerBuffInstance->GetBuffDesc().BuffDurationType != EBuffDurationType::OneShot)
 	{
+		buffInfo.BuffClass = InBuffClass;
+		buffInfo.AppliedServerTime = R4GetServerTimeSeconds(GetWorld());
+		buffInfo.BuffModifyDesc = *InModifyDesc;
+		
 		// 버프를 관리하도록 추가
         AppliedBuffs.Emplace(MoveTemp(buffInfo));
+
+		// 버프가 끝나면 관리 목록에서 제거하도록 등록
+		buffInfo.ServerBuffInstance->OnEndBuff().AddWeakLambda(this, [this, instance = buffInfo.ServerBuffInstance]
+		{
+			_Server_RemoveBuffInfo(instance);
+		});
 	}
 }
 
 /**
- *	버프들을 업데이트
+ *	인스턴스를 비교하여 버프를 관리 목록에서 제거
  */
-void UR4BuffComponent::_Server_UpdateBuffs(float InDeltaTime)
+bool UR4BuffComponent::_Server_RemoveBuffInfo(UR4BuffBase* InBuffInstance)
 {
 	if(GetOwnerRole() != ROLE_Authority)
-		return;
-		
-	double serverTime = R4GetServerTimeSeconds(GetWorld());
-	
+		return false;
+        
 	for(auto it = AppliedBuffs.CreateIterator(); it; ++it)
 	{
-		// 끝날 시간이 아니면 continue
-		if(it->EndServerTime > serverTime)
+		if(it->ServerBuffInstance != InBuffInstance)
 			continue;
 		
-		// 버프 제거 로직 후
-		if(IsValid(it->ServerBuffInstance))
-			it->ServerBuffInstance->RemoveBuff(GetOwner());
+		// delegate 제거
+		it->ServerBuffInstance->OnEndBuff().RemoveAll(this);
 		
-		// 관리 목록에서 제거
 		it.RemoveCurrent();
+		return true;
 	}
+
+	return false;
 }

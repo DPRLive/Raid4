@@ -64,10 +64,7 @@ void AR4CharacterBase::BeginPlay()
 	// test
 	if(HasAuthority())
 	{
-		FR4BuffModifyDesc desc;
-		desc.TimeFactor = 10.f;
-		desc.ValueFactor = 100.f;
-		BuffComp->Server_AddBuff(TestingBuff, desc);
+		BuffComp->Server_AddBuff(TestingBuff, &TestingDesc);
 	}
 }
 
@@ -191,11 +188,11 @@ void AR4CharacterBase::SetupStatusBarWidget(UUserWidget* InWidget)
 *  @param InBuffClass : 버프 클래스
 *  @param InModifyDesc : 버프 factor
 */
-void AR4CharacterBase::ReceiveBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffModifyDesc& InModifyDesc)
+void AR4CharacterBase::ReceiveBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc& InModifyDesc)
 {
 	// BuffComp에게 넘겨준다.
 	if(GetLocalRole() == ROLE_Authority)
-		BuffComp->Server_AddBuff(InBuffClass, InModifyDesc);
+		BuffComp->Server_AddBuff(InBuffClass, &InModifyDesc);
 }
 
 /**
