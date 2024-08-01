@@ -2,9 +2,9 @@
 
 
 #include "R4Buff_StatModifier.h"
+#include "../R4BuffDesc.h"
 #include "../../Stat/R4StatInterface.h"
 #include "../../Stat/R4StatBaseComponent.h"
-#include "../R4BuffDesc.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4Buff_StatModifier)
 
