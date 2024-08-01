@@ -35,7 +35,7 @@ void UR4BuffBase::ApplyBuff(AActor* InVictim, const FR4BuffDesc* InBuffDesc)
  */
 void UR4BuffBase::RemoveBuff()
 {
-	if(TSharedPtr<FTimerHandler> timerHandler = _GetTimerHandler())
+	if(const TSharedPtr<FTimerHandler>& timerHandler = _GetTimerHandler())
 	{
 		timerHandler->OnCompletedTimerDelegate.Unbind();
 		timerHandler->ClearTimer();	
@@ -110,7 +110,7 @@ void UR4BuffBase::_SetBuffRemoveTiming(EBuffDurationType InDurationType)
 		return;
 	}
 
-	TSharedPtr<FTimerHandler> timerHandler = _GetTimerHandler();
+	const TSharedPtr<FTimerHandler>& timerHandler = _GetTimerHandler();
 	if(!timerHandler.IsValid())
 		return;
 	
@@ -141,7 +141,7 @@ void UR4BuffBase::_SetBuffRemoveTiming(EBuffDurationType InDurationType)
 /**
  *  Timer getter, 필요한 경우 생성 시킴
  */
-TSharedPtr<FTimerHandler> UR4BuffBase::_GetTimerHandler()
+const TSharedPtr<FTimerHandler>& UR4BuffBase::_GetTimerHandler()
 {
 	if(TimerHandler.IsValid())
 		return TimerHandler;

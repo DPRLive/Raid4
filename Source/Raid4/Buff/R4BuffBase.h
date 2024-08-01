@@ -53,7 +53,7 @@ private:
 	void _SetBuffRemoveTiming(EBuffDurationType InDurationType);
 
 	// Timer getter, 필요한 경우 생성 시킴
-	TSharedPtr<FTimerHandler> _GetTimerHandler();
+	const TSharedPtr<FTimerHandler>& _GetTimerHandler();
 	
 protected:
 	// 버프가 끝났다고 알려주는 delegate.
