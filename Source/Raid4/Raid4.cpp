@@ -14,12 +14,15 @@ UWorld* R4GetWorld(UObject* InObject)
 {
 	if (IsValid(InObject))
 		return InObject->GetWorld();
-	
-	if (FWorldContext* world = GEngine->GetWorldContextFromGameViewport(GEngine->GameViewport))
-	{
-		return world->World();
-	}
 
+	if(IsValid(GEngine))
+	{
+		if (FWorldContext* world = GEngine->GetWorldContextFromGameViewport(GEngine->GameViewport))
+		{
+			return world->World();
+		}
+	}
+	
 	LOG_SCREEN(FColor::Red, TEXT( "Failed to Get World!!" ));
 	return nullptr;
 }

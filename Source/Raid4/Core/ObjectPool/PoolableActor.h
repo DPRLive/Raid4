@@ -3,6 +3,7 @@
 #pragma once
 
 #include <GameFramework/Actor.h>
+#include "PoolableInterface.h"
 #include "PoolableActor.generated.h"
 
 /**
@@ -11,7 +12,7 @@
  * (처음 생성 시 오버헤드가 더 들음)
  */
 UCLASS( Abstract )
-class RAID4_API APoolableActor : public AActor
+class RAID4_API APoolableActor : public AActor, public IPoolableInterface
 {
 	GENERATED_BODY()
 	
@@ -32,10 +33,10 @@ public:
 	virtual void ActivateActor();
 
 	// Actor를 Pool에서 사용하기 위한 꺼낸 후 로직 처리
-	virtual void PostGetPoolActor() PURE_VIRTUAL(APoolableActor::PostGetPoolActor, );
+	virtual void PostInitPoolObject() override {}
 
 	// Actor를 Pool에서 반납하기 위한 반납 전 로직 처리
-	virtual void PreReturnPoolActor() PURE_VIRTUAL(APoolableActor::PreReturnPoolActor, );
+	virtual void PreReturnPoolObject() override {}
 	
 	// Actor가 현재 활성화 상태인지 확인
 	FORCEINLINE bool IsActivate() const { return bActivate; }

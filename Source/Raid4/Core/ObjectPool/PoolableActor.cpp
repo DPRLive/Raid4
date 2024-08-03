@@ -101,8 +101,9 @@ void APoolableActor::DisableCollisionAndTick()
 
 	SetActorTickEnabled(false);
 
-	// TODO : GetComponent()가 사라진것 같은데
 	TArray<UActorComponent*> comps;
+	GetComponents(comps);
+	
 	for(UActorComponent* comp : comps)
 		comp->SetComponentTickEnabled(false);
 }
@@ -122,8 +123,8 @@ void APoolableActor::ResetCollisionAndTick()
 		SetActorTickEnabled(cdo->PrimaryActorTick.bCanEverTick);
 	}
 
-	// TODO : GetComponent()가 사라진것 같은데
 	TArray<UActorComponent*> comps;
+	GetComponents(comps);
 	for(UActorComponent* comp : comps)
 	{
 		UClass* compUClass = comp->GetClass();

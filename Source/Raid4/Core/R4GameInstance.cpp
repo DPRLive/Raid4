@@ -3,7 +3,7 @@
 
 #include "R4GameInstance.h"
 
-#include "ActorPool.h"
+#include "ObjectPool/ObjectPool.h"
 #include "../Manager/DataTableManager.h"
 // TODO : delete test code
 #include "Raid4/Data/ExampleRow.h"
@@ -51,5 +51,5 @@ void UR4GameInstance::Shutdown()
 void UR4GameInstance::_AddSingletons()
 {
 	ADD_SINGLETON( FDataTableManager );
-	ADD_SINGLETON( FActorPool );
+	ADD_SINGLETON( FObjectPool );
 }

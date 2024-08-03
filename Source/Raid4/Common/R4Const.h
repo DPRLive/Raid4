@@ -4,6 +4,9 @@
  * 전역적으로 사용할 const, constexpr 모음
  */
 
+// Object Pool의 기본 최대 저장 크기
+constexpr static uint16 GObjectPoolSize = 100;
+
 namespace DTConst
 {
 	// DT의 유효하지 않은 기본키

@@ -19,6 +19,7 @@
 #include "Common/R4Struct.h"
 #include "Data/R4DataAssetHelper.h"
 #include "Tag/R4GameplayTag.h"
+#include "Core/ObjectPool/ObjectPool.h"
 
 // 월드를 반환한다.
 UWorld* R4GetWorld( UObject* InObject = nullptr );

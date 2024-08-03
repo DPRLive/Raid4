@@ -68,6 +68,7 @@ protected:
 	virtual void ApplyAffect(const FDetectResult& InDetectResult, const FString& InAffect) { LOG_WARN(LogTemp, TEXT("Affect! %s"), *InAffect); }
 
 	// Detectable과 Affect를 연결
+	// TODO : Change TScriptInterface ? 
 	void BindAffect(UObject* InDetectable, const FString& InString /* TODO : Affect*/);
 	
 protected:
