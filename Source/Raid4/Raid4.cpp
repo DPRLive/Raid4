@@ -23,8 +23,10 @@ UWorld* R4GetWorld(UObject* InObject)
 			retWorld = world->World();
 		}
 	}
-	
-	LOG_SCREEN(FColor::Red, TEXT( "Failed to Get World!!" ));
+
+	if(!IsValid(retWorld))
+		LOG_SCREEN(FColor::Red, TEXT( "Failed to Get World!!" ));
+
 	return retWorld;
 }
 
