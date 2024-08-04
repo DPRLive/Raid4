@@ -30,6 +30,8 @@ void UR4Buff_StatCurrModifier::PreActivate(AActor* InVictim, const FR4BuffDesc* 
 
 	if(IR4StatInterface* owner = Cast<IR4StatInterface>(InVictim))
 		CachedStatComp = owner->GetStatComponent();
+
+	CachedDeltaValue = 0.f;
 }
 
 /**
@@ -102,4 +104,14 @@ void UR4Buff_StatCurrModifier::Deactivate()
 		// 최대를 넘어가지 않도록 조정
 		statData->SetCurrentValue(FMath::Max(value, statData->GetBaseValue() + statData->GetModifierValue()));
 	}
+
+	CachedDeltaValue = 0.f;
+}
+
+void UR4Buff_StatCurrModifier::Clear()
+{
+	Super::Clear();
+
+	CachedStatComp.Reset();
+	CachedDeltaValue = 0.f;
 }

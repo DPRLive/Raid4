@@ -15,6 +15,14 @@ UR4BuffBase::UR4BuffBase()
 }
 
 /**
+ *  Pool에 반납 전 로직 처리
+ */
+void UR4BuffBase::PreReturnPoolObject()
+{
+	Clear();
+}
+
+/**
  *  버프를 적용
  *  @param InVictim : 버프를 적용할 대상
  *  @param InBuffDesc : 버프 적용 시 기본 클래스에서 설정한 값 말고 다른 값이 필요한 경우 적용. 클래스마다 다르게 적용 될 수 있음. 
@@ -30,17 +38,11 @@ void UR4BuffBase::ApplyBuff(AActor* InVictim, const FR4BuffDesc* InBuffDesc)
 }
 
 /**
- *  버프를 제거. 오버라이드 시 필요한거 하고 마지막에 Super를 호출.
- *  ex) duration 실행의 경우, 실행 시간이 지나면 원래대로 되돌려야함.
+ *  버프를 제거, 제거 로직 실행 후 버프가 끝남을 알리고 버프를 Clear.
+ *  ex) 제거로직 : duration 실행의 경우, 실행 시간이 지나면 원래대로 되돌려야함.
  */
 void UR4BuffBase::RemoveBuff()
 {
-	if(const TSharedPtr<FTimerHandler>& timerHandler = _GetTimerHandler())
-	{
-		timerHandler->OnCompletedTimerDelegate.Unbind();
-		timerHandler->ClearTimer();	
-	}
-	
 	// 복구 로직이 필요한 경우
 	if(bDeactivate)
 		Deactivate();
@@ -48,6 +50,9 @@ void UR4BuffBase::RemoveBuff()
 	// 버프가 끝남을 알림.
 	if (OnEndBuffDelegate.IsBound())
 		OnEndBuffDelegate.Broadcast();
+
+	// 버프를 Clear.
+	Clear();
 }
 
 /**
@@ -63,11 +68,21 @@ void UR4BuffBase::PreActivate(AActor* InVictim, const FR4BuffDesc* InBuffDesc)
 }
 
 /**
- *  버프 해제 시 Deactivate (버프가 한 짓 되돌리기)가 필요하다면 해야할 로직을 정의
+ *  버프 종료 시 Clear하는 로직을 정의
  */
-void UR4BuffBase::Deactivate()
+void UR4BuffBase::Clear()
 {
-	PreDeactivate();
+	// Timer 정리
+	if(TimerHandler.IsValid())
+		TimerHandler->Reset();
+	
+	// CDO대로 BuffDesc 되돌리기
+	UR4BuffBase* cdo = GetClass() ? GetClass()->GetDefaultObject<UR4BuffBase>() : nullptr;
+	if(IsValid(cdo))
+		BuffDesc = cdo->BuffDesc;
+
+	// OnEndBuffDelegate Clear
+	OnEndBuffDelegate.Clear();
 }
 
 /**

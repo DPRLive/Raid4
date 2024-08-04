@@ -36,8 +36,8 @@ void UR4BuffComponent::Server_AddBuff(TSubclassOf<UR4BuffBase> InBuffClass, cons
 	
 	FBuffAppliedInfo buffInfo;
 
-	// TODO : Object pool ?
-	buffInfo.ServerBuffInstance = NewObject<UR4BuffBase>(this, InBuffClass);
+	// TODO : Set Outer?
+	buffInfo.ServerBuffInstance = Cast<UR4BuffBase>(OBJECT_POOL->GetObject(InBuffClass));
 
 	// 버프 인스턴스가 유효하지 않으면 리턴
 	if(!IsValid(buffInfo.ServerBuffInstance)) 
@@ -60,6 +60,9 @@ void UR4BuffComponent::Server_AddBuff(TSubclassOf<UR4BuffBase> InBuffClass, cons
 		buffInfo.ServerBuffInstance->OnEndBuff().AddWeakLambda(this, [this, instance = buffInfo.ServerBuffInstance]
 		{
 			_Server_RemoveBuffInfo(instance);
+
+			// 인스턴스 Pool에 반납
+			OBJECT_POOL->ReturnPoolObject(instance);
 		});
 	}
 }

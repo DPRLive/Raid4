@@ -30,6 +30,8 @@ void UR4Buff_StatModifier::PreActivate(AActor* InVictim, const FR4BuffDesc* InBu
 
 	if(IR4StatInterface* owner = Cast<IR4StatInterface>(InVictim))
 		CachedStatComp = owner->GetStatComponent();
+
+	CachedDeltaValue = 0.f;
 }
 
 /**
@@ -58,6 +60,9 @@ void UR4Buff_StatModifier::Activate()
 	}
 }
 
+/**
+ *  버프 해제 시 Deactivate (버프가 한 짓 되돌리기)가 필요하다면 해야할 로직을 정의
+ */
 void UR4Buff_StatModifier::Deactivate()
 {
 	Super::Deactivate();
@@ -70,4 +75,17 @@ void UR4Buff_StatModifier::Deactivate()
 	{
 		statData->SetModifierValue(statData->GetModifierValue() - CachedDeltaValue);
 	}
+
+	CachedDeltaValue = 0.f;
+}
+
+/**
+ *  버프 종료 시 Clear하는 로직을 정의
+ */
+void UR4Buff_StatModifier::Clear()
+{
+	Super::Clear();
+
+	CachedStatComp.Reset();
+	CachedDeltaValue = 0.f;
 }
