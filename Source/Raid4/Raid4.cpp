@@ -12,19 +12,20 @@ IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, Raid4, "Raid4" );
  */
 UWorld* R4GetWorld(UObject* InObject)
 {
+	UWorld* retWorld = nullptr;
 	if (IsValid(InObject))
-		return InObject->GetWorld();
+		retWorld = InObject->GetWorld();
 
-	if(IsValid(GEngine))
+	if(IsValid(GEngine) && retWorld == nullptr)
 	{
 		if (FWorldContext* world = GEngine->GetWorldContextFromGameViewport(GEngine->GameViewport))
 		{
-			return world->World();
+			retWorld = world->World();
 		}
 	}
 	
 	LOG_SCREEN(FColor::Red, TEXT( "Failed to Get World!!" ));
-	return nullptr;
+	return retWorld;
 }
 
 double R4GetServerTimeSeconds(UWorld* InWorld)
