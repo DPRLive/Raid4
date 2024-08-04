@@ -21,6 +21,9 @@
 #include "Tag/R4GameplayTag.h"
 #include "Core/ObjectPool/ObjectPool.h"
 
+// Defines
+#define OBJECT_POOL FObjectPool::Get()
+
 // 월드를 반환한다.
 UWorld* R4GetWorld( UObject* InObject = nullptr );
 
