@@ -22,6 +22,17 @@ FTimerHandler::~FTimerHandler()
 }
 
 /**
+ * TimerHandler를 초기화 (Owner 값은 초기화 되지 않음)
+ */
+void FTimerHandler::Reset()
+{
+	OnCompletedTimerDelegate.Unbind();
+	CachedDuration = 0.f;
+	ResetFunction();
+	ClearTimer();
+}
+
+/**
  * 실행 할 함수 제거
  */
 void FTimerHandler::ResetFunction()

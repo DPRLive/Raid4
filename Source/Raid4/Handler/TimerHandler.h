@@ -23,6 +23,9 @@ public:
 	// 소멸자
 	virtual ~FTimerHandler();
 
+	// timer handler를 초기화
+	void Reset();
+	
 	// 실행 할 함수를 설정
 	template<CCallableType T>
 	void SetFunction(T&& InFunc);
