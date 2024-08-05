@@ -26,8 +26,9 @@ class RAID4_API IR4BuffReceiveInterface
 public:
 	/**
 	*  Buff를 받는 함수
+	*  @param InInstigator : 버프 시전한 액터
 	*  @param InBuffClass : 버프 클래스
-	*  @param InModifyDesc : 버프 factor
+	*  @param InBuffDesc : Buff Desc
 	*/
-	virtual void ReceiveBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc& InModifyDesc) = 0;
+	virtual void ReceiveBuff(AActor* InInstigator, TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc& InBuffDesc) = 0;
 };

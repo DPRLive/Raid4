@@ -2,7 +2,6 @@
 
 
 #include "R4Buff_StatModifier.h"
-#include "../R4BuffDesc.h"
 #include "../../Stat/R4StatInterface.h"
 #include "../../Stat/R4StatBaseComponent.h"
 
@@ -17,20 +16,15 @@ UR4Buff_StatModifier::UR4Buff_StatModifier()
 
 /**
  *  버프 적용 전 세팅
+ *  @param InInstigator : 버프를 시전한 액터
  *  @param InVictim : 버프를 적용할 대상
  *  @param InBuffDesc : 버프 적용 시 기본 클래스에서 설정한 값 말고 다른 값이 필요한 경우 적용.
  *  BuffDesc.Value : Base Stat을 기준으로 하여 BuffDesc의 Value에 의해 증감할 값을 계산.
  */
-void UR4Buff_StatModifier::PreActivate(AActor* InVictim, const FR4BuffDesc* InBuffDesc)
+void UR4Buff_StatModifier::PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc)
 {
-	Super::PreActivate(InVictim, InBuffDesc);
+	Super::PreActivate(InInstigator, InVictim, InBuffDesc);
 	
-	if(!IsValid(InVictim))
-		return;
-
-	if(IR4StatInterface* owner = Cast<IR4StatInterface>(InVictim))
-		CachedStatComp = owner->GetStatComponent();
-
 	CachedDeltaValue = 0.f;
 }
 
@@ -41,11 +35,18 @@ void UR4Buff_StatModifier::Activate()
 {
 	Super::Activate();
 
-	if(!CachedStatComp.IsValid())
+	if(!CachedVictim.IsValid())
+		return;
+	
+	UR4StatBaseComponent* statComp = nullptr;
+	if(IR4StatInterface* victim = Cast<IR4StatInterface>(CachedVictim))
+		statComp = victim->GetStatComponent();
+
+	if(!IsValid(statComp))
 		return;
 	
 	// 스탯을 찾아서 적용
-	if(FR4StatData* statData = CachedStatComp->GetStatByTag<FR4StatData>(StatTag))
+	if(FR4StatData* statData = statComp->GetStatByTag<FR4StatData>(StatTag))
 	{
 		// 계산
 		float value = BuffDesc.Value;
@@ -66,12 +67,19 @@ void UR4Buff_StatModifier::Activate()
 void UR4Buff_StatModifier::Deactivate()
 {
 	Super::Deactivate();
+	
+	if(!CachedVictim.IsValid())
+		return;
+	
+	UR4StatBaseComponent* statComp = nullptr;
+	if(IR4StatInterface* victim = Cast<IR4StatInterface>(CachedVictim))
+		statComp = victim->GetStatComponent();
 
-	if(!CachedStatComp.IsValid())
+	if(!IsValid(statComp))
 		return;
 	
 	// 누적 한 값 돌려주기
-	if(FR4StatData* statData = CachedStatComp->GetStatByTag<FR4StatData>(StatTag))
+	if(FR4StatData* statData = statComp->GetStatByTag<FR4StatData>(StatTag))
 	{
 		statData->SetModifierValue(statData->GetModifierValue() - CachedDeltaValue);
 	}
@@ -85,7 +93,6 @@ void UR4Buff_StatModifier::Deactivate()
 void UR4Buff_StatModifier::Clear()
 {
 	Super::Clear();
-
-	CachedStatComp.Reset();
+	
 	CachedDeltaValue = 0.f;
 }

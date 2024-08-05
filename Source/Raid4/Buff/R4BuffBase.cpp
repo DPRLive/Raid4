@@ -3,7 +3,6 @@
 
 #include "R4BuffBase.h"
 #include "R4BuffDesc.h"
-
 #include "../Handler/TimerHandler.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4BuffBase)
@@ -24,13 +23,14 @@ void UR4BuffBase::PreReturnPoolObject()
 
 /**
  *  버프를 적용
+ *  @param InInstigator : 버프를 시전한 액터
  *  @param InVictim : 버프를 적용할 대상
  *  @param InBuffDesc : 버프 적용 시 기본 클래스에서 설정한 값 말고 다른 값이 필요한 경우 적용. 클래스마다 다르게 적용 될 수 있음. 
  */
-void UR4BuffBase::ApplyBuff(AActor* InVictim, const FR4BuffDesc* InBuffDesc)
+void UR4BuffBase::ApplyBuff(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc)
 {
 	// 버프를 준비
-	PreActivate(InVictim, InBuffDesc);
+	PreActivate(InInstigator, InVictim, InBuffDesc);
 
 	// Buff Desc의 정보에 따라서 버프를 실행
 	_ActivateByBuffMode(BuffDesc.BuffMode);
@@ -58,11 +58,15 @@ void UR4BuffBase::RemoveBuff()
 /**
  *  버프가 세팅해야 하는 것을 정의.
  *  클래스 상속 시 추가 정보가 필요하다면 오버라이드 하여 세팅 작업을 추가적으로 진행
+ *  @param InInstigator : 버프를 시전한 액터
  *  @param InVictim : 버프를 적용할 대상
  *  @param InBuffDesc : 버프 적용 시 기본 클래스에서 설정한 값 말고 다른 값이 필요한 경우 적용. 클래스마다 다르게 적용 될 수 있음. 
  */
-void UR4BuffBase::PreActivate(AActor* InVictim, const FR4BuffDesc* InBuffDesc)
+void UR4BuffBase::PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc)
 {
+	CachedInstigator = InInstigator;
+	CachedVictim = InVictim;
+	
 	if (InBuffDesc != nullptr)
 		BuffDesc = *InBuffDesc;
 }
@@ -72,6 +76,9 @@ void UR4BuffBase::PreActivate(AActor* InVictim, const FR4BuffDesc* InBuffDesc)
  */
 void UR4BuffBase::Clear()
 {
+	CachedInstigator.Reset();
+	CachedVictim.Reset();
+	
 	// Timer 정리
 	if(TimerHandler.IsValid())
 		TimerHandler->Reset();

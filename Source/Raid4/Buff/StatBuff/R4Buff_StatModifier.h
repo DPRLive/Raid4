@@ -8,8 +8,6 @@
 
 #include "R4Buff_StatModifier.generated.h"
 
-class UR4StatBaseComponent;
-
 /**
  * Stat Modifier를 변경할 수 있는 버프.
  * Base Stat을 기준으로 하여 BuffDesc의 Value에 의해 계산되며, Modifier Stat에 적용.
@@ -25,7 +23,7 @@ public:
 
 protected:
 	// 버프가 적용 전 해야 할 로직 (세팅 등)해야 하는 것을 정의.
-	virtual void PreActivate(AActor* InVictim, const FR4BuffDesc* InBuffDesc) override;
+	virtual void PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc) override;
 	
 	// 버프가 실제로 할 로직을 정의
 	virtual void Activate() override;
@@ -45,9 +43,6 @@ private:
 	// BuffDesc의 Value가 % 인지 그냥 값인지?
 	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
 	EValueType ValueType;
-
-	// 영향을 줄 StatComp
-	TWeakObjectPtr<UR4StatBaseComponent> CachedStatComp;
 
 	// Modifier에 적용한 delta 값
 	float CachedDeltaValue;

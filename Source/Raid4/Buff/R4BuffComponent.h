@@ -60,7 +60,7 @@ protected:
 
 public:	
 	// 버프를 추가
-	void Server_AddBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc* InModifyDesc = nullptr);
+	void Server_AddBuff(AActor* InInstigator, TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc* InBuffDesc = nullptr);
 
 private:
 	//인스턴스를 비교하여 버프 관리 목록에서 제거

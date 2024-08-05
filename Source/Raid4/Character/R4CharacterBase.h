@@ -66,7 +66,7 @@ public:
 	// ~ End IR4StatusBarInterface
 	
 	// ~ Begin IR4BuffReceiveInterface
-	virtual void ReceiveBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc& InModifyDesc) override;
+	virtual void ReceiveBuff(AActor* InInstigator, TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc& InBuffDesc) override;
 	// ~ End IR4BuffReceiveInterface
 protected:
 	// StatComp와 필요한 바인딩을 진행

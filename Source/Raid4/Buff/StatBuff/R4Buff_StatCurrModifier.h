@@ -5,8 +5,6 @@
 #include "../R4BuffBase.h"
 #include "R4Buff_StatCurrModifier.generated.h"
 
-class UR4StatBaseComponent;
-
 /**
  * % 기반 계산 시 어떤것을 피연산자로 할 것 인지 ?
  */
@@ -32,7 +30,7 @@ public:
 
 protected:
 	// 버프가 적용 전 해야 할 로직 (세팅 등)해야 하는 것을 정의.
-	virtual void PreActivate(AActor* InVictim, const FR4BuffDesc* InBuffDesc = nullptr) override;
+	virtual void PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc) override;
 
 	// 버프가 실제로 할 로직을 정의
 	virtual void Activate() override;
@@ -58,9 +56,6 @@ private:
 	// Current Value가 음수로 내려가는 것을 허용할 것인지
 	UPROPERTY( EditDefaultsOnly, Category = "BuffInfo",  meta = (AllowPrivateAccess = true))
 	uint8 bAllowNegative:1;
-	
-	// 영향을 줄 StatComp
-	TWeakObjectPtr<UR4StatBaseComponent> CachedStatComp;
 
 	// 적용한 delta 값
 	float CachedDeltaValue;

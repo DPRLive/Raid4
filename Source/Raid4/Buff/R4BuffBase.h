@@ -29,12 +29,14 @@ public:
 	// ~ End IPoolableInterface
 	
 	// 버프를 적용
-	void ApplyBuff(AActor* InVictim, const FR4BuffDesc* InBuffDesc = nullptr);
+	void ApplyBuff(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc = nullptr);
 	
 	// 버프를 제거.
 	void RemoveBuff();
-	
-	// Buff Description을 리턴.
+
+	// Getter
+	FORCEINLINE AActor* GetInstigator() const { return CachedInstigator.Get(); }
+	FORCEINLINE AActor* GetVictim() const { return CachedVictim.Get(); }
 	FORCEINLINE const FR4BuffDesc& GetBuffDesc() const { return BuffDesc; }
 
 	// Buff가 끝났는지 알려주는 delegate 리턴
@@ -42,7 +44,7 @@ public:
 
 protected:
 	// 버프가 적용 전 해야 할 로직 (세팅 등)해야 하는 것을 정의.
-	virtual void PreActivate(AActor* InVictim, const FR4BuffDesc* InBuffDesc = nullptr);
+	virtual void PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc = nullptr);
 	
 	// 버프가 실제로 할 로직을 정의
 	virtual void Activate() {}
@@ -63,12 +65,17 @@ private:
 	const TSharedPtr<FTimerHandler>& _GetTimerHandler();
 	
 protected:
+	// 시전자가 누군지 캐싱
+	TWeakObjectPtr<AActor> CachedInstigator;
+
+	// 버프를 받은 대상을 캐싱
+	TWeakObjectPtr<AActor> CachedVictim;
+	
 	// Buff Description
 	// 각각 Buff Class별로 다르게 사용 될 수 있음.
 	// 외부에서 호출 시 FR4BuffDesc를 넘겨주지 않으면 기본 설정 된 값을 사용.
 	UPROPERTY( EditDefaultsOnly, Category = "BaseBuffInfo", meta = (AllowPrivateAccess = true))
 	FR4BuffDesc BuffDesc;
-
 private:
 	// 버프가 끝났다고 알려주는 delegate.
 	FSimpleMulticastDelegate OnEndBuffDelegate;

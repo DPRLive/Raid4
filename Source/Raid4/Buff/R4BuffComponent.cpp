@@ -29,7 +29,7 @@ void UR4BuffComponent::BeginPlay()
 /**
  *	버프를 추가 (서버)
  */
-void UR4BuffComponent::Server_AddBuff(TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc* InModifyDesc)
+void UR4BuffComponent::Server_AddBuff(AActor* InInstigator, TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc* InBuffDesc)
 {
 	if(GetOwnerRole() != ROLE_Authority)
 		return;
@@ -44,14 +44,14 @@ void UR4BuffComponent::Server_AddBuff(TSubclassOf<UR4BuffBase> InBuffClass, cons
 		return;
 	
 	// 버프 적용
-	buffInfo.ServerBuffInstance->ApplyBuff(GetOwner(), InModifyDesc);
+	buffInfo.ServerBuffInstance->ApplyBuff(InInstigator, GetOwner(), InBuffDesc);
 	
 	// 지속시간이 필요하다면
 	if(buffInfo.ServerBuffInstance->GetBuffDesc().BuffDurationType != EBuffDurationType::OneShot)
 	{
 		buffInfo.BuffClass = InBuffClass;
 		buffInfo.AppliedServerTime = R4GetServerTimeSeconds(GetWorld());
-		buffInfo.BuffModifyDesc = *InModifyDesc;
+		buffInfo.BuffModifyDesc = *InBuffDesc;
 		
 		// 버프를 관리하도록 추가
         AppliedBuffs.Emplace(MoveTemp(buffInfo));
