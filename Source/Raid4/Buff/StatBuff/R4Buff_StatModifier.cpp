@@ -2,7 +2,6 @@
 
 
 #include "R4Buff_StatModifier.h"
-#include "../../Stat/R4StatInterface.h"
 #include "../../Stat/R4StatBaseComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4Buff_StatModifier)
@@ -24,6 +23,10 @@ UR4Buff_StatModifier::UR4Buff_StatModifier()
 void UR4Buff_StatModifier::PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc)
 {
 	Super::PreActivate(InInstigator, InVictim, InBuffDesc);
+
+	// 버프 받을 객체의 StatComp를 캐싱
+	if(CachedVictim.IsValid())
+		CachedStatComp = CachedVictim->GetComponentByClass<UR4StatBaseComponent>();
 	
 	CachedDeltaValue = 0.f;
 }
@@ -35,18 +38,11 @@ void UR4Buff_StatModifier::Activate()
 {
 	Super::Activate();
 
-	if(!CachedVictim.IsValid())
-		return;
-	
-	UR4StatBaseComponent* statComp = nullptr;
-	if(IR4StatInterface* victim = Cast<IR4StatInterface>(CachedVictim))
-		statComp = victim->GetStatComponent();
-
-	if(!IsValid(statComp))
+	if(!CachedStatComp.IsValid())
 		return;
 	
 	// 스탯을 찾아서 적용
-	if(FR4StatData* statData = statComp->GetStatByTag<FR4StatData>(StatTag))
+	if(FR4StatData* statData = CachedStatComp->GetStatByTag<FR4StatData>(StatTag))
 	{
 		// 계산
 		float value = BuffDesc.Value;
@@ -68,18 +64,11 @@ void UR4Buff_StatModifier::Deactivate()
 {
 	Super::Deactivate();
 	
-	if(!CachedVictim.IsValid())
-		return;
-	
-	UR4StatBaseComponent* statComp = nullptr;
-	if(IR4StatInterface* victim = Cast<IR4StatInterface>(CachedVictim))
-		statComp = victim->GetStatComponent();
-
-	if(!IsValid(statComp))
+	if(!CachedStatComp.IsValid())
 		return;
 	
 	// 누적 한 값 돌려주기
-	if(FR4StatData* statData = statComp->GetStatByTag<FR4StatData>(StatTag))
+	if(FR4StatData* statData = CachedStatComp->GetStatByTag<FR4StatData>(StatTag))
 	{
 		statData->SetModifierValue(statData->GetModifierValue() - CachedDeltaValue);
 	}
@@ -93,6 +82,7 @@ void UR4Buff_StatModifier::Deactivate()
 void UR4Buff_StatModifier::Clear()
 {
 	Super::Clear();
-	
+
+	CachedStatComp.Reset();
 	CachedDeltaValue = 0.f;
 }

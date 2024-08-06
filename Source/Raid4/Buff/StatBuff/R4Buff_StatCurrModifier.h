@@ -5,6 +5,8 @@
 #include "../R4BuffBase.h"
 #include "R4Buff_StatCurrModifier.generated.h"
 
+class UR4StatBaseComponent;
+
 /**
  * % 기반 계산 시 어떤것을 피연산자로 할 것 인지 ?
  */
@@ -57,6 +59,9 @@ private:
 	UPROPERTY( EditDefaultsOnly, Category = "BuffInfo",  meta = (AllowPrivateAccess = true))
 	uint8 bAllowNegative:1;
 
+	// Base Stat Comp 캐싱
+	TWeakObjectPtr<UR4StatBaseComponent> CachedStatComp;
+	
 	// 적용한 delta 값
 	float CachedDeltaValue;
 };

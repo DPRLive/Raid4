@@ -5,7 +5,6 @@
 #include "../Data/R4DTDataPushInterface.h"
 #include "../Damage/R4DamageReceiveInterface.h"
 #include "../UI/StatusBar/R4StatusBarInterface.h"
-#include "../Stat/R4StatInterface.h"
 #include "../Buff/R4BuffReceiveInterface.h"
 
 #include <GameFramework/Character.h>
@@ -24,8 +23,8 @@ class UR4CharacterRPCComponent;
  */
 UCLASS()
 class RAID4_API AR4CharacterBase : public ACharacter, public IR4DTDataPushInterface,
-									public IR4StatInterface, public IR4DamageReceiveInterface,
-									public IR4BuffReceiveInterface, public IR4StatusBarInterface
+									//public IR4DamageReceiveInterface,
+									public IR4BuffReceiveInterface,	public IR4StatusBarInterface
 {
 	GENERATED_BODY()
 
@@ -52,13 +51,9 @@ public:
 	// ~ Begin IR4DTDataPushable (Character의 데이터를 초기화한다. ( By DT_Character))
 	virtual void PushDTData(FPriKey InPk) override; 
 	// ~ End IR4DTDataPushable
-
-	// ~ Begin IR4StatInterface
-	virtual UR4StatBaseComponent* GetStatComponent() override;
-	// ~ End IR4StatInterface
 	
 	// ~ Begin IR4Damageable
-	virtual void ReceiveDamage(AActor* InInstigator, float InDamage) override;
+	// virtual void ReceiveDamage(AActor* InInstigator, float InDamage) override;
 	// ~ End IR4Damageable
 
 	// ~ Begin IR4StatusBarInterface
