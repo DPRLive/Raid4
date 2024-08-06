@@ -28,7 +28,7 @@ void UR4Buff_StatCurrModifier::PreActivate(AActor* InInstigator, AActor* InVicti
 
 	// 버프 받을 객체의 StatComp를 캐싱
 	if(CachedVictim.IsValid())
-		CachedStatComp = CachedVictim->GetComponentByClass<UR4StatBaseComponent>();
+		CachedStatComp = CachedVictim->FindComponentByClass<UR4StatBaseComponent>();
 	
 	CachedDeltaValue = 0.f;
 }
