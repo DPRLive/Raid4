@@ -8,7 +8,6 @@
 #include "../Movement/R4CharacterMovementComponent.h"
 #include "../Skill/R4SkillComponent.h"
 #include "../Skill/R4SkillBase.h"
-#include "../Damage/R4DamageControlComponent.h"
 #include "../Buff/R4BuffComponent.h"
 #include "../UI/StatusBar/R4StatusBarWidget.h"
 
@@ -31,8 +30,6 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 	SkillComp = CreateDefaultSubobject<UR4SkillComponent>(TEXT("SkillComp"));
 
 	BuffComp = CreateDefaultSubobject<UR4BuffComponent>(TEXT("BuffComp"));
-	
-	DamageControlComp = CreateDefaultSubobject<UR4DamageControlComponent>(TEXT("DamageControlComp"));
 	
 	RPCComp = CreateDefaultSubobject<UR4CharacterRPCComponent>(TEXT("RPCComp"));
 }
@@ -126,6 +123,20 @@ void AR4CharacterBase::PushDTData(FPriKey InPk)
 			SkillComp->Server_AddSkill(skill.Key, instanceSkill);
 		}
 	}
+}
+
+/**
+ *  데미지를 입는 함수
+ *  @param InInstigator : 데미지를 가한 가해자 액터
+ *  @param InDamageInfo : 데미지에 관한 정보.
+ */
+void AR4CharacterBase::ReceiveDamage(AActor* InInstigator, const FR4DamageReceiveInfo& InDamageInfo)
+{
+	// TODO : 데미지 감소 효과
+
+	// TODO : 방어막 적용
+	
+	// 실제 HP 감소
 }
 
 // /**

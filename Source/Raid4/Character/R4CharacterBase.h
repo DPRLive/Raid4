@@ -15,7 +15,6 @@
 class UR4CharacterStatComponent;
 class UR4SkillComponent;
 class UR4BuffComponent;
-class UR4DamageControlComponent;
 class UR4CharacterRPCComponent;
 
 /**
@@ -23,7 +22,7 @@ class UR4CharacterRPCComponent;
  */
 UCLASS()
 class RAID4_API AR4CharacterBase : public ACharacter, public IR4DTDataPushInterface,
-									//public IR4DamageReceiveInterface,
+									public IR4DamageReceiveInterface,
 									public IR4BuffReceiveInterface,	public IR4StatusBarInterface
 {
 	GENERATED_BODY()
@@ -51,10 +50,10 @@ public:
 	// ~ Begin IR4DTDataPushable (Character의 데이터를 초기화한다. ( By DT_Character))
 	virtual void PushDTData(FPriKey InPk) override; 
 	// ~ End IR4DTDataPushable
-	
-	// ~ Begin IR4Damageable
-	// virtual void ReceiveDamage(AActor* InInstigator, float InDamage) override;
-	// ~ End IR4Damageable
+
+	// ~ Begin IR4DamageReceiveInterface
+	virtual void ReceiveDamage(AActor* InInstigator, const FR4DamageReceiveInfo& InDamageInfo) override;
+	// ~ End IR4DamageReceiveInterface
 
 	// ~ Begin IR4StatusBarInterface
 	virtual void SetupStatusBarWidget(UUserWidget* InWidget) override;
@@ -92,10 +91,6 @@ protected:
 	// 버프 기능을 부여해주는 Buff Component
 	UPROPERTY( VisibleAnywhere, Category = "Buff", meta = (AllowPrivateAccess = true) )
 	TObjectPtr<UR4BuffComponent> BuffComp;
-	
-	// 데미지 받을때 계산을 도와주는 Damage Control Comp
-	UPROPERTY( VisibleAnywhere, Category = "Damage", meta = (AllowPrivateAccess = true) )
-	TObjectPtr<UR4DamageControlComponent> DamageControlComp;
 	
 	// 여러가지 Character를 위한 RPC 기능을 부여해주는 Component
 	UPROPERTY( )
