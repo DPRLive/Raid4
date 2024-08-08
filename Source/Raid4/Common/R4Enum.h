@@ -49,5 +49,5 @@ UENUM( BlueprintType )
 enum class EValueType : uint8
 {
 	Percent			UMETA( DisplayName = "%" ),
-	Absolute		UMETA( DisplayName = "상수 값" ),
+	Constant		UMETA( DisplayName = "상수 값" ),
 };

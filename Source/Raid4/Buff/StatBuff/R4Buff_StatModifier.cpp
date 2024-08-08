@@ -9,7 +9,7 @@
 UR4Buff_StatModifier::UR4Buff_StatModifier()
 {
 	StatTag = FGameplayTag::EmptyTag;
-	ValueType = EValueType::Absolute;
+	ValueType = EValueType::Constant;
 	CachedDeltaValue = 0.f;
 }
 

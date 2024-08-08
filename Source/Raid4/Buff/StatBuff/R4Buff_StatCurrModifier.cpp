@@ -10,7 +10,7 @@ UR4Buff_StatCurrModifier::UR4Buff_StatCurrModifier()
 {
 	StatTag = FGameplayTag::EmptyTag;
 	OperandType = EStatOperandType::Current;
-	ValueType = EValueType::Absolute;
+	ValueType = EValueType::Constant;
 	bAllowNegative = false;
 	CachedDeltaValue = 0.f;
 }
