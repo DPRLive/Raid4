@@ -4,11 +4,15 @@
 
 namespace UtilDamage
 {
-	/**
-	*  R4DamageApplyDesc를 기반으로 데미지를 계산하여 R4DamageReceiveInfo를 산출
-	*  @param InInstigator : 데미지를 가하는(Apply) 객체
-	*  @param InVictim : 데미지를 입는(Receive) 객체
-	*  @param InDamageDesc : 데미지에 관한 정보.
-	*/
+	// R4DamageApplyDesc를 기반으로 데미지를 계산하여 R4DamageReceiveInfo를 산출
 	FR4DamageReceiveInfo CalculateDamageReceiveInfo(const AActor* InInstigator, const AActor* InVictim, const FR4DamageApplyDesc& InDamageDesc);
+
+	// 방어력을 기준으로 방어 감소율을 계산.
+	float CalculateReductionByArmor(float InArmor);
+
+	// 랜덤 데미지 변동율 리턴.
+	float GetRandomFactor();
+
+	// Critical 판정
+	bool DetermineCritical(float InCriticalChance, float& OutDamage);
 }

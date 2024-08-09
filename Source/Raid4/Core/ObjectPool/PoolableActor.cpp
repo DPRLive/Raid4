@@ -117,7 +117,7 @@ void APoolableActor::ResetCollisionAndTick()
 	if(!IsValid(uClass))
 		return;
 	
-	if(AActor* cdo = uClass->GetDefaultObject<AActor>(); IsValid(cdo))
+	if(const AActor* cdo = uClass->GetDefaultObject<AActor>(); IsValid(cdo))
 	{
 		SetActorEnableCollision(cdo->GetActorEnableCollision());
 		SetActorTickEnabled(cdo->PrimaryActorTick.bCanEverTick);
@@ -131,7 +131,7 @@ void APoolableActor::ResetCollisionAndTick()
 		if(!IsValid(compUClass))
 			continue;
 		
-		if(UActorComponent* cdo = compUClass->GetDefaultObject<UActorComponent>(); IsValid(cdo))
+		if(const UActorComponent* cdo = compUClass->GetDefaultObject<UActorComponent>(); IsValid(cdo))
 		{
 			comp->SetComponentTickEnabled(cdo->PrimaryComponentTick.bCanEverTick);
 		}

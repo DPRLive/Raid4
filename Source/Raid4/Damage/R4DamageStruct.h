@@ -13,6 +13,7 @@ struct RAID4_API FR4DamageApplyDesc
 	FR4DamageApplyDesc()
 	: CalculatorClass(nullptr)
 	, Value(0.f)
+	, AttackPowerFactor(1.f)
 	, bFixedDamage(false)
 	{ }
 
@@ -24,6 +25,10 @@ struct RAID4_API FR4DamageApplyDesc
 	UPROPERTY( EditAnywhere, BlueprintReadOnly )
 	float Value;
 
+	// 공격력 계수. (ex. 스킬 계수)
+	UPROPERTY( EditAnywhere, BlueprintReadOnly )
+	float AttackPowerFactor;
+	
 	// 고정 데미지 (데미지 증감의 영향을 받지 않는지)
 	UPROPERTY( EditAnywhere, BlueprintReadOnly )
 	uint8 bFixedDamage:1;

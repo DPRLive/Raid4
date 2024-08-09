@@ -18,3 +18,18 @@ namespace Validation
 	// 서버에서 쿨타임 검증 시 허용 범위
 	constexpr static float G_AcceptMinCoolTime = 0.1f;
 }
+
+namespace Damage
+{
+	// 방어 상수
+	constexpr static float G_DefenseConstant = 100.f;
+
+	// 치명타 시 데미지 증가량
+	constexpr static float G_CriticalFactor = 1.3f;
+
+	// 데미지의 랜덤 증감량 아랫 경계값
+	constexpr static float G_RandomFactorLower = 1.3f;
+
+	// 데미지의 랜덤 증감량 윗 경계값
+	constexpr static float G_RandomFactorUpper = 1.3f;
+}
