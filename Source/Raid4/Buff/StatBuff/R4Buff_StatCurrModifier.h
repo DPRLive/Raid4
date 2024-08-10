@@ -8,17 +8,6 @@
 class UR4StatBaseComponent;
 
 /**
- * % 기반 계산 시 어떤것을 피연산자로 할 것 인지 ?
- */
-UENUM( BlueprintType )
-enum class EStatOperandType : uint8
-{
-	Base			UMETA( DisplayName = "기본 스탯" ),
-	Total			UMETA( DisplayName = "스탯 총합" ),
-	Current			UMETA( DisplayName = "현재 스탯" ),
-};
-
-/**
  * 'Current' Stat을 변경할 수 있는 버프. ( Consumable Stat에 사용 )
  * Stat Comp에 의존.
  */

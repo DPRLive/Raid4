@@ -51,3 +51,14 @@ enum class EValueType : uint8
 	Percent			UMETA( DisplayName = "%" ),
 	Constant		UMETA( DisplayName = "상수 값" ),
 };
+
+/**
+ * Stat 계산 시 어떤것을 피연산자로 할 것 인지
+ */
+UENUM( BlueprintType )
+enum class EStatOperandType : uint8
+{
+	Base			UMETA( DisplayName = "기본 스탯" ),
+	Total			UMETA( DisplayName = "스탯 총합" ),
+	Current			UMETA( DisplayName = "현재 스탯" ),
+};
