@@ -1,6 +1,6 @@
 ﻿#include "UtilDamage.h"
 
-#include "../Damage/Calculator/R4DamageCalculatorInterface.h"
+#include "../Damage/Expression/R4BaseDamageExpressionInterface.h"
 #include "../Stat/R4StatBaseComponent.h"
 
 /**
@@ -11,23 +11,63 @@
 */
 FR4DamageReceiveInfo UtilDamage::CalculateDamageReceiveInfo(const AActor* InInstigator, const AActor* InVictim, const FR4DamageApplyDesc& InDamageDesc)
 {
-	// Calculator class가 있다면 적용.
-	if(IsValid(InDamageDesc.CalculatorClass) &&
-		ensureMsgf(InDamageDesc.CalculatorClass->ImplementsInterface(UR4DamageCalculatorInterface::StaticClass()),
-		TEXT("DamageCalculator class must implement R4DamageCalculatorInterface.")))
+	FR4DamageReceiveInfo retDamageInfo;
+	
+	if(!IsValid(InDamageDesc.ExpressionClass) ||
+		!ensureMsgf(InDamageDesc.ExpressionClass->ImplementsInterface(UR4BaseDamageExpressionInterface::StaticClass()),
+		TEXT("Damage Expression class must implement IR4BaseDamageExpressionInterface.")))
 	{
-		// cdo를 통해 execute
-		const UObject* cdo = InDamageDesc.CalculatorClass->GetDefaultObject(true);
-
-		if(const IR4DamageCalculatorInterface* damageCalculator = Cast<IR4DamageCalculatorInterface>(cdo))
-			return damageCalculator->CalculateDamage(InInstigator, InVictim, InDamageDesc);
+		LOG_ERROR(R4Data, TEXT("Base Damage Calculate Failed. Expression Class is invalid."))
+		return retDamageInfo;
 	}
 	
-	FR4DamageReceiveInfo damageInfo;
-	damageInfo.bFixedDamage = InDamageDesc.bFixedDamage;
-	damageInfo.IncomingDamage = InDamageDesc.Value;
+	// Expression class CDO를 이용하여 증감이 안된 순수한 데미지 계산.
+	{
+		const UObject* cdo = InDamageDesc.ExpressionClass->GetDefaultObject(true);
+		if(const IR4BaseDamageExpressionInterface* damageCalculator = Cast<IR4BaseDamageExpressionInterface>(cdo))
+			retDamageInfo.IncomingDamage = damageCalculator->CalculateBaseDamage(InInstigator, InVictim, InDamageDesc.Value);
+	}
 
-	return damageInfo;
+	// 고정 데미지가 아닐시 데미지 증감 계산
+	if (!InDamageDesc.bFixedDamage)
+	{
+		// 데미지 증감 계산에 필요한 변수들.
+		// Instigator와 Victim의 StatComp에서 찾기 i : instigator, v : victim
+		float i_CriticalChance = 0.f, v_Armor = 0.f;
+		
+		if(IsValid(InInstigator))
+		{
+			if(UR4StatBaseComponent* instigatorStat = InInstigator->FindComponentByClass<UR4StatBaseComponent>())
+			{
+				if(FR4StatData* criticalStat = instigatorStat->GetStatByTag<FR4StatData>(TAG_STAT_NORMAL_CriticalChance))
+					i_CriticalChance = criticalStat->GetBaseValue() + criticalStat->GetModifierValue();
+			}
+		}
+		
+		if(IsValid(InVictim))
+		{
+			if(UR4StatBaseComponent* victimStat = InVictim->FindComponentByClass<UR4StatBaseComponent>())
+			{
+				if(FR4StatData* armorStat = victimStat->GetStatByTag<FR4StatData>(TAG_STAT_NORMAL_Armor))
+					v_Armor = armorStat->GetBaseValue() + armorStat->GetModifierValue();
+			}
+		}
+	
+		// TODO : 주고 받는 측 데미지 증감 계산
+		
+		// By Instigator //
+		// 랜덤 변동성 추가
+		retDamageInfo.IncomingDamage *= GetRandomFactor();
+		
+		// 치명타 계산
+		retDamageInfo.bCritical = DetermineCritical(i_CriticalChance, retDamageInfo.IncomingDamage);
+
+		// By Victim //
+		// 방어력 계산
+		retDamageInfo.IncomingDamage *= CalculateReductionByArmor(v_Armor);
+	}
+	
+	return retDamageInfo;
 }
 
 /**

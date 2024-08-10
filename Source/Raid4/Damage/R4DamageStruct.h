@@ -11,23 +11,18 @@ struct RAID4_API FR4DamageApplyDesc
 	GENERATED_BODY()
 
 	FR4DamageApplyDesc()
-	: CalculatorClass(nullptr)
+	: ExpressionClass(nullptr)
 	, Value(0.f)
-	, AttackPowerFactor(1.f)
 	, bFixedDamage(false)
 	{ }
 
-	// 사용할 Calculator Class. CDO를 사용
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, meta = (MustImplement = "R4DamageCalculatorInterface") )
-	TSubclassOf<UObject> CalculatorClass;
+	// 사용할 Expression Class. CDO를 사용
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, meta = (MustImplement = "R4BaseDamageExpressionInterface") )
+	TSubclassOf<UObject> ExpressionClass;
 	
-	// Value. Calculator Class에 따라 다르게 Value가 사용될 수 있음.
+	// Value. Expression Class에 따라 다르게 Value가 사용될 수 있음.
 	UPROPERTY( EditAnywhere, BlueprintReadOnly )
 	float Value;
-
-	// 공격력 계수. (ex. 스킬 계수)
-	UPROPERTY( EditAnywhere, BlueprintReadOnly )
-	float AttackPowerFactor;
 	
 	// 고정 데미지 (데미지 증감의 영향을 받지 않는지)
 	UPROPERTY( EditAnywhere, BlueprintReadOnly )
@@ -46,18 +41,13 @@ struct RAID4_API FR4DamageReceiveInfo
 	FR4DamageReceiveInfo()
 	: IncomingDamage(0.f)
 	, bCritical(false)
-	, bFixedDamage(false)
 	{ }
 
-	// 가해자가 계산한 데미지
+	// 계산된 데미지 (증감이 모두 적용 된 상태)
 	UPROPERTY( VisibleInstanceOnly, Transient )
 	float IncomingDamage;
 
 	// 크리티컬 인지
 	UPROPERTY( VisibleInstanceOnly, Transient )
 	uint8 bCritical:1;
-	
-	// 고정 데미지인지 (데미지 증감의 영향을 받지 않는지)
-	UPROPERTY( VisibleInstanceOnly, Transient )
-	uint8 bFixedDamage:1;
 };

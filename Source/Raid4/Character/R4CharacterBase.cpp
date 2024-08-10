@@ -132,8 +132,6 @@ void AR4CharacterBase::PushDTData(FPriKey InPk)
  */
 void AR4CharacterBase::ReceiveDamage(AActor* InInstigator, const FR4DamageReceiveInfo& InDamageInfo)
 {
-	// TODO : 데미지 감소 효과
-
 	// TODO : 방어막 적용
 	
 	// 실제 HP 감소
