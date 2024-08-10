@@ -20,7 +20,7 @@ enum class ETargetStatOwner : uint8
  * ETargetStatOwner 의 Stat중 TAG에 맞는 Stat을 기반으로 계산 진행
  * FR4DamageApplyDesc의 Value를 특정 Stat에 대한 비례 데미지 계산 시 '비율'로 사용.
  */
-UCLASS()
+UCLASS( NotBlueprintType, Blueprintable, ClassGroup=(DamageExpression) )
 class RAID4_API UR4BaseDamageExpression_StatProportion : public UObject, public IR4BaseDamageExpressionInterface
 {
 	GENERATED_BODY()

@@ -9,7 +9,7 @@
  * 표준적인 데미지를 계산하는 클래스.
  * FR4DamageApplyDesc의 Value를 그대로 리턴.
  */
-UCLASS()
+UCLASS( NotBlueprintType, ClassGroup=(DamageExpression) )
 class RAID4_API UR4BaseDamageExpression_Standard : public UObject, public IR4BaseDamageExpressionInterface
 {
 	GENERATED_BODY()
