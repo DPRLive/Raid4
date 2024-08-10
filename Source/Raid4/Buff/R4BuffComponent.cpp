@@ -35,16 +35,19 @@ void UR4BuffComponent::Server_AddBuff(AActor* InInstigator, TSubclassOf<UR4BuffB
 		return;
 	
 	FBuffAppliedInfo buffInfo;
-
-	// TODO : Set Outer?
 	buffInfo.ServerBuffInstance = Cast<UR4BuffBase>(OBJECT_POOL->GetObject(InBuffClass));
 
 	// 버프 인스턴스가 유효하지 않으면 리턴
 	if(!IsValid(buffInfo.ServerBuffInstance)) 
 		return;
 	
-	// 버프 적용
-	buffInfo.ServerBuffInstance->ApplyBuff(InInstigator, GetOwner(), InBuffDesc);
+	// 버프 적용, 적용 실패 시 Object Pool에 반납
+	bool bApplySuccess = buffInfo.ServerBuffInstance->ApplyBuff(InInstigator, GetOwner(), InBuffDesc);
+	if(!bApplySuccess)
+	{
+		OBJECT_POOL->ReturnPoolObject(buffInfo.ServerBuffInstance);
+		return;
+	}
 	
 	// 지속시간이 필요하다면
 	if(buffInfo.ServerBuffInstance->GetBuffDesc().BuffDurationType != EBuffDurationType::OneShot)

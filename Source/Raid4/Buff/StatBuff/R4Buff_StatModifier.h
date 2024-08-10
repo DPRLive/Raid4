@@ -15,7 +15,7 @@ class UR4StatBaseComponent;
  * Base Stat을 기준으로 하여 BuffDesc의 Value에 의해 계산되며, Modifier Stat에 적용.
  * Stat Comp에 의존.
  */
-UCLASS(Blueprintable, ClassGroup=(Buff))
+UCLASS( HideDropdown, NotBlueprintType, Blueprintable, ClassGroup=(Buff) )
 class RAID4_API UR4Buff_StatModifier : public UR4BuffBase
 {
 	GENERATED_BODY()
@@ -24,8 +24,8 @@ public:
 	UR4Buff_StatModifier();
 
 protected:
-	// 버프가 적용 전 해야 할 로직 (세팅 등)해야 하는 것을 정의.
-	virtual void PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc) override;
+	// 버프가 적용 전 해야 할 로직 (세팅 등)해야 하는 것을 정의. 세팅 실패 시 false를 꼭 리턴
+	virtual bool PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc) override;
 	
 	// 버프가 실제로 할 로직을 정의
 	virtual void Activate() override;

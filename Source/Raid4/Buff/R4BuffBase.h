@@ -29,7 +29,7 @@ public:
 	// ~ End IPoolableInterface
 	
 	// 버프를 적용
-	void ApplyBuff(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc = nullptr);
+	bool ApplyBuff(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc = nullptr);
 	
 	// 버프를 제거.
 	void RemoveBuff();
@@ -43,8 +43,8 @@ public:
 	FORCEINLINE FSimpleMulticastDelegate& OnEndBuff() { return OnEndBuffDelegate; }
 
 protected:
-	// 버프가 적용 전 해야 할 로직 (세팅 등)해야 하는 것을 정의.
-	virtual void PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc = nullptr);
+	// 버프가 적용 전 해야 할 로직 (세팅 등)해야 하는 것을 정의. 세팅 실패 시 false를 꼭 리턴
+	virtual bool PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc = nullptr);
 	
 	// 버프가 실제로 할 로직을 정의
 	virtual void Activate() {}

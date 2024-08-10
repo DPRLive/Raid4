@@ -25,16 +25,24 @@ void UR4BuffBase::PreReturnPoolObject()
  *  버프를 적용
  *  @param InInstigator : 버프를 시전한 액터
  *  @param InVictim : 버프를 적용할 대상
- *  @param InBuffDesc : 버프 적용 시 기본 클래스에서 설정한 값 말고 다른 값이 필요한 경우 적용. 클래스마다 다르게 적용 될 수 있음. 
+ *  @param InBuffDesc : 버프 적용 시 기본 클래스에서 설정한 값 말고 다른 값이 필요한 경우 적용. 클래스마다 다르게 적용 될 수 있음.
+ *  @return : 버프 적용 성공 실패 여부
  */
-void UR4BuffBase::ApplyBuff(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc)
+bool UR4BuffBase::ApplyBuff(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc)
 {
-	// 버프를 준비
-	PreActivate(InInstigator, InVictim, InBuffDesc);
-
+	// 준비 실패 시 버프를 걸지 않고 false 리턴.
+	bool bReady = PreActivate(InInstigator, InVictim, InBuffDesc);
+	if(!bReady)
+	{
+		LOG_WARN(R4Log, TEXT("Failed to Apply Buff."));
+		return false;
+	}
+	
 	// Buff Desc의 정보에 따라서 버프를 실행
 	_ActivateByBuffMode(BuffDesc.BuffMode);
 	_SetBuffRemoveTiming(BuffDesc.BuffDurationType);
+
+	return true;
 }
 
 /**
@@ -60,15 +68,19 @@ void UR4BuffBase::RemoveBuff()
  *  클래스 상속 시 추가 정보가 필요하다면 오버라이드 하여 세팅 작업을 추가적으로 진행
  *  @param InInstigator : 버프를 시전한 액터
  *  @param InVictim : 버프를 적용할 대상
- *  @param InBuffDesc : 버프 적용 시 기본 클래스에서 설정한 값 말고 다른 값이 필요한 경우 적용. 클래스마다 다르게 적용 될 수 있음. 
+ *  @param InBuffDesc : 버프 적용 시 기본 클래스에서 설정한 값 말고 다른 값이 필요한 경우 적용. 클래스마다 다르게 적용 될 수 있음.
+ *  @return : 세팅 성공 실패 여부
  */
-void UR4BuffBase::PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc)
+bool UR4BuffBase::PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc)
 {
 	CachedInstigator = InInstigator;
 	CachedVictim = InVictim;
 	
 	if (InBuffDesc != nullptr)
 		BuffDesc = *InBuffDesc;
+
+	// 버프의 시전자 / 받은자가 유효한지
+	return (CachedInstigator.IsValid() && CachedVictim.IsValid());
 }
 
 /**

@@ -21,16 +21,19 @@ UR4Buff_StatCurrModifier::UR4Buff_StatCurrModifier()
  *  @param InVictim : 버프를 적용할 대상
  *  @param InBuffDesc : 버프 적용 시 기본 클래스에서 설정한 값 말고 다른 값이 필요한 경우 적용.
  *  BuffDesc.Value : Current Stat에 증감할 값, OperandType, ValueType 등에 따라 다르게 계산 될 수 있음
+ *  @return : 세팅 성공 실패 여부
  */
-void UR4Buff_StatCurrModifier::PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc)
+bool UR4Buff_StatCurrModifier::PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc)
 {
-	Super::PreActivate(InInstigator, InVictim, InBuffDesc);
+	bool bReady = Super::PreActivate(InInstigator, InVictim, InBuffDesc);
 
 	// 버프 받을 객체의 StatComp를 캐싱
 	if(CachedVictim.IsValid())
 		CachedStatComp = CachedVictim->FindComponentByClass<UR4StatBaseComponent>();
 	
 	CachedDeltaValue = 0.f;
+
+	return bReady && CachedStatComp.IsValid();
 }
 
 /**
