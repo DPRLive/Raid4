@@ -71,6 +71,30 @@ FR4DamageReceiveInfo UtilDamage::CalculateDamageReceiveInfo(const AActor* InInst
 }
 
 /**
+*  R4DamageApplyDesc들을 기반으로 데미지를 합산하여 R4DamageReceiveInfo를 산출
+*  @param InInstigator : 데미지를 가하는(Apply) 객체
+*  @param InVictim : 데미지를 입는(Receive) 객체
+*  @param InDamageDescs : 데미지에 관한 정보들
+*/
+FR4DamageReceiveInfo UtilDamage::CalculateDamageReceiveInfo(const AActor* InInstigator, const AActor* InVictim, const TArray<FR4DamageApplyDesc>& InDamageDescs)
+{
+	FR4DamageReceiveInfo totalDamageInfo;
+
+	for(auto& damageDesc : InDamageDescs)
+	{
+		FR4DamageReceiveInfo tempInfo = CalculateDamageReceiveInfo(InInstigator, InVictim, damageDesc);
+
+		// 계산된 데미지 합산
+		totalDamageInfo.IncomingDamage += tempInfo.IncomingDamage;
+
+		// 하나라도 크리티컬이면 크리티컬로 판정
+		totalDamageInfo.bCritical |= tempInfo.bCritical;
+	}
+	
+	return totalDamageInfo;
+}
+
+/**
 *  방어력을 기준으로 방어 감소율을 계산.
 */
 float UtilDamage::CalculateReductionByArmor(float InArmor)
