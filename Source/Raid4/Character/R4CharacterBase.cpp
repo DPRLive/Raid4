@@ -10,10 +10,12 @@
 #include "../Skill/R4SkillBase.h"
 #include "../Buff/R4BuffComponent.h"
 #include "../UI/StatusBar/R4StatusBarWidget.h"
+#include "../Damage/R4DamageStruct.h"
 
 #include <Components/SkeletalMeshComponent.h>
 #include <Engine/SkeletalMesh.h>
 #include <Animation/AnimInstance.h>
+
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4CharacterBase)
 
@@ -126,7 +128,7 @@ void AR4CharacterBase::PushDTData(FPriKey InPk)
 }
 
 /**
- *  데미지를 입는 함수
+ *  데미지를 입는 함수. 음수의 데미지는 처리하지 않음.
  *  @param InInstigator : 데미지를 가한 가해자 액터
  *  @param InDamageInfo : 데미지에 관한 정보.
  */
@@ -135,29 +137,15 @@ void AR4CharacterBase::ReceiveDamage(AActor* InInstigator, const FR4DamageReceiv
 	// TODO : 방어막 적용
 	
 	// 실제 HP 감소
-}
 
-// /**
-//  *  Damage를 처리한다. 음수의 데미지는 처리되지 않음.
-//  *  @param InInstigator : 가해자
-//  *  @param InDamage : 입힐 데미지
-//  */
-// void AR4CharacterBase::ReceiveDamage(AActor* InInstigator, float InDamage)
-// {
-// 	// 최종적으로 받을 데미지를 계산
-// 	DamageControlComp->PushNewDamage(InDamage);
-// 	float calculatedDamage = DamageControlComp->GetCalculatedDamage();
-//
-// 	// TODO : barrier를 흠. 흐음..
-//
-// 	// StatComp에 적용
-// 	float damagedHp = FMath::Clamp(StatComp->GetCurrentHp() - calculatedDamage, 0.f, StatComp->GetCurrentHp());
-// 	StatComp->SetCurrentHp(damagedHp);
-// 	
-// 	// 죽었다면 죽었다고 알림
-// 	if(FMath::IsNearlyZero(damagedHp) && OnCharacterDeadDelegate.IsBound())
-// 		OnCharacterDeadDelegate.Broadcast();
-// }
+	// StatComp에 적용
+	float damagedHp = FMath::Clamp(StatComp->GetCurrentHp() - InDamageInfo.IncomingDamage, 0.f, StatComp->GetCurrentHp());
+	StatComp->SetCurrentHp(damagedHp);
+	
+	// 죽었다면 죽었다고 알림
+	if(FMath::IsNearlyZero(damagedHp) && OnCharacterDeadDelegate.IsBound())
+		OnCharacterDeadDelegate.Broadcast();
+}
 
 /**
  *  Status bar를 Setup
