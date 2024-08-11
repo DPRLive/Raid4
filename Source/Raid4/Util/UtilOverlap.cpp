@@ -4,6 +4,7 @@
 #include <WorldCollision.h>
 #include <DrawDebugHelpers.h>
 #include <Components/PrimitiveComponent.h>
+#include <Engine/OverlapResult.h>
 
 /**
 * Box 형태의 Overlap을 체크한다.

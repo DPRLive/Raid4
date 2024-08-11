@@ -8,6 +8,7 @@
 
 #include <Components/SkeletalMeshComponent.h>
 #include <GameFramework/Pawn.h>
+#include <Engine/OverlapResult.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AnimNotify_OverlapCheck)
 

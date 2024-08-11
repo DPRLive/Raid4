@@ -90,11 +90,11 @@ FDataTableManager::_LoadDataTable(RowMap& InRowMap, TObjectPtr<UDataTable>& InDT
 		if (const Type* data = reinterpret_cast<Type*>(rowData))
 		{
 			// Invalid PK (0) 인 경우 체크
-			if(!ensureMsgf(data->PrimaryKey != DTConst::G_InvalidPK, *FString::Printf(TEXT("[%s]:%s, PK : %d is invalid number."), *InFileName, *rowName.ToString(), data->PrimaryKey)))
+			if(!ensureMsgf(data->PrimaryKey != DTConst::G_InvalidPK, TEXT("[%s]:%s, PK : %d is invalid number."), *InFileName, *rowName.ToString(), data->PrimaryKey))
 				continue;
 
 			// PK 중복인 경우 체크
-			if(!ensureMsgf(InRowMap.Find(data->PrimaryKey) == nullptr, *FString::Printf(TEXT("[%s]:%s, PK : %d is duplicate number."), *InFileName, *rowName.ToString(), data->PrimaryKey)))
+			if(!ensureMsgf(InRowMap.Find(data->PrimaryKey) == nullptr, TEXT("[%s]:%s, PK : %d is duplicate number."), *InFileName, *rowName.ToString(), data->PrimaryKey))
 				continue;
 			
 			InRowMap.Add(data->PrimaryKey, data);
