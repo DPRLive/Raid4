@@ -28,8 +28,8 @@ namespace Damage
 	constexpr static float G_CriticalFactor = 1.3f;
 
 	// 데미지의 랜덤 증감량 아랫 경계값
-	constexpr static float G_RandomFactorLower = 1.3f;
+	constexpr static float G_RandomFactorLower = 0.9f;
 
 	// 데미지의 랜덤 증감량 윗 경계값
-	constexpr static float G_RandomFactorUpper = 1.3f;
+	constexpr static float G_RandomFactorUpper = 1.1f;
 }
