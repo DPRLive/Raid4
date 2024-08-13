@@ -33,17 +33,17 @@ float UR4BaseDamageExpression_StatProportion::CalculateBaseDamage(const AActor* 
 		switch (OperandType)
 		{
 		case EStatOperandType::Base:
-			if (FR4StatData* stat = targetStatComp->GetStatByTag<FR4StatData>(StatTag))
+			if (FR4StatInfo* stat = targetStatComp->GetStatByTag<FR4StatInfo>(StatTag))
 				return stat->GetBaseValue() * InValue;
 			break;
 
 		case EStatOperandType::Current:
-			if (FR4ConsumableStatData* stat = targetStatComp->GetStatByTag<FR4ConsumableStatData>(StatTag))
+			if (FR4ConsumableStatInfo* stat = targetStatComp->GetStatByTag<FR4ConsumableStatInfo>(StatTag))
 				return stat->GetCurrentValue() * InValue;
 			break;
 
 		default: case EStatOperandType::Total:
-			if (FR4StatData* stat = targetStatComp->GetStatByTag<FR4StatData>(StatTag))
+			if (FR4StatInfo* stat = targetStatComp->GetStatByTag<FR4StatInfo>(StatTag))
 				return (stat->GetBaseValue() + stat->GetModifierValue()) * InValue;
 			break;
 		}

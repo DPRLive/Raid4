@@ -19,7 +19,7 @@ void UR4StatBaseComponent::BeginPlay()
 /**
  *	Tag <-> Stat 바인드용 함수. Bind가 된 상태이어야 Tag로 쿼리가 가능
  */
-void UR4StatBaseComponent::BindTagToStat(const FGameplayTag& InTag, FR4StatData& InStatRef)
+void UR4StatBaseComponent::BindTagToStat(const FGameplayTag& InTag, FR4StatInfo& InStatRef)
 {
 	// 중복시 Warning
 	if(TagStats.Find(InTag))
@@ -34,7 +34,7 @@ void UR4StatBaseComponent::BindTagToStat(const FGameplayTag& InTag, FR4StatData&
 /**
  *	Tag <-> Stat 바인드용 함수. Bind가 된 상태이어야 Tag로 쿼리가 가능
  */
-void UR4StatBaseComponent::BindTagToStat(const FGameplayTag& InTag, FR4ConsumableStatData& InStatRef)
+void UR4StatBaseComponent::BindTagToStat(const FGameplayTag& InTag, FR4ConsumableStatInfo& InStatRef)
 {
 	// 중복시 Warning
 	if(TagConsumableStats.Find(InTag))

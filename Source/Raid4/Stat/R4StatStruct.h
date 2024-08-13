@@ -1,25 +1,25 @@
 ﻿#pragma once
 
-#include "R4StatData.generated.h"
+#include "R4StatStruct.generated.h"
 
-/**
- * Stat 정의시 사용할 구조체.
- * 기본값 (기본이 되는 값)과 수정자(버프나 아이템 등으로 인한 변동 된 값 Delta)로 구성
- */
 
 // Stat Change Delegate Type
 DECLARE_MULTICAST_DELEGATE_TwoParams( FOnChangeStatDataDelegate, float /* BaseStat */, float /* ModifierStat */ )
 DECLARE_MULTICAST_DELEGATE_OneParam( FOnChangeCurrentStatDataDelegate, float /* Current Stat */);
 
+/**
+ * Stat 정의시 사용할 구조체.
+ * 기본값 (기본이 되는 값)과 수정자(버프나 아이템 등으로 인한 변동 된 값 Delta)로 구성
+ */
 USTRUCT( BlueprintType )
-struct RAID4_API FR4StatData
+struct RAID4_API FR4StatInfo
 {
 public:
 	GENERATED_BODY()
 
-	FR4StatData() : BaseValue(0.f), ModifierValue(0.f) { }
+	FR4StatInfo() : BaseValue(0.f), ModifierValue(0.f) { }
 
-	virtual ~FR4StatData() = default;
+	virtual ~FR4StatInfo() = default;
 	
 	// Initializer, 0으로 초기화, delegate clear
 	FORCEINLINE virtual void InitStatData()
@@ -63,14 +63,14 @@ private:
  * ex) (기본 Hp, 수정자 Hp, 현재 Hp)
  */
 USTRUCT( BlueprintType )
-struct RAID4_API FR4ConsumableStatData : public FR4StatData
+struct RAID4_API FR4ConsumableStatInfo : public FR4StatInfo
 {
 public:
 	GENERATED_BODY()
 
-	FR4ConsumableStatData() : CurrentValue(0.f) {}
+	FR4ConsumableStatInfo() : CurrentValue(0.f) {}
 
-	virtual ~FR4ConsumableStatData() override = default;
+	virtual ~FR4ConsumableStatInfo() override = default;
 	
 	// Initializer, 0으로 초기화, delegate clear
 	FORCEINLINE virtual void InitStatData() override

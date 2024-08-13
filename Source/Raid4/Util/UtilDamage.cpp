@@ -39,7 +39,7 @@ FR4DamageReceiveInfo UtilDamage::CalculateDamageReceiveInfo(const AActor* InInst
 		{
 			if(UR4StatBaseComponent* instigatorStat = InInstigator->FindComponentByClass<UR4StatBaseComponent>())
 			{
-				if(FR4StatData* criticalStat = instigatorStat->GetStatByTag<FR4StatData>(TAG_STAT_NORMAL_CriticalChance))
+				if(FR4StatInfo* criticalStat = instigatorStat->GetStatByTag<FR4StatInfo>(TAG_STAT_NORMAL_CriticalChance))
 					i_CriticalChance = criticalStat->GetBaseValue() + criticalStat->GetModifierValue();
 			}
 		}
@@ -48,7 +48,7 @@ FR4DamageReceiveInfo UtilDamage::CalculateDamageReceiveInfo(const AActor* InInst
 		{
 			if(UR4StatBaseComponent* victimStat = InVictim->FindComponentByClass<UR4StatBaseComponent>())
 			{
-				if(FR4StatData* armorStat = victimStat->GetStatByTag<FR4StatData>(TAG_STAT_NORMAL_Armor))
+				if(FR4StatInfo* armorStat = victimStat->GetStatByTag<FR4StatInfo>(TAG_STAT_NORMAL_Armor))
 					v_Armor = armorStat->GetBaseValue() + armorStat->GetModifierValue();
 			}
 		}

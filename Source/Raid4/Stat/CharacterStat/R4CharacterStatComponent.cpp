@@ -116,42 +116,42 @@ void UR4CharacterStatComponent::PushDTData(FPriKey InPk)
  *  Shadow data와 비교해서 바뀐것만 broadcast
  *  TODO : 테스트 해보쇼
  */
-void UR4CharacterStatComponent::_OnRep_Hp(const FR4ConsumableStatData& InPrevHp)
+void UR4CharacterStatComponent::_OnRep_Hp(const FR4ConsumableStatInfo& InPrevHp)
 {
 	R4STAT_CONSUMABLE_STAT_OnRep(Hp, InPrevHp);
 }
 
-void UR4CharacterStatComponent::_OnRep_HpRegenPerSec(const FR4StatData& InPrevHpRegenPerSec)
+void UR4CharacterStatComponent::_OnRep_HpRegenPerSec(const FR4StatInfo& InPrevHpRegenPerSec)
 {
 	R4STAT_STAT_OnRep(HpRegenPerSec, InPrevHpRegenPerSec);
 }
 
-void UR4CharacterStatComponent::_OnRep_AttackPower(const FR4StatData& InPrevAttackPower)
+void UR4CharacterStatComponent::_OnRep_AttackPower(const FR4StatInfo& InPrevAttackPower)
 {
 	R4STAT_STAT_OnRep(AttackPower, InPrevAttackPower);
 }
 
-void UR4CharacterStatComponent::_OnRep_Armor(const FR4StatData& InPrevArmor)
+void UR4CharacterStatComponent::_OnRep_Armor(const FR4StatInfo& InPrevArmor)
 {
 	R4STAT_STAT_OnRep(Armor, InPrevArmor);
 }
 
-void UR4CharacterStatComponent::_OnRep_CoolDownReduction(const FR4StatData& InPrevCoolDownReduction)
+void UR4CharacterStatComponent::_OnRep_CoolDownReduction(const FR4StatInfo& InPrevCoolDownReduction)
 {
 	R4STAT_STAT_OnRep(CoolDownReduction, InPrevCoolDownReduction);
 }
 
-void UR4CharacterStatComponent::_OnRep_CriticalChance(const FR4StatData& InPrevCriticalChance)
+void UR4CharacterStatComponent::_OnRep_CriticalChance(const FR4StatInfo& InPrevCriticalChance)
 {
 	R4STAT_STAT_OnRep(CriticalChance, InPrevCriticalChance);
 }
 
-void UR4CharacterStatComponent::_OnRep_BaseAttackSpeed(const FR4StatData& InPrevBaseAttackSpeed)
+void UR4CharacterStatComponent::_OnRep_BaseAttackSpeed(const FR4StatInfo& InPrevBaseAttackSpeed)
 {
 	R4STAT_STAT_OnRep(BaseAttackSpeed, InPrevBaseAttackSpeed);
 }
 
-void UR4CharacterStatComponent::_OnRep_MovementSpeed(const FR4StatData& InPrevMovementSpeed)
+void UR4CharacterStatComponent::_OnRep_MovementSpeed(const FR4StatInfo& InPrevMovementSpeed)
 {
 	R4STAT_STAT_OnRep(MovementSpeed, InPrevMovementSpeed);
 }

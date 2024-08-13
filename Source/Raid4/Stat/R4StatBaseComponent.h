@@ -3,7 +3,7 @@
 #pragma once
 
 #include <Components/ActorComponent.h>
-#include "R4StatData.h"
+#include "R4StatStruct.h"
 #include "R4StatBaseComponent.generated.h"
 
 /**
@@ -33,18 +33,18 @@ public:
 
 protected:
 	// Tag <-> Stat 바인드용 함수. Bind가 된 상태이어야 Tag로 쿼리가 가능
-	void BindTagToStat(const FGameplayTag& InTag, FR4StatData& InStatRef);
-	void BindTagToStat(const FGameplayTag& InTag, FR4ConsumableStatData& InStatRef);
+	void BindTagToStat(const FGameplayTag& InTag, FR4StatInfo& InStatRef);
+	void BindTagToStat(const FGameplayTag& InTag, FR4ConsumableStatInfo& InStatRef);
 	
 	// Tag <-> Stat 바인드 Clear
 	void ClearTagStats();
 
 private:
 	// 일반 Stat Tag 쿼리용 TMap
-	TMap<FGameplayTag, FR4StatData*> TagStats;
+	TMap<FGameplayTag, FR4StatInfo*> TagStats;
 
 	// 소모형 Stat Tag 쿼리용 TMap
-	TMap<FGameplayTag, FR4ConsumableStatData*> TagConsumableStats;
+	TMap<FGameplayTag, FR4ConsumableStatInfo*> TagConsumableStats;
 };
 
 /**
@@ -58,7 +58,7 @@ T* UR4StatBaseComponent::GetStatByTag(const FGameplayTag& InTag)
 		return *value;
 
 	// derived = Base 방지
-	if constexpr (std::is_same_v<FR4StatData, T>)
+	if constexpr (std::is_same_v<FR4StatInfo, T>)
 	{
 		if(auto value = TagStats.Find(InTag))
 			return *value;

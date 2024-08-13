@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../R4StatData.h"
+#include "../R4StatStruct.h"
 #include "../R4StatMacro.h"
 #include "../../Data/R4DTDataPushInterface.h"
 #include "../R4StatBaseComponent.h"
@@ -52,59 +52,59 @@ public:
 private:
 	// HP (체력)
 	UPROPERTY( ReplicatedUsing = _OnRep_Hp, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
-	FR4ConsumableStatData Hp;
+	FR4ConsumableStatInfo Hp;
 
 	// 초당 체력 재생력
 	UPROPERTY( ReplicatedUsing = _OnRep_HpRegenPerSec, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
-	FR4StatData HpRegenPerSec;
+	FR4StatInfo HpRegenPerSec;
 	
 	// 공격력
 	UPROPERTY( ReplicatedUsing = _OnRep_AttackPower, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
-	FR4StatData AttackPower;
+	FR4StatInfo AttackPower;
 
 	// 방어력
 	UPROPERTY( ReplicatedUsing = _OnRep_Armor, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
-	FR4StatData Armor;
+	FR4StatInfo Armor;
 
 	// 스킬 쿨타임 감소
 	UPROPERTY( ReplicatedUsing = _OnRep_CoolDownReduction, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
-	FR4StatData CoolDownReduction;
+	FR4StatInfo CoolDownReduction;
 
 	// 치명타 확률
 	UPROPERTY( ReplicatedUsing = _OnRep_CriticalChance, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
-	FR4StatData CriticalChance;
+	FR4StatInfo CriticalChance;
 
 	// 기본 공격 속도
 	UPROPERTY( ReplicatedUsing = _OnRep_BaseAttackSpeed, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
-	FR4StatData BaseAttackSpeed;
+	FR4StatInfo BaseAttackSpeed;
 
 	// 이동 속도
 	UPROPERTY( ReplicatedUsing = _OnRep_MovementSpeed, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
-	FR4StatData MovementSpeed;
+	FR4StatInfo MovementSpeed;
 
 private:
 	// OnRep 함수들
 	UFUNCTION()
-	void _OnRep_Hp(const FR4ConsumableStatData& InPrevHp);
+	void _OnRep_Hp(const FR4ConsumableStatInfo& InPrevHp);
 	
 	UFUNCTION()
-	void _OnRep_HpRegenPerSec(const FR4StatData& InPrevHpRegenPerSec);
+	void _OnRep_HpRegenPerSec(const FR4StatInfo& InPrevHpRegenPerSec);
 
 	UFUNCTION()
-	void _OnRep_AttackPower(const FR4StatData& InPrevAttackPower);
+	void _OnRep_AttackPower(const FR4StatInfo& InPrevAttackPower);
 
 	UFUNCTION()
-	void _OnRep_Armor(const FR4StatData& InPrevArmor);
+	void _OnRep_Armor(const FR4StatInfo& InPrevArmor);
 
 	UFUNCTION()
-	void _OnRep_CoolDownReduction(const FR4StatData& InPrevCoolDownReduction);
+	void _OnRep_CoolDownReduction(const FR4StatInfo& InPrevCoolDownReduction);
 
 	UFUNCTION()
-	void _OnRep_CriticalChance(const FR4StatData& InPrevCriticalChance);
+	void _OnRep_CriticalChance(const FR4StatInfo& InPrevCriticalChance);
 
 	UFUNCTION()
-	void _OnRep_BaseAttackSpeed(const FR4StatData& InPrevBaseAttackSpeed);
+	void _OnRep_BaseAttackSpeed(const FR4StatInfo& InPrevBaseAttackSpeed);
 
 	UFUNCTION()
-	void _OnRep_MovementSpeed(const FR4StatData& InPrevMovementSpeed);
+	void _OnRep_MovementSpeed(const FR4StatInfo& InPrevMovementSpeed);
 };

@@ -47,7 +47,7 @@ void UR4Buff_StatCurrModifier::Activate()
 		return;
 	
 	// 스탯을 찾아서 적용
-	if(FR4ConsumableStatData* statData = CachedStatComp->GetStatByTag<FR4ConsumableStatData>(StatTag))
+	if(FR4ConsumableStatInfo* statData = CachedStatComp->GetStatByTag<FR4ConsumableStatInfo>(StatTag))
 	{
 		// 계산
 		float value = BuffDesc.Value;
@@ -102,7 +102,7 @@ void UR4Buff_StatCurrModifier::Deactivate()
 		return;
 	
 	// 누적 한 값 돌려주기
-	if(FR4ConsumableStatData* statData = CachedStatComp->GetStatByTag<FR4ConsumableStatData>(StatTag))
+	if(FR4ConsumableStatInfo* statData = CachedStatComp->GetStatByTag<FR4ConsumableStatInfo>(StatTag))
 	{
 		float value = statData->GetCurrentValue() + CachedDeltaValue;
 
