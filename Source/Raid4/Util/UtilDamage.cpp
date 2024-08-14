@@ -40,7 +40,7 @@ FR4DamageReceiveInfo UtilDamage::CalculateDamageReceiveInfo(const AActor* InInst
 			if(UR4StatBaseComponent* instigatorStat = InInstigator->FindComponentByClass<UR4StatBaseComponent>())
 			{
 				if(FR4StatInfo* criticalStat = instigatorStat->GetStatByTag<FR4StatInfo>(TAG_STAT_NORMAL_CriticalChance))
-					i_CriticalChance = criticalStat->GetBaseValue() + criticalStat->GetModifierValue();
+					i_CriticalChance = criticalStat->GetTotalValue();
 			}
 		}
 		
@@ -49,11 +49,11 @@ FR4DamageReceiveInfo UtilDamage::CalculateDamageReceiveInfo(const AActor* InInst
 			if(UR4StatBaseComponent* victimStat = InVictim->FindComponentByClass<UR4StatBaseComponent>())
 			{
 				if(FR4StatInfo* armorStat = victimStat->GetStatByTag<FR4StatInfo>(TAG_STAT_NORMAL_Armor))
-					v_Armor = armorStat->GetBaseValue() + armorStat->GetModifierValue();
+					v_Armor = armorStat->GetTotalValue();
 			}
 		}
 	
-		// TODO : 주고 받는 측 데미지 증감 계산
+		// TODO : 주고 받는 측 데미지 증감 계산, 주고 받는측 확실히 분리할까?
 		
 		// By Instigator //
 		// 랜덤 변동성 추가

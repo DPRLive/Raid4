@@ -155,13 +155,13 @@ void AR4CharacterBase::SetupStatusBarWidget(UUserWidget* InWidget)
 	if(UR4StatusBarWidget* statusBar = Cast<UR4StatusBarWidget>(InWidget); IsValid(statusBar))
 	{
 		// 초기화
-		statusBar->UpdateTotalHp(StatComp->GetBaseHp() + StatComp->GetModifierHp());
+		statusBar->UpdateTotalHp(StatComp->GetTotalHp());
 		statusBar->UpdateCurrentHp(StatComp->GetCurrentHp());
         
 		// 총 체력 변경시 호출
-		StatComp->OnChangeHp().AddWeakLambda(statusBar, [statusBar](float InBaseHp, float InModifierHp)
+		StatComp->OnChangeHp().AddWeakLambda(statusBar, [statusBar](float InTotalHp)
 		{
-			statusBar->UpdateTotalHp(InBaseHp + InModifierHp);
+			statusBar->UpdateTotalHp(InTotalHp);
 		});
 
 		// 현재 체력 변경 시 호출
@@ -197,12 +197,12 @@ void AR4CharacterBase::BindStatComponent()
 /**
  *  이동 속도를 적용한다.
  */
-void AR4CharacterBase::ApplyMovementSpeed(float InBaseMovementSpeed, float InModifierMovementSpeed) const
+void AR4CharacterBase::ApplyMovementSpeed(float InMovementSpeed) const
 {
 	// 이동 속도를 변경한다.
 	if(UR4CharacterMovementComponent* moveComp = GetCharacterMovement<UR4CharacterMovementComponent>(); IsValid(moveComp))
 	{
-		moveComp->SetMaxWalkSpeed(InBaseMovementSpeed + InModifierMovementSpeed);
+		moveComp->SetMaxWalkSpeed(InMovementSpeed);
 	}
 }
 

@@ -2,14 +2,13 @@
 
 #include "R4StatStruct.generated.h"
 
-
 // Stat Change Delegate Type
-DECLARE_MULTICAST_DELEGATE_TwoParams( FOnChangeStatDataDelegate, float /* BaseStat */, float /* ModifierStat */ )
-DECLARE_MULTICAST_DELEGATE_OneParam( FOnChangeCurrentStatDataDelegate, float /* Current Stat */);
+DECLARE_MULTICAST_DELEGATE_OneParam( FOnChangeStatDataDelegate, float /* Value */ )
 
 /**
  * Stat 정의시 사용할 구조체.
- * 기본값 (기본이 되는 값)과 수정자(버프나 아이템 등으로 인한 변동 된 값 Delta)로 구성
+ * 기본값 (기본이 되는 값), 덧셈 수정자(덧셈 변동 된 값 Delta), 곱셈 수정자(곱셈 변동 된 값 Delta) 구성
+ * TotalValue = ( BaseValue + AddModifierValue ) * MultiplyModifierValue;
  */
 USTRUCT( BlueprintType )
 struct RAID4_API FR4StatInfo
@@ -17,34 +16,47 @@ struct RAID4_API FR4StatInfo
 public:
 	GENERATED_BODY()
 
-	FR4StatInfo() : BaseValue(0.f), ModifierValue(0.f) { }
+	FR4StatInfo() : BaseValue(0.f), AddModifierValue(0.f), MultiplyModifierValue(1.f) { }
 
 	virtual ~FR4StatInfo() = default;
 	
 	// Initializer, 0으로 초기화, delegate clear
 	FORCEINLINE virtual void InitStatData()
-	{ BaseValue = 0.f; ModifierValue = 0.f; OnChangeStatDataDelegate.Clear();}
+	{
+		BaseValue = 0.f; AddModifierValue = 0.f; MultiplyModifierValue = 1.f;
+		OnChangeStatDataDelegate.Clear();
+	}
 
 	// Getter
 	FORCEINLINE float GetBaseValue() const { return BaseValue; }
-	FORCEINLINE float GetModifierValue() const { return ModifierValue; }
+	FORCEINLINE float GetAddModifierValue() const { return AddModifierValue; }
+	FORCEINLINE float GetMultiplyModifierValue() const { return MultiplyModifierValue; }
+	// ( BaseValue + AddModifierValue ) * MultiplyModifierValue;
+	FORCEINLINE float GetTotalValue() const { return ( BaseValue + AddModifierValue ) * MultiplyModifierValue; }
 
 	// Setter
 	FORCEINLINE virtual void SetBaseValue(float InBaseValue)
 	{
 		BaseValue = InBaseValue;
 		if( OnChangeStatDataDelegate.IsBound() )
-			OnChangeStatDataDelegate.Broadcast(BaseValue, ModifierValue);
+			OnChangeStatDataDelegate.Broadcast( GetTotalValue() );
 	}
 	
-	FORCEINLINE virtual void SetModifierValue(float InModifierValue)
+	FORCEINLINE virtual void SetAddModifierValue(float InAddModifierValue)
 	{
-		ModifierValue = InModifierValue;
+		AddModifierValue = InAddModifierValue;
 		if( OnChangeStatDataDelegate.IsBound() )
-			OnChangeStatDataDelegate.Broadcast(BaseValue, ModifierValue);
+			OnChangeStatDataDelegate.Broadcast( GetTotalValue() );
 	}
 
-	// Stat 변경 delegate
+	FORCEINLINE virtual void SetMultiplyModifierValue(float InMultiplyModifierValue)
+	{
+		MultiplyModifierValue = InMultiplyModifierValue;
+		if( OnChangeStatDataDelegate.IsBound() )
+			OnChangeStatDataDelegate.Broadcast( GetTotalValue() );
+	}
+	
+	// Stat 변경 delegate, Total Stat을 broadcast
 	FOnChangeStatDataDelegate OnChangeStatDataDelegate;
 	
 private:
@@ -52,25 +64,30 @@ private:
 	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true) )
 	float BaseValue;
 
-	// 변동되는 수치 ( 버프나 아이템 등의 이유로 ) 
+	// 덧셈 변동 수치 ( 버프나 아이템 등의 이유로 ) 
 	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true) )
-	float ModifierValue;
+	float AddModifierValue;
+
+	// 곱셈 변동 수치 ( 버프나 아이템 등의 이유로 )
+	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true) )
+	float MultiplyModifierValue;
 };
 
 /**
- * 소모형 Stat 정의시 사용할 구조체. FR4StatData에 CurrentValue가 추가.
- * 소모형이란 Hp 처럼 현재 상태가 추가되어야 하는 스탯의 경우를 말함
+ * 현재 값을 따로 관리해야 할 시 사용할 구조체.
+ * FR4StatData에 CurrentValue가 추가.
+ * ex) Hp 처럼 현재 상태가 추가되어야 하는 스탯의 경우 등.
  * ex) (기본 Hp, 수정자 Hp, 현재 Hp)
  */
 USTRUCT( BlueprintType )
-struct RAID4_API FR4ConsumableStatInfo : public FR4StatInfo
+struct RAID4_API FR4CurrentStatInfo : public FR4StatInfo
 {
 public:
 	GENERATED_BODY()
 
-	FR4ConsumableStatInfo() : CurrentValue(0.f) {}
+	FR4CurrentStatInfo() : CurrentValue(0.f) {}
 
-	virtual ~FR4ConsumableStatInfo() override = default;
+	virtual ~FR4CurrentStatInfo() override = default;
 	
 	// Initializer, 0으로 초기화, delegate clear
 	FORCEINLINE virtual void InitStatData() override
@@ -81,33 +98,19 @@ public:
 	
 	// Getter
 	FORCEINLINE float GetCurrentValue() const { return CurrentValue; }
-
-	// Setter
-	// Current Value가 Base + ModifyValue를 넘지 못하도록 Clamp
-	FORCEINLINE virtual void SetBaseValue(float InBaseValue) override
-	{
-		Super::SetBaseValue(InBaseValue);
-		SetCurrentValue(FMath::Min(CurrentValue, GetBaseValue() + GetModifierValue()));
-	}
-
-	// Current Value가 Base + ModifyValue를 넘지 못하도록 Clamp
-	FORCEINLINE virtual void SetModifierValue(float InModifierValue) override
-	{
-		Super::SetModifierValue(InModifierValue);
-		SetCurrentValue(FMath::Min(CurrentValue, GetBaseValue() + GetModifierValue()));
-	}
 	
 	FORCEINLINE void SetCurrentValue(float InCurrentValue)
 	{
 		CurrentValue = InCurrentValue;
 		if( OnChangeCurrentValueDelegate.IsBound() )
-			OnChangeCurrentValueDelegate.Broadcast(CurrentValue);
+			OnChangeCurrentValueDelegate.Broadcast( CurrentValue );
 	}
 
 	// Current Value 변경 delegate
-	FOnChangeCurrentStatDataDelegate OnChangeCurrentValueDelegate;
+	FOnChangeStatDataDelegate OnChangeCurrentValueDelegate;
 	
 private:
+	// 현재 값
 	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true) )
 	float CurrentValue;
 };

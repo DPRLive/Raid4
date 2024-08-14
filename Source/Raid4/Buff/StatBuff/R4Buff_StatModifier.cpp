@@ -10,8 +10,22 @@ UR4Buff_StatModifier::UR4Buff_StatModifier()
 {
 	StatTag = FGameplayTag::EmptyTag;
 	ValueType = EValueType::Constant;
+	OperatorType = EOperatorType::Add;
 	CachedDeltaValue = 0.f;
 }
+
+// #if WITH_EDITOR
+// void UR4Buff_StatModifier::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+// {
+// 	Super::PostEditChangeProperty(PropertyChangedEvent);
+//
+// 	// stat tag에 따라서 bApplyProportionalAdjustment 옵션을 보여주도록 설정.
+// 	if(PropertyChangedEvent.GetPropertyName() == TEXT("StatTag"))
+// 	{
+// 		bShowCurrentStatOption = StatTag.MatchesTag(TAG_STAT_CURRENT);
+// 	}
+// }
+// #endif
 
 /**
  *  버프 적용 전 세팅
@@ -29,7 +43,7 @@ bool UR4Buff_StatModifier::PreActivate(AActor* InInstigator, AActor* InVictim, c
 	if(CachedVictim.IsValid())
 		CachedStatComp = CachedVictim->FindComponentByClass<UR4StatBaseComponent>();
 	
-	CachedDeltaValue = 0.f;
+	CachedDeltaValue = OperatorType == EOperatorType::Add ? 0.f : 1.f;
 
 	return bReady && CachedStatComp.IsValid();
 }
@@ -40,7 +54,7 @@ bool UR4Buff_StatModifier::PreActivate(AActor* InInstigator, AActor* InVictim, c
 void UR4Buff_StatModifier::Activate()
 {
 	Super::Activate();
-
+	
 	if(!CachedStatComp.IsValid())
 		return;
 	
@@ -52,12 +66,28 @@ void UR4Buff_StatModifier::Activate()
 
 		if(ValueType == EValueType::Percent)
 			value = statData->GetBaseValue() * value / 100.f;
-
-		statData->SetModifierValue(statData->GetModifierValue() + value);
-
-		// 적용한 값을 누적
-		CachedDeltaValue += value;
+		
+		// Operator에 따라 연산 처리
+		switch (OperatorType)
+		{
+		case EOperatorType::Multiply:
+			statData->SetMultiplyModifierValue(statData->GetMultiplyModifierValue() * value);
+			CachedDeltaValue *= value;
+			break;	
+			
+		default: case EOperatorType::Add:
+			statData->SetAddModifierValue(statData->GetAddModifierValue() + value);
+			CachedDeltaValue += value;
+			break;
+		}
 	}
+
+	// Current Stat 변경
+	// if(bApplyProportionalAdjustment)
+	// {
+	// 	if(FR4CurrentStatInfo* statData = CachedStatComp->GetStatByTag<FR4CurrentStatInfo>(StatTag))
+	// 		statData->
+	// }
 }
 
 /**
@@ -73,10 +103,20 @@ void UR4Buff_StatModifier::Deactivate()
 	// 누적 한 값 돌려주기
 	if(FR4StatInfo* statData = CachedStatComp->GetStatByTag<FR4StatInfo>(StatTag))
 	{
-		statData->SetModifierValue(statData->GetModifierValue() - CachedDeltaValue);
+		// Operator에 따라 연산 처리
+		switch (OperatorType)
+		{
+		case EOperatorType::Multiply:
+			statData->SetMultiplyModifierValue(statData->GetMultiplyModifierValue() / CachedDeltaValue);
+			break;	
+			
+		default: case EOperatorType::Add:
+			statData->SetAddModifierValue(statData->GetAddModifierValue() - CachedDeltaValue);
+			break;
+		}
 	}
 
-	CachedDeltaValue = 0.f;
+	CachedDeltaValue = OperatorType == EOperatorType::Add ? 0.f : 1.f;
 }
 
 /**
@@ -87,5 +127,5 @@ void UR4Buff_StatModifier::Clear()
 	Super::Clear();
 
 	CachedStatComp.Reset();
-	CachedDeltaValue = 0.f;
+	CachedDeltaValue = OperatorType == EOperatorType::Add ? 0.f : 1.f;
 }

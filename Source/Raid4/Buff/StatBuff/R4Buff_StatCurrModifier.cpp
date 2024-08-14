@@ -11,8 +11,8 @@ UR4Buff_StatCurrModifier::UR4Buff_StatCurrModifier()
 	StatTag = FGameplayTag::EmptyTag;
 	OperandType = EStatOperandType::Current;
 	ValueType = EValueType::Constant;
+	OperatorType = EOperatorType::Add;
 	bAllowNegative = false;
-	CachedDeltaValue = 0.f;
 }
 
 /**
@@ -30,8 +30,6 @@ bool UR4Buff_StatCurrModifier::PreActivate(AActor* InInstigator, AActor* InVicti
 	// 버프 받을 객체의 StatComp를 캐싱
 	if(CachedVictim.IsValid())
 		CachedStatComp = CachedVictim->FindComponentByClass<UR4StatBaseComponent>();
-	
-	CachedDeltaValue = 0.f;
 
 	return bReady && CachedStatComp.IsValid();
 }
@@ -47,7 +45,7 @@ void UR4Buff_StatCurrModifier::Activate()
 		return;
 	
 	// 스탯을 찾아서 적용
-	if(FR4ConsumableStatInfo* statData = CachedStatComp->GetStatByTag<FR4ConsumableStatInfo>(StatTag))
+	if(FR4CurrentStatInfo* statData = CachedStatComp->GetStatByTag<FR4CurrentStatInfo>(StatTag))
 	{
 		// 계산
 		float value = BuffDesc.Value;
@@ -55,7 +53,8 @@ void UR4Buff_StatCurrModifier::Activate()
 		if(ValueType == EValueType::Percent)
 		{
 			float operand = 0.f;
-			
+
+			// % 일 시 피연산자 정하기
 			switch (OperandType)
 			{
 			case EStatOperandType::Base:
@@ -63,7 +62,7 @@ void UR4Buff_StatCurrModifier::Activate()
 				break;
 			
 			case EStatOperandType::Total:
-				operand = statData->GetBaseValue() + statData->GetModifierValue();
+				operand = statData->GetTotalValue();
 				break;
 
 			default: case EStatOperandType::Current:
@@ -75,43 +74,27 @@ void UR4Buff_StatCurrModifier::Activate()
 			value = operand * value / 100.f;
 		}
 
-		float newValue = statData->GetCurrentValue() + value;
-
-		// 음수 비 허용 시
-		if(bAllowNegative == false && newValue < 0.f)
+		// Operator에 따라 연산 처리
+		float newValue = 0.f;
+		switch (OperatorType)
 		{
-			newValue = 0.f;
-			value = statData->GetCurrentValue();
+		case EOperatorType::Multiply:
+			newValue = statData->GetCurrentValue() * value;
+			break;	
+			
+		default: case EOperatorType::Add:
+			newValue = statData->GetCurrentValue() + value;
+			break;
 		}
+
+		// 음수 비 허용 시, 0에서 멈춤
+		if(bAllowNegative == false && newValue < 0.f)
+			newValue = 0.f;
 		
 		statData->SetCurrentValue(newValue);
-		
-		// 적용한 값을 누적
-		CachedDeltaValue += value;
 	}
 }
 
-/**
- *  버프 해제 시 Deactivate (버프가 한 짓 되돌리기)가 필요하다면 해야할 로직을 정의
- */
-void UR4Buff_StatCurrModifier::Deactivate()
-{
-	Super::Deactivate();
-
-	if(!CachedStatComp.IsValid())
-		return;
-	
-	// 누적 한 값 돌려주기
-	if(FR4ConsumableStatInfo* statData = CachedStatComp->GetStatByTag<FR4ConsumableStatInfo>(StatTag))
-	{
-		float value = statData->GetCurrentValue() + CachedDeltaValue;
-
-		// 최대를 넘어가지 않도록 조정
-		statData->SetCurrentValue(FMath::Max(value, statData->GetBaseValue() + statData->GetModifierValue()));
-	}
-
-	CachedDeltaValue = 0.f;
-}
 
 /**
  *  버프 종료 시 Clear하는 로직을 정의
@@ -121,5 +104,4 @@ void UR4Buff_StatCurrModifier::Clear()
 	Super::Clear();
 
 	CachedStatComp.Reset();
-	CachedDeltaValue = 0.f;
 }

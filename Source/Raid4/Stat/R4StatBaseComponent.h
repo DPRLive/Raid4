@@ -34,7 +34,7 @@ public:
 protected:
 	// Tag <-> Stat 바인드용 함수. Bind가 된 상태이어야 Tag로 쿼리가 가능
 	void BindTagToStat(const FGameplayTag& InTag, FR4StatInfo& InStatRef);
-	void BindTagToStat(const FGameplayTag& InTag, FR4ConsumableStatInfo& InStatRef);
+	void BindTagToStat(const FGameplayTag& InTag, FR4CurrentStatInfo& InStatRef);
 	
 	// Tag <-> Stat 바인드 Clear
 	void ClearTagStats();
@@ -43,8 +43,8 @@ private:
 	// 일반 Stat Tag 쿼리용 TMap
 	TMap<FGameplayTag, FR4StatInfo*> TagStats;
 
-	// 소모형 Stat Tag 쿼리용 TMap
-	TMap<FGameplayTag, FR4ConsumableStatInfo*> TagConsumableStats;
+	// Current Stat Tag 쿼리용 TMap
+	TMap<FGameplayTag, FR4CurrentStatInfo*> TagCurrentStats;
 };
 
 /**
@@ -54,7 +54,7 @@ private:
 template <typename T>
 T* UR4StatBaseComponent::GetStatByTag(const FGameplayTag& InTag)
 {
-	if(auto value = TagConsumableStats.Find(InTag))
+	if(auto value = TagCurrentStats.Find(InTag))
 		return *value;
 
 	// derived = Base 방지

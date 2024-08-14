@@ -67,7 +67,7 @@ protected:
 	virtual void BindStatComponent();
 	
 	// 이동 속도를 적용한다.
-	virtual void ApplyMovementSpeed(float InBaseMovementSpeed, float InModifierMovementSpeed) const;
+	virtual void ApplyMovementSpeed(float InMovementSpeed) const;
 
 	// 캐릭터 죽음 처리
 	UFUNCTION()

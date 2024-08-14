@@ -24,6 +24,10 @@ public:
 	UR4Buff_StatModifier();
 
 protected:
+// #if WITH_EDITOR
+// 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+// #endif
+	
 	// 버프가 적용 전 해야 할 로직 (세팅 등)해야 하는 것을 정의. 세팅 실패 시 false를 꼭 리턴
 	virtual bool PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc) override;
 	
@@ -35,7 +39,7 @@ protected:
 
 	// 버프를 Clear하는 로직을 정의
 	virtual void Clear() override;
-	
+
 private:
 	// 무슨 스탯을 변경할 것인지 태그로 설정
 	// Base Stat을 기준으로 하여 BuffDesc의 Value에 의해 계산되며, Modifier Stat에 적용.
@@ -46,6 +50,21 @@ private:
 	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
 	EValueType ValueType;
 
+	// 어떤 Modifier 값과 연산을 진행할 것인지?
+	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
+	EOperatorType OperatorType;
+
+	// TODO : Total Stat이 변경되면 Current Stat을 어떻게 처리할 것인지.. 비례 조정?
+// 	// Modifier 변경 시, Current Stat이 존재한다면 비례하여 같이 조정할 것인지?
+// 	// ex) 최대 체력이 100에서 150으로 50% 증가 시 현재 체력도 50% 증가. 예를 들어, 기존 체력이 50이면 새로운 체력은 75.
+// 	UPROPERTY( EditDefaultsOnly, meta= ( EditCondition = "bShowCurrentStatOption", EditConditionHides, AllowPrivateAccess = true))
+// 	uint8 bApplyProportionalAdjustment:1;
+//
+// #if WITH_EDITORONLY_DATA
+// 	UPROPERTY()
+// 	bool bShowCurrentStatOption = false;
+// #endif
+	
 	// Base Stat Comp 캐싱
 	TWeakObjectPtr<UR4StatBaseComponent> CachedStatComp;
 	

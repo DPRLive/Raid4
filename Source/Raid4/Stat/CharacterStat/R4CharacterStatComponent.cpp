@@ -63,14 +63,14 @@ void UR4CharacterStatComponent::ResetStat()
 	// 데이터 설정은 서버에서
 	if(GetOwnerRole() == ROLE_Authority)
 	{
-		SetModifierHp(0.f); SetCurrentHp(Hp.GetBaseValue());
-		SetModifierHpRegenPerSec(0.f); 
-		SetModifierAttackPower(0.f); 
-		SetModifierArmor(0.f);
-		SetModifierCoolDownReduction(0.f);
-		SetModifierCriticalChance(0.f);
-		SetModifierBaseAttackSpeed(0.f);
-		SetModifierMovementSpeed(0.f);
+		SetAddModifierHp(0.f); SetMultiplyModifierHp(1.f); SetCurrentHp(Hp.GetTotalValue());
+		SetAddModifierHpRegenPerSec(0.f); SetMultiplyModifierHpRegenPerSec(1.f);
+		SetAddModifierAttackPower(0.f); SetMultiplyModifierAttackPower(1.f);
+		SetAddModifierArmor(0.f); SetMultiplyModifierArmor(1.f);
+		SetAddModifierCoolDownReduction(0.f); SetMultiplyModifierCoolDownReduction(1.f);
+		SetAddModifierCriticalChance(0.f); SetMultiplyModifierCriticalChance(1.f);
+		SetAddModifierBaseAttackSpeed(0.f); SetMultiplyModifierBaseAttackSpeed(1.f);
+		SetAddModifierMovementSpeed(0.f); SetMultiplyModifierMovementSpeed(1.f);
 	}
 }
 
@@ -89,7 +89,7 @@ void UR4CharacterStatComponent::PushDTData(FPriKey InPk)
 	// 데이터 설정은 서버에서
 	if(GetOwnerRole() == ROLE_Authority)
 	{
-		SetBaseHp(statPtr->Hp.Value); SetCurrentHp(Hp.GetBaseValue() + Hp.GetCurrentValue());
+		SetBaseHp(statPtr->Hp.Value); SetCurrentHp(Hp.GetTotalValue());
 		SetBaseHpRegenPerSec(statPtr->HpRegenPerSec.Value); 
 		SetBaseAttackPower(statPtr->AttackPower.Value); 
 		SetBaseArmor(statPtr->Armor.Value);
@@ -114,11 +114,10 @@ void UR4CharacterStatComponent::PushDTData(FPriKey InPk)
 /**
  *  OnRep Funcs
  *  Shadow data와 비교해서 바뀐것만 broadcast
- *  TODO : 테스트 해보쇼
  */
-void UR4CharacterStatComponent::_OnRep_Hp(const FR4ConsumableStatInfo& InPrevHp)
+void UR4CharacterStatComponent::_OnRep_Hp(const FR4CurrentStatInfo& InPrevHp)
 {
-	R4STAT_CONSUMABLE_STAT_OnRep(Hp, InPrevHp);
+	R4STAT_CURRENT_STAT_OnRep(Hp, InPrevHp);
 }
 
 void UR4CharacterStatComponent::_OnRep_HpRegenPerSec(const FR4StatInfo& InPrevHpRegenPerSec)

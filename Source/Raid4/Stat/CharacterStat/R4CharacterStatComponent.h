@@ -9,8 +9,7 @@
 #include "R4CharacterStatComponent.generated.h"
 
 /**
- * 객체에게 스탯 기능을 추가하는 컴포넌트
- * TODO : OnRep 관련 기능 추가
+ * 캐릭터에게 스탯 기능을 추가하는 컴포넌트
  */
 UCLASS( ClassGroup=(Stat), meta=(BlueprintSpawnableComponent) )
 class RAID4_API UR4CharacterStatComponent : public UR4StatBaseComponent, public IR4DTDataPushInterface
@@ -31,7 +30,7 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
-	// Stat을 재설정 (Current Value = Base Value, Modifier Value = 0.f 로 밀어버림)
+	// Stat을 재설정 (Current Value = Base Value, Add Modifier Value = 0.f, Multiply Modifier Value = 1.f 로 밀어버림)
 	virtual void ResetStat() override;
 	
 	// ~ Begin IR4DTDataPushable (주어진 Pk로 스탯 데이터를 채운다. ( By DT_Stat))
@@ -40,7 +39,7 @@ public:
 	
 public:
 	// Accessors
-	R4STAT_CONSUMABLE_STAT_ACCESSORS( Hp );
+	R4STAT_CURRENT_STAT_ACCESSORS( Hp );
 	R4STAT_STAT_ACCESSORS( HpRegenPerSec );
 	R4STAT_STAT_ACCESSORS( AttackPower );
 	R4STAT_STAT_ACCESSORS( Armor );
@@ -52,7 +51,7 @@ public:
 private:
 	// HP (체력)
 	UPROPERTY( ReplicatedUsing = _OnRep_Hp, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
-	FR4ConsumableStatInfo Hp;
+	FR4CurrentStatInfo Hp;
 
 	// 초당 체력 재생력
 	UPROPERTY( ReplicatedUsing = _OnRep_HpRegenPerSec, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
@@ -85,7 +84,7 @@ private:
 private:
 	// OnRep 함수들
 	UFUNCTION()
-	void _OnRep_Hp(const FR4ConsumableStatInfo& InPrevHp);
+	void _OnRep_Hp(const FR4CurrentStatInfo& InPrevHp);
 	
 	UFUNCTION()
 	void _OnRep_HpRegenPerSec(const FR4StatInfo& InPrevHpRegenPerSec);

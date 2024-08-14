@@ -12,7 +12,7 @@ struct FR4CharacterStatRow : public FR4RowBase
 	GENERATED_BODY()
 
 	FR4CharacterStatRow()
-	: Hp({TAG_STAT_CONSUMABLE_Hp, 0.f})
+	: Hp({TAG_STAT_CURRENT_Hp, 0.f})
 	, HpRegenPerSec({TAG_STAT_NORMAL_HpRegenPerSec, 0.f})
 	, AttackPower({TAG_STAT_NORMAL_AttackPower, 0.f})
 	, Armor({TAG_STAT_NORMAL_Armor, 0.f})

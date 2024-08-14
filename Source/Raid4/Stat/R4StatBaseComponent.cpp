@@ -21,12 +21,9 @@ void UR4StatBaseComponent::BeginPlay()
  */
 void UR4StatBaseComponent::BindTagToStat(const FGameplayTag& InTag, FR4StatInfo& InStatRef)
 {
-	// 중복시 Warning
-	if(TagStats.Find(InTag))
-	{
-		LOG_WARN(R4Stat, TEXT("Stat GameplayTag duplicated. : [%s]"), *InTag.ToString());
+	// 중복 check
+	if(!ensureMsgf(TagStats.Find(InTag) == nullptr, TEXT("Stat GameplayTag duplicated. : [%s]"), *InTag.ToString()))
 		return;
-	}
 
 	TagStats.Emplace(InTag, &InStatRef);
 }
@@ -34,16 +31,13 @@ void UR4StatBaseComponent::BindTagToStat(const FGameplayTag& InTag, FR4StatInfo&
 /**
  *	Tag <-> Stat 바인드용 함수. Bind가 된 상태이어야 Tag로 쿼리가 가능
  */
-void UR4StatBaseComponent::BindTagToStat(const FGameplayTag& InTag, FR4ConsumableStatInfo& InStatRef)
+void UR4StatBaseComponent::BindTagToStat(const FGameplayTag& InTag, FR4CurrentStatInfo& InStatRef)
 {
-	// 중복시 Warning
-	if(TagConsumableStats.Find(InTag))
-	{
-		LOG_WARN(R4Stat, TEXT("Stat GameplayTag duplicated. : [%s]"), *InTag.ToString());
+	// 중복시 checks
+	if(!ensureMsgf(TagCurrentStats.Find(InTag) == nullptr, TEXT("Stat GameplayTag duplicated. : [%s]"), *InTag.ToString()))
 		return;
-	}
 
-	TagConsumableStats.Emplace(InTag, &InStatRef);
+	TagCurrentStats.Emplace(InTag, &InStatRef);
 }
 
 /**
@@ -52,5 +46,5 @@ void UR4StatBaseComponent::BindTagToStat(const FGameplayTag& InTag, FR4Consumabl
 void UR4StatBaseComponent::ClearTagStats()
 {
 	TagStats.Empty();
-	TagConsumableStats.Empty();
+	TagCurrentStats.Empty();
 }

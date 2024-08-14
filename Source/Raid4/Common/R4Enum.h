@@ -62,3 +62,13 @@ enum class EStatOperandType : uint8
 	Total			UMETA( DisplayName = "스탯 총합" ),
 	Current			UMETA( DisplayName = "현재 스탯" ),
 };
+
+/**
+ * 연산자 타입
+ */
+UENUM( BlueprintType )
+enum class EOperatorType : uint8
+{
+	Add				UMETA( DisplayName = "더하기" ),
+	Multiply		UMETA( DisplayName = "곱하기" ),
+};
