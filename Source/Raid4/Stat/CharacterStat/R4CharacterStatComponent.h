@@ -47,6 +47,8 @@ public:
 	R4STAT_STAT_ACCESSORS( CriticalChance );
 	R4STAT_STAT_ACCESSORS( BaseAttackSpeed );
 	R4STAT_STAT_ACCESSORS( MovementSpeed );
+	R4STAT_STAT_ACCESSORS( ApplyDamageMultiplier );
+	R4STAT_STAT_ACCESSORS( ReceiveDamageMultiplier );
 	
 private:
 	// HP (체력)
@@ -81,6 +83,16 @@ private:
 	UPROPERTY( ReplicatedUsing = _OnRep_MovementSpeed, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
 	FR4StatInfo MovementSpeed;
 
+	// Meta Stat //
+	
+	// 주는 피해량 증감량
+	UPROPERTY( ReplicatedUsing = _OnRep_ApplyDamageMultiplier, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	FR4StatInfo ApplyDamageMultiplier;
+	
+	// 받는 피해량 증감량
+	UPROPERTY( ReplicatedUsing = _OnRep_ReceiveDamageMultiplier, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	FR4StatInfo ReceiveDamageMultiplier;
+	
 private:
 	// OnRep 함수들
 	UFUNCTION()
@@ -106,4 +118,10 @@ private:
 
 	UFUNCTION()
 	void _OnRep_MovementSpeed(const FR4StatInfo& InPrevMovementSpeed);
+
+	UFUNCTION()
+	void _OnRep_ApplyDamageMultiplier(const FR4StatInfo& InApplyDamageMultiplier);
+
+	UFUNCTION()
+	void _OnRep_ReceiveDamageMultiplier(const FR4StatInfo& InReceiveDamageMultiplier);
 };

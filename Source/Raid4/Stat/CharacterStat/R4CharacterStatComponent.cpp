@@ -51,6 +51,8 @@ void UR4CharacterStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME_CONDITION(UR4CharacterStatComponent, CriticalChance, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UR4CharacterStatComponent, BaseAttackSpeed, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UR4CharacterStatComponent, MovementSpeed, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UR4CharacterStatComponent, ApplyDamageMultiplier, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UR4CharacterStatComponent, ReceiveDamageMultiplier, COND_OwnerOnly);
 }
 
 /**
@@ -71,6 +73,8 @@ void UR4CharacterStatComponent::ResetStat()
 		SetAddModifierCriticalChance(0.f); SetMultiplyModifierCriticalChance(1.f);
 		SetAddModifierBaseAttackSpeed(0.f); SetMultiplyModifierBaseAttackSpeed(1.f);
 		SetAddModifierMovementSpeed(0.f); SetMultiplyModifierMovementSpeed(1.f);
+		SetAddModifierApplyDamageMultiplier(0.f); SetMultiplyModifierApplyDamageMultiplier(1.f);
+		SetAddModifierReceiveDamageMultiplier(0.f); SetMultiplyModifierReceiveDamageMultiplier(1.f);
 	}
 }
 
@@ -97,6 +101,10 @@ void UR4CharacterStatComponent::PushDTData(FPriKey InPk)
 		SetBaseCriticalChance(statPtr->CriticalChance.Value);
 		SetBaseBaseAttackSpeed(statPtr->BaseAttackSpeed.Value);
 		SetBaseMovementSpeed(statPtr->MovementSpeed.Value);
+
+		// Meta Stat
+		SetBaseApplyDamageMultiplier(1.f);
+		SetBaseReceiveDamageMultiplier(1.f);
 	}
 	
 	// Bind Tag and stat
@@ -109,6 +117,10 @@ void UR4CharacterStatComponent::PushDTData(FPriKey InPk)
 	BindTagToStat(statPtr->CriticalChance.Tag, CriticalChance);
 	BindTagToStat(statPtr->BaseAttackSpeed.Tag, BaseAttackSpeed);
 	BindTagToStat(statPtr->MovementSpeed.Tag, MovementSpeed);
+
+	// Meta Stat
+	BindTagToStat(TAG_STAT_NORMAL_ApplyDamageMultiplier, ApplyDamageMultiplier);
+	BindTagToStat(TAG_STAT_NORMAL_ReceiveDamageMultiplier, ReceiveDamageMultiplier);
 }
 
 /**
@@ -153,4 +165,14 @@ void UR4CharacterStatComponent::_OnRep_BaseAttackSpeed(const FR4StatInfo& InPrev
 void UR4CharacterStatComponent::_OnRep_MovementSpeed(const FR4StatInfo& InPrevMovementSpeed)
 {
 	R4STAT_STAT_OnRep(MovementSpeed, InPrevMovementSpeed);
+}
+
+void UR4CharacterStatComponent::_OnRep_ApplyDamageMultiplier(const FR4StatInfo& InApplyDamageMultiplier)
+{
+	R4STAT_STAT_OnRep(ApplyDamageMultiplier, InApplyDamageMultiplier);
+}
+
+void UR4CharacterStatComponent::_OnRep_ReceiveDamageMultiplier(const FR4StatInfo& InReceiveDamageMultiplier)
+{
+	R4STAT_STAT_OnRep(ReceiveDamageMultiplier, InReceiveDamageMultiplier);
 }
