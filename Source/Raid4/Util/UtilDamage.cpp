@@ -4,7 +4,8 @@
 #include "../Stat/R4StatBaseComponent.h"
 
 /**
-*  R4DamageApplyDesc를 기반으로 데미지를 계산하여 R4DamageReceiveInfo를 산출
+*  R4DamageApplyDesc를 기반으로 데미지를 계산하여 R4DamageReceiveInfo를 산출.
+*  '가해자 입장'에서만 데미지를 산출.
 *  @param InInstigator : 데미지를 가하는(Apply) 객체
 *  @param InVictim : 데미지를 입는(Receive) 객체
 *  @param InDamageDesc : 데미지에 관한 정보.
@@ -31,40 +32,32 @@ FR4DamageReceiveInfo UtilDamage::CalculateDamageReceiveInfo(const AActor* InInst
 	// 고정 데미지가 아닐시 데미지 증감 계산
 	if (!InDamageDesc.bFixedDamage)
 	{
-		// 데미지 증감 계산에 필요한 변수들.
-		// Instigator와 Victim의 StatComp에서 찾기 i : instigator, v : victim
-		float i_CriticalChance = 0.f, v_Armor = 0.f;
+		float i_CriticalChance = 0.f, i_ApplyDamageMultiplier = 1.f;
 		
 		if(IsValid(InInstigator))
 		{
 			if(UR4StatBaseComponent* instigatorStat = InInstigator->FindComponentByClass<UR4StatBaseComponent>())
 			{
+				// 크리티컬 확률
 				if(FR4StatInfo* criticalStat = instigatorStat->GetStatByTag<FR4StatInfo>(TAG_STAT_NORMAL_CriticalChance))
 					i_CriticalChance = criticalStat->GetTotalValue();
-			}
-		}
-		
-		if(IsValid(InVictim))
-		{
-			if(UR4StatBaseComponent* victimStat = InVictim->FindComponentByClass<UR4StatBaseComponent>())
-			{
-				if(FR4StatInfo* armorStat = victimStat->GetStatByTag<FR4StatInfo>(TAG_STAT_NORMAL_Armor))
-					v_Armor = armorStat->GetTotalValue();
+
+				// 데미지 증감량
+				if(FR4StatInfo* applyDamageMultiplier = instigatorStat->GetStatByTag<FR4StatInfo>(TAG_STAT_NORMAL_ApplyDamageMultiplier))
+					i_ApplyDamageMultiplier = applyDamageMultiplier->GetTotalValue();
 			}
 		}
 	
 		// TODO : 주고 받는 측 데미지 증감 계산, 주고 받는측 확실히 분리할까?
 		
-		// By Instigator //
 		// 랜덤 변동성 추가
 		retDamageInfo.IncomingDamage *= GetRandomFactor();
 		
 		// 치명타 계산
 		retDamageInfo.bCritical = DetermineCritical(i_CriticalChance, retDamageInfo.IncomingDamage);
 
-		// By Victim //
-		// 방어력 계산
-		retDamageInfo.IncomingDamage *= CalculateReductionByArmor(v_Armor);
+		// 가해자의 가해 데미지 증감량 곱연산
+		retDamageInfo.IncomingDamage *= i_ApplyDamageMultiplier;
 	}
 	
 	return retDamageInfo;

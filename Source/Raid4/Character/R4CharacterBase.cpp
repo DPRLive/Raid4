@@ -11,11 +11,11 @@
 #include "../Buff/R4BuffComponent.h"
 #include "../UI/StatusBar/R4StatusBarWidget.h"
 #include "../Damage/R4DamageStruct.h"
+#include "../Util/UtilDamage.h"
 
 #include <Components/SkeletalMeshComponent.h>
 #include <Engine/SkeletalMesh.h>
 #include <Animation/AnimInstance.h>
-
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4CharacterBase)
 
@@ -134,12 +134,18 @@ void AR4CharacterBase::PushDTData(FPriKey InPk)
  */
 void AR4CharacterBase::ReceiveDamage(AActor* InInstigator, const FR4DamageReceiveInfo& InDamageInfo)
 {
-	// TODO : 방어막 적용
+	float reducedDamage = InDamageInfo.IncomingDamage;
 	
-	// 실제 HP 감소
+	// TODO : 방어막 적용
 
-	// StatComp에 적용
-	float damagedHp = FMath::Clamp(StatComp->GetCurrentHp() - InDamageInfo.IncomingDamage, 0.f, StatComp->GetCurrentHp());
+	// 방어력 적용
+	reducedDamage *= UtilDamage::CalculateReductionByArmor(StatComp->GetTotalArmor());
+
+	// 받는 피해 증감량 적용
+	reducedDamage *= StatComp->GetTotalReceiveDamageMultiplier();
+	
+	// 실제 HP 감소, StatComp에 적용
+	float damagedHp = FMath::Clamp(StatComp->GetCurrentHp() - reducedDamage, 0.f, StatComp->GetCurrentHp());
 	StatComp->SetCurrentHp(damagedHp);
 	
 	// 죽었다면 죽었다고 알림
