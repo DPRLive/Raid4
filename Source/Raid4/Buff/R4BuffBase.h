@@ -54,7 +54,11 @@ protected:
 
 	// 버프를 Clear하는 로직을 정의
 	virtual void Clear();
+	
 private:
+	// EBuffValueType에 따라서 BuffDesc의 Value를 계산
+	void _CalculateBuffValue();
+	
 	// EBuffMode에 따라서 버프를 실행
 	void _ActivateByBuffMode(EBuffMode InBuffMode);
 	
@@ -72,7 +76,7 @@ protected:
 	TWeakObjectPtr<AActor> CachedVictim;
 	
 	// Buff Description
-	// 각각 Buff Class별로 다르게 사용 될 수 있음.
+	// Value의 경우 각각 Buff Class별로 다르게 사용 될 수 있음.
 	// 외부에서 호출 시 FR4BuffDesc를 넘겨주지 않으면 기본 설정 된 값을 사용.
 	UPROPERTY( EditDefaultsOnly, Category = "BaseBuffInfo", meta = (AllowPrivateAccess = true))
 	FR4BuffDesc BuffDesc;

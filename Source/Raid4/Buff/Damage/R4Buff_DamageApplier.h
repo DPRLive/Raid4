@@ -9,6 +9,7 @@
 /**
  * Damage를 입히는 Buff.
  * Damage Interface를 거쳐서 데미지를 전달.
+ * BuffDesc의 Value를 DamageDesc의 Value로 사용.
  * Deactivate 불가.
  */
 UCLASS( HideDropdown, NotBlueprintType, Blueprintable, ClassGroup=(Buff), HideCategories=(Deactivate) )
@@ -26,12 +27,9 @@ protected:
 	// 버프가 실제로 할 로직을 정의
 	virtual void Activate() override;
 
-	// 버프를 Clear하는 로직을 정의
-	virtual void Clear() override;
-
 private:
-	// 가할 데미지 관련 정보를 설정. BuffDesc의 Value가 DamageApplyDesc의 Value로 세팅.
-	// Buff에서 DamageApplyDesc의 Value는 사용되지 않음!
+	// 가할 데미지 관련 정보를 설정. BuffDesc의 Value를 DamageDesc의 Value로 사용.
+	// 기존 DamageApplyDesc의 Value값은 사용되지 않음.
 	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
 	FR4DamageApplyDesc DamageApplyDesc;
 };

@@ -8,9 +8,7 @@
 
 UR4Buff_StatCurrModifier::UR4Buff_StatCurrModifier()
 {
-	StatTag = FGameplayTag::EmptyTag;
-	OperandType = EStatOperandType::Current;
-	ValueType = EValueType::Constant;
+	TargetStatTag = FGameplayTag::EmptyTag;
 	OperatorType = EOperatorType::Add;
 	bAllowNegative = false;
 }
@@ -20,7 +18,7 @@ UR4Buff_StatCurrModifier::UR4Buff_StatCurrModifier()
  *  @param InInstigator : 버프를 시전한 액터
  *  @param InVictim : 버프를 적용할 대상
  *  @param InBuffDesc : 버프 적용 시 기본 클래스에서 설정한 값 말고 다른 값이 필요한 경우 적용.
- *  BuffDesc.Value : Current Stat에 증감할 값, OperandType, ValueType 등에 따라 다르게 계산 될 수 있음
+ *  BuffDesc.Value : Current Stat와의 피연산자로 사용.
  *  @return : 세팅 성공 실패 여부
  */
 bool UR4Buff_StatCurrModifier::PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc)
@@ -45,49 +43,22 @@ void UR4Buff_StatCurrModifier::Activate()
 		return;
 	
 	// 스탯을 찾아서 적용
-	if(FR4CurrentStatInfo* statData = CachedStatComp->GetStatByTag<FR4CurrentStatInfo>(StatTag))
+	if(FR4CurrentStatInfo* statData = CachedStatComp->GetStatByTag<FR4CurrentStatInfo>(TargetStatTag))
 	{
-		// 계산
-		float value = BuffDesc.Value;
-		
-		if(ValueType == EValueType::Percent)
-		{
-			float operand = 0.f;
-
-			// % 일 시 피연산자 정하기
-			switch (OperandType)
-			{
-			case EStatOperandType::Base:
-				operand = statData->GetBaseValue();
-				break;
-			
-			case EStatOperandType::Total:
-				operand = statData->GetTotalValue();
-				break;
-
-			default: case EStatOperandType::Current:
-				operand = statData->GetCurrentValue();
-				break;
-			}
-
-			// % 계산
-			value = operand * value / 100.f;
-		}
-
 		// Operator에 따라 연산 처리
 		float newValue = 0.f;
 		switch (OperatorType)
 		{
 		case EOperatorType::Multiply:
-			newValue = statData->GetCurrentValue() * value;
+			newValue = statData->GetCurrentValue() * BuffDesc.Value;
 			break;	
 			
 		default: case EOperatorType::Add:
-			newValue = statData->GetCurrentValue() + value;
+			newValue = statData->GetCurrentValue() + BuffDesc.Value;
 			break;
 		}
 
-		// 음수 비 허용 시, 0에서 멈춤
+		// 음수 비 허용 시, 0에서 멈춤 TODO : Clamp 방법 고민..
 		if(bAllowNegative == false && newValue < 0.f)
 			newValue = 0.f;
 		

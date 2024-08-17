@@ -3,6 +3,7 @@
 
 #include "R4BuffBase.h"
 #include "R4BuffDesc.h"
+#include "R4BuffValueCalculatorInterface.h"
 #include "../Handler/TimerHandler.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4BuffBase)
@@ -79,6 +80,9 @@ bool UR4BuffBase::PreActivate(AActor* InInstigator, AActor* InVictim, const FR4B
 	if (InBuffDesc != nullptr)
 		BuffDesc = *InBuffDesc;
 
+	// BuffDesc의 Value 값을 확정
+	_CalculateBuffValue();
+	
 	// 버프의 시전자 / 받은자가 유효한지
 	return (CachedInstigator.IsValid() && CachedVictim.IsValid());
 }
@@ -102,6 +106,25 @@ void UR4BuffBase::Clear()
 
 	// OnEndBuffDelegate Clear
 	OnEndBuffDelegate.Clear();
+}
+
+/**
+ *  EBuffValueType에 따라서 BuffDesc의 Value를 계산
+ */
+void UR4BuffBase::_CalculateBuffValue()
+{
+	if(BuffDesc.BuffValueType == EBuffValueType::CustomClass)
+	{
+		if(!IsValid(BuffDesc.BuffValueCalculatorClass) ||
+			!ensureMsgf(BuffDesc.BuffValueCalculatorClass->ImplementsInterface(UR4BuffValueCalculatorInterface::StaticClass()),
+			TEXT("BuffValue Calculator class must implement IR4BuffValueCalculatorInterface.")))
+			return;
+	
+		// CDO를 사용하여 Buff의 Value를 산출
+		const UObject* cdo = BuffDesc.BuffValueCalculatorClass->GetDefaultObject(true);
+		if(const IR4BuffValueCalculatorInterface* buffValueCalculator = Cast<IR4BuffValueCalculatorInterface>(cdo))
+			BuffDesc.Value = buffValueCalculator->CalculateBuffValue(CachedInstigator.Get(), CachedVictim.Get());
+	}
 }
 
 /**

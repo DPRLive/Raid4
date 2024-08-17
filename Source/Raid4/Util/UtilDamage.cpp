@@ -47,8 +47,6 @@ FR4DamageReceiveInfo UtilDamage::CalculateDamageReceiveInfo(const AActor* InInst
 					i_ApplyDamageMultiplier = applyDamageMultiplier->GetTotalValue();
 			}
 		}
-	
-		// TODO : 주고 받는 측 데미지 증감 계산, 주고 받는측 확실히 분리할까?
 		
 		// 랜덤 변동성 추가
 		retDamageInfo.IncomingDamage *= GetRandomFactor();

@@ -9,6 +9,7 @@ class UR4StatBaseComponent;
 
 /**
  * 'Current' Stat을 변경할 수 있는 버프. ( Current Stat에 사용 )
+ * BuffDesc의 Value를 Current Stat와의 피연산자로 사용.
  * Stat Comp에 의존.
  * Deactivate 불가.
  */
@@ -33,16 +34,8 @@ protected:
 private:
 	// 무슨 스탯을 변경할 것인지 태그로 설정
 	UPROPERTY( EditDefaultsOnly, meta = (Categories = "Stat.Current", AllowPrivateAccess = true))
-	FGameplayTag StatTag;
-
-	// % 선택 시 어떤 것을 기반으로 %를 계산 할 것인지 설정
-	UPROPERTY( EditDefaultsOnly, meta= ( EditCondition = "ValueType == EValueType::Percent", EditConditionHides, AllowPrivateAccess = true))
-	EStatOperandType OperandType;
-
-	// BuffDesc의 Value가 % 인지 그냥 값인지?
-	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
-	EValueType ValueType;
-
+	FGameplayTag TargetStatTag;
+	
 	// 기존 Current 값과 어떤 연산을 진행할 것인지?
 	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
 	EOperatorType OperatorType;

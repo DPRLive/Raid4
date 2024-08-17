@@ -20,7 +20,7 @@ struct RAID4_API FR4DamageApplyDesc
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, meta = (MustImplement = "R4BaseDamageExpressionInterface") )
 	TSubclassOf<UObject> ExpressionClass;
 	
-	// Value. Expression Class에 따라 다르게 Value가 사용될 수 있음.
+	// Damage Value. Expression Class에 따라 다르게 Value가 계산에 사용될 수 있음.
 	UPROPERTY( EditAnywhere, BlueprintReadOnly )
 	float Value;
 	

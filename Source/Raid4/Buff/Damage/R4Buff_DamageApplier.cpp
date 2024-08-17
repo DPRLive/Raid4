@@ -44,10 +44,3 @@ void UR4Buff_DamageApplier::Activate()
 		victim->ReceiveDamage(CachedInstigator.Get(), damageInfo);
 	}
 }
-
-void UR4Buff_DamageApplier::Clear()
-{
-	Super::Clear();
-	// Buff Damage는 어차피 BuffDesc의 Value로 데미지가 결정 되므로
-	// private한 Damage Desc를 되돌릴 필요가 아직은 없음
-}

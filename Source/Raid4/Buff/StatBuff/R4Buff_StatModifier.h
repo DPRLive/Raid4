@@ -12,7 +12,7 @@ class UR4StatBaseComponent;
 
 /**
  * Stat Modifier를 변경할 수 있는 버프.
- * Base Stat을 기준으로 하여 BuffDesc의 Value에 의해 계산되며, Modifier Stat에 적용.
+ * BuffDesc의 Value를 Modifier Stat와의 피연산자로 사용.
  * Stat Comp에 의존.
  */
 UCLASS( HideDropdown, NotBlueprintType, Blueprintable, ClassGroup=(Buff) )
@@ -42,22 +42,17 @@ protected:
 	virtual void Clear() override;
 
 private:
-	// 무슨 스탯을 변경할 것인지 태그로 설정
-	// Base Stat을 기준으로 하여 BuffDesc의 Value에 의해 계산되며, Modifier Stat에 적용.
+	// 무슨 스탯을 변경할 것인지 태그로 설정, Modifier Stat에 적용.
 	UPROPERTY( EditDefaultsOnly, meta = (Categories = "Stat", AllowPrivateAccess = true))
-	FGameplayTag StatTag;
+	FGameplayTag TargetStatTag;
 
-	// BuffDesc의 Value가 % 인지 그냥 값인지?
+	// 어떤 Modifier와 연산을 진행할 것인지?
 	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
-	EValueType ValueType;
-
-	// 어떤 Modifier 값과 연산을 진행할 것인지?
-	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
-	EOperatorType OperatorType;
+	EOperatorType ModifierType;
 
 	// Modifier 변경 시, Current Stat이 존재한다면 비례하여 같이 조정할 것인지?
 	// ex) 최대 체력이 100에서 150으로 50% 증가 시 현재 체력도 50% 증가. 예를 들어, 기존 체력이 50이면 새로운 체력은 75.
-	UPROPERTY( EditDefaultsOnly, meta= (AllowPrivateAccess = true))
+	UPROPERTY( EditDefaultsOnly, Category = "CurrentStat", meta= (AllowPrivateAccess = true))
 	uint8 bApplyProportionalAdjustment:1;
 	
 	// Base Stat Comp 캐싱
