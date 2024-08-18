@@ -23,6 +23,7 @@ class RAID4_API IR4BuffValueCalculatorInterface
 public:
 	/**
 	*  Buff Value로 사용할 값을 계산하여 return.
+	*  CDO를 사용함!
 	*  @param InInstigator : 버프 시전 객체
 	*  @param InVictim : 버프 받는 객체
 	*/

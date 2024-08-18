@@ -47,7 +47,7 @@ protected:
 	virtual bool PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc = nullptr);
 	
 	// 버프가 실제로 할 로직을 정의
-	virtual void Activate() {}
+	virtual void Activate();
 
 	// 버프 해제 시 Deactivate (버프가 한 짓 되돌리기)가 필요하다면 해야할 로직을 정의
 	virtual void Deactivate() {}

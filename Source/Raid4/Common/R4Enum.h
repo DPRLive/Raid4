@@ -62,3 +62,13 @@ enum class EOperatorType : uint8
 	Add				UMETA( DisplayName = "더하기" ),
 	Multiply		UMETA( DisplayName = "곱하기" ),
 };
+
+/**
+ *  가해자, 피해자 타입
+ */
+UENUM( BlueprintType )
+enum class ETargetType : uint8
+{
+	Instigator		UMETA( DisplayName = "가해자 객체" ),
+	Victim			UMETA( DisplayName = "피해자 객체" ),
+};

@@ -21,9 +21,6 @@ UR4Buff_DamageApplier::UR4Buff_DamageApplier()
 bool UR4Buff_DamageApplier::PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc)
 {
 	bool bReady = Super::PreActivate(InInstigator, InVictim, InBuffDesc);
-
-	// BuffDesc의 Value로 DamageApplyDesc의 Value를 설정
-	DamageApplyDesc.Value = BuffDesc.Value;
 	
 	if(!InVictim->GetClass())
 		return false;
@@ -39,6 +36,9 @@ void UR4Buff_DamageApplier::Activate()
 	// 데미지 인터페이스를 통해 데미지 전달
 	if(IR4DamageReceiveInterface* victim = Cast<IR4DamageReceiveInterface>(CachedVictim))
 	{
+		// BuffDesc의 Value로 DamageApplyDesc의 Value를 설정
+		DamageApplyDesc.Value = BuffDesc.Value;
+		
 		// 데미지 계산
 		FR4DamageReceiveInfo damageInfo = UtilDamage::CalculateDamageReceiveInfo(CachedInstigator.Get(), CachedVictim.Get(), DamageApplyDesc);
 		victim->ReceiveDamage(CachedInstigator.Get(), damageInfo);

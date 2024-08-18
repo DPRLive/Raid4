@@ -3,7 +3,7 @@
 
 #include "R4BuffBase.h"
 #include "R4BuffDesc.h"
-#include "R4BuffValueCalculatorInterface.h"
+#include "Calculator/R4BuffValueCalculatorInterface.h"
 #include "../Handler/TimerHandler.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4BuffBase)
@@ -79,12 +79,18 @@ bool UR4BuffBase::PreActivate(AActor* InInstigator, AActor* InVictim, const FR4B
 	
 	if (InBuffDesc != nullptr)
 		BuffDesc = *InBuffDesc;
-
-	// BuffDesc의 Value 값을 확정
-	_CalculateBuffValue();
 	
 	// 버프의 시전자 / 받은자가 유효한지
 	return (CachedInstigator.IsValid() && CachedVictim.IsValid());
+}
+
+/**
+ *  버프가 실제로 할 로직을 정의
+ */
+void UR4BuffBase::Activate()
+{
+	// BuffDesc의 Value 값을 계산
+	_CalculateBuffValue();
 }
 
 /**

@@ -8,7 +8,7 @@
 
 UR4BaseDamageExpression_StatProportion::UR4BaseDamageExpression_StatProportion()
 {
-	TargetStatOwner = ETargetStatOwner::Victim;
+	TargetStatOwner = ETargetType::Victim;
 	StatTag = FGameplayTag::EmptyTag;
 	OperandType = EStatOperandType::Total;
 }
@@ -24,7 +24,7 @@ UR4BaseDamageExpression_StatProportion::UR4BaseDamageExpression_StatProportion()
 */
 float UR4BaseDamageExpression_StatProportion::CalculateBaseDamage(const AActor* InInstigator, const AActor* InVictim, float InValue) const
 {
-	const AActor* target = (TargetStatOwner == ETargetStatOwner::Instigator ? InInstigator : InVictim);
+	const AActor* target = (TargetStatOwner == ETargetType::Instigator ? InInstigator : InVictim);
 	if(!IsValid(target))
 		return 0.f;
 	
