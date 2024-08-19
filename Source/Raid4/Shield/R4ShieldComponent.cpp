@@ -32,6 +32,13 @@ void UR4ShieldComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
  */
 void UR4ShieldComponent::AddShield(UObject* InProvideObj, float InValue)
 {
+	// 음수의 쉴드량은 처리하지 않음.
+	if(InValue < 0.f)
+	{
+		LOG_WARN(R4Log, TEXT("Try to add negative shield amount! [%f]"), InValue);
+		return;
+	}
+	
 	// 중복 추가 방지, 찾았다면 제거
 	if(ShieldListNode* shield = _FindShieldByObject(InProvideObj))
 	{
@@ -53,10 +60,17 @@ void UR4ShieldComponent::AddShield(UObject* InProvideObj, float InValue)
  */
 float UR4ShieldComponent::ConsumeShield(float InValue)
 {
+	// 음수의 쉴드량은 처리하지 않음.
+	if(InValue < 0.f)
+	{
+		LOG_WARN(R4Log, TEXT("Try to consume negative shield amount! [%f]"), InValue);
+		return 0.f;
+	}
+	
 	float totalConsume = 0.f;
 
 	ShieldListNode* shield = Shields.GetHead();
-	while ( shield != nullptr || !FMath::IsNearlyZero(InValue) )
+	while ( shield != nullptr && !FMath::IsNearlyZero(InValue) )
 	{
 		auto& [nowObj, nowShield] = shield->GetValue();
 		
