@@ -12,6 +12,7 @@
 #include "Raid4/Buff/R4BuffDesc.h"
 #include "R4CharacterBase.generated.h"
 
+class UR4ShieldComponent;
 class UR4CharacterStatComponent;
 class UR4SkillComponent;
 class UR4BuffComponent;
@@ -91,6 +92,10 @@ protected:
 	// 버프 기능을 부여해주는 Buff Component
 	UPROPERTY( VisibleAnywhere, Category = "Buff", meta = (AllowPrivateAccess = true) )
 	TObjectPtr<UR4BuffComponent> BuffComp;
+
+	// 방어막 기능을 부여해주는 Shield Component
+	UPROPERTY( VisibleAnywhere, Category = "Shield", meta = (AllowPrivateAccess = true) )
+	TObjectPtr<UR4ShieldComponent> ShieldComp;
 	
 	// 여러가지 Character를 위한 RPC 기능을 부여해주는 Component
 	UPROPERTY( )

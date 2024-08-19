@@ -3,8 +3,7 @@
 
 #include "R4StatusBarWidget.h"
 #include "R4StatusBarInterface.h"
-
-#include <Components/ProgressBar.h>
+#include "../ProgressBar/R4StackProgressBar.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4StatusBarWidget)
 
@@ -13,6 +12,7 @@ UR4StatusBarWidget::UR4StatusBarWidget(const FObjectInitializer& ObjectInitializ
 {
 	CachedCurrentHp = 0.f;
 	CachedTotalHp = 0.f;
+	CachedShieldAmount = 0.f;
 }
 
 void UR4StatusBarWidget::NativeConstruct()
@@ -32,7 +32,16 @@ void UR4StatusBarWidget::NativeConstruct()
 void UR4StatusBarWidget::UpdateCurrentHp(float InCurrentHp)
 {
 	CachedCurrentHp = InCurrentHp;
-	HpBar->SetPercent(InCurrentHp / CachedTotalHp);
+	_UpdateHpBar();
+}
+
+/**
+ * 현재 쉴드량을 업데이트
+ */
+void UR4StatusBarWidget::UpdateCurrentShieldAmount(float InCurrentShieldAmount)
+{
+	CachedShieldAmount = InCurrentShieldAmount;
+	_UpdateHpBar();
 }
 
 /**
@@ -40,6 +49,19 @@ void UR4StatusBarWidget::UpdateCurrentHp(float InCurrentHp)
  */
 void UR4StatusBarWidget::UpdateTotalHp(float InTotalHp)
 {
-	CachedTotalHp = InTotalHp;
-	HpBar->SetPercent(CachedCurrentHp / InTotalHp);
+	// Division By Zero 방지
+	CachedTotalHp = FMath::Max(1.f, InTotalHp);
+	_UpdateHpBar();
+}
+
+/**
+ * HpBar를 업데이트.
+ */
+void UR4StatusBarWidget::_UpdateHpBar() const
+{
+	// 체력 부분 갱신
+	HpBar->SetTopProgressRatio(CachedCurrentHp / (CachedTotalHp + CachedShieldAmount));
+		
+	// 방어막 부분 갱신
+	HpBar->SetBottomProgressRatio(CachedShieldAmount / (CachedTotalHp + CachedShieldAmount));
 }

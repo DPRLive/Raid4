@@ -9,6 +9,7 @@
 #include "../Skill/R4SkillComponent.h"
 #include "../Skill/R4SkillBase.h"
 #include "../Buff/R4BuffComponent.h"
+#include "../Shield/R4ShieldComponent.h"
 #include "../UI/StatusBar/R4StatusBarWidget.h"
 #include "../Damage/R4DamageStruct.h"
 #include "../Util/UtilDamage.h"
@@ -32,6 +33,8 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 	SkillComp = CreateDefaultSubobject<UR4SkillComponent>(TEXT("SkillComp"));
 
 	BuffComp = CreateDefaultSubobject<UR4BuffComponent>(TEXT("BuffComp"));
+
+	ShieldComp = CreateDefaultSubobject<UR4ShieldComponent>(TEXT("ShieldComp"));
 	
 	RPCComp = CreateDefaultSubobject<UR4CharacterRPCComponent>(TEXT("RPCComp"));
 }
@@ -64,6 +67,8 @@ void AR4CharacterBase::BeginPlay()
 	if(HasAuthority())
 	{
 		BuffComp->Server_AddBuff(this, TestingBuff, &TestingDesc);
+
+		ShieldComp->AddShield(this, 100.f);
 	}
 }
 
@@ -134,15 +139,20 @@ void AR4CharacterBase::PushDTData(FPriKey InPk)
  */
 void AR4CharacterBase::ReceiveDamage(AActor* InInstigator, const FR4DamageReceiveInfo& InDamageInfo)
 {
+	// 음수의 데미지를 수신한 경우 경고
+	if(InDamageInfo.IncomingDamage < 0.f)
+		LOG_WARN(R4Data, TEXT("[%s] : Receive negative damage."), *GetName());
+	
 	float reducedDamage = InDamageInfo.IncomingDamage;
 	
-	// TODO : 방어막 적용
-
 	// 방어력 적용
 	reducedDamage *= UtilDamage::CalculateReductionByArmor(StatComp->GetTotalArmor());
 
 	// 받는 피해 증감량 적용
 	reducedDamage *= StatComp->GetTotalReceiveDamageMultiplier();
+
+	// 방어막 적용
+	reducedDamage = reducedDamage - ShieldComp->ConsumeShield(reducedDamage);
 	
 	// 실제 HP 감소, StatComp에 적용
 	float damagedHp = FMath::Clamp(StatComp->GetCurrentHp() - reducedDamage, 0.f, StatComp->GetCurrentHp());
@@ -163,7 +173,8 @@ void AR4CharacterBase::SetupStatusBarWidget(UUserWidget* InWidget)
 		// 초기화
 		statusBar->UpdateTotalHp(StatComp->GetTotalHp());
 		statusBar->UpdateCurrentHp(StatComp->GetCurrentHp());
-        
+		statusBar->UpdateCurrentShieldAmount(ShieldComp->GetTotalShield());
+		
 		// 총 체력 변경시 호출
 		StatComp->OnChangeHp().AddWeakLambda(statusBar, [statusBar](float InTotalHp)
 		{
@@ -174,6 +185,12 @@ void AR4CharacterBase::SetupStatusBarWidget(UUserWidget* InWidget)
 		StatComp->OnChangeCurrentHp().AddWeakLambda(statusBar, [statusBar](float InCurrentHp)
 		{
 			statusBar->UpdateCurrentHp(InCurrentHp);
+		});
+
+		// 방어막 변경 시 호출
+		ShieldComp->OnChangeTotalShieldDelegate.AddWeakLambda(statusBar, [statusBar](float InShieldAmount)
+		{
+			statusBar->UpdateCurrentShieldAmount(InShieldAmount);
 		});
 	}
 }
