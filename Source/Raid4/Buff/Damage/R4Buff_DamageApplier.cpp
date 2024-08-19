@@ -41,6 +41,11 @@ void UR4Buff_DamageApplier::Activate()
 		
 		// 데미지 계산
 		FR4DamageReceiveInfo damageInfo = UtilDamage::CalculateDamageReceiveInfo(CachedInstigator.Get(), CachedVictim.Get(), DamageApplyDesc);
+
+		// 음수의 데미지를 가하려는 경우 경고
+		if(damageInfo.IncomingDamage < 0.f)
+			LOG_WARN(R4Log, TEXT("Warning! [%s] : Try to apply negative damage[%f]."), *GetName(), damageInfo.IncomingDamage);
+		
 		victim->ReceiveDamage(CachedInstigator.Get(), damageInfo);
 	}
 }
