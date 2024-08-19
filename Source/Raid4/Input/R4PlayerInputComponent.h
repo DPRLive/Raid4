@@ -13,7 +13,7 @@ struct FInputActionValue;
 /**
  *  입력을 담당하는 Component
  */
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Input), meta=(BlueprintSpawnableComponent) )
 class RAID4_API UR4PlayerInputComponent : public UActorComponent
 {
 	GENERATED_BODY()

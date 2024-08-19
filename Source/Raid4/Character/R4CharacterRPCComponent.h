@@ -39,7 +39,7 @@ struct FPlayAnimInfo
 /**
  * Character에 필요한 RPC들을 모아둔 Component
  */
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(RPC), meta=(BlueprintSpawnableComponent) )
 class RAID4_API UR4CharacterRPCComponent : public UActorComponent
 {
 	GENERATED_BODY()

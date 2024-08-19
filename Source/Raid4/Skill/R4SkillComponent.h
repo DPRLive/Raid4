@@ -10,7 +10,7 @@ class UR4SkillBase;
 /**
  * 스킬 기능을 부여해주는 SkillComponent
  */
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Skill), meta=(BlueprintSpawnableComponent) )
 class RAID4_API UR4SkillComponent : public UActorComponent
 {
 	GENERATED_BODY()
