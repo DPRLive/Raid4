@@ -16,9 +16,6 @@ UCLASS( HideDropdown, NotBlueprintType, Blueprintable, ClassGroup=(Buff) )
 class RAID4_API UR4Buff_ShieldApplier : public UR4BuffBase
 {
 	GENERATED_BODY()
-
-public:
-	UR4Buff_ShieldApplier();
 	
 protected:
 	// 버프가 적용 전 해야 할 로직 (세팅 등)해야 하는 것을 정의. 세팅 실패 시 false를 꼭 리턴
@@ -36,8 +33,4 @@ protected:
 private:
 	// Shield Comp 캐싱
 	TWeakObjectPtr<UR4ShieldComponent> CachedShieldComp;
-
-	// 헤딩 버프로 적용되는 방어막의 중첩을 허용할 것인지?
-	UPROPERTY( EditDefaultsOnly, meta= (AllowPrivateAccess = true))
-	uint8 bCanStackShields:1;
 };

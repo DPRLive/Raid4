@@ -8,7 +8,6 @@
 
 /**
  * 방어막 기능을 부여해주는 컴포넌트.
- * TODO : Test, UI Bind
  */
 UCLASS(ClassGroup=(Shield), meta=(BlueprintSpawnableComponent))
 class RAID4_API UR4ShieldComponent : public UActorComponent
@@ -22,23 +21,26 @@ public:
 	
 public:
 	// InValue 만큼의 Shield를 추가. InProvideObj에 따라서 방어막을 부여한 객체를 구분 가능
-	void AddShield(UObject* InProvideObj, float InValue);
+	void AddShield(const UObject* InProvideObj, float InValue);
 
 	// InValue 만큼의 Shield를 소모.
 	float ConsumeShield(float InValue);
 	
 	// InProvideObj가 부여한 Shield를 제거
-	bool RemoveShield(UObject* InProvideObj);
+	bool RemoveShield(const UObject* InProvideObj);
 
+	// InProvideObj가 부여한 모든 Shield를 제거
+	bool RemoveShieldAll(const UObject* InProvideObj);
+	
 	// 현재 총 방어막 수치를 return
 	FORCEINLINE float GetTotalShield() const { return TotalShield; }
 
 private:
 	// Shields 의 Node 타입
-	using FShieldListNode = TDoubleLinkedList<TTuple<TWeakObjectPtr<>, float>>::TDoubleLinkedListNode;
+	using FShieldListNode = TDoubleLinkedList<TTuple<TWeakObjectPtr<const UObject>, float>>::TDoubleLinkedListNode;
 	
 	// Shield Node 찾기
-	FShieldListNode* _FindShieldByObject(UObject* InProvideObj) const;
+	FShieldListNode* _FindShieldByObject(const UObject* InProvideObj) const;
 	
 	// Total Shield가 변경되면, Broadcast
 	UFUNCTION()
@@ -51,7 +53,7 @@ public:
 	
 private:
 	// 현재 적용된 방어막
-	TDoubleLinkedList<TPair<TWeakObjectPtr<UObject>, float>> Shields;
+	TDoubleLinkedList<TPair<TWeakObjectPtr<const UObject>, float>> Shields;
 
 	// 현재 방어막의 총량
 	UPROPERTY(Transient, VisibleInstanceOnly, ReplicatedUsing = _OnRep_TotalShield )

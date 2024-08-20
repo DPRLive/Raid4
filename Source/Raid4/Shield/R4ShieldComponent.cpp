@@ -30,7 +30,7 @@ void UR4ShieldComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
  *	@param InProvideObj : 방어막을 부여할 객체
  *	@param InValue : 부여할 방어막 값
  */
-void UR4ShieldComponent::AddShield(UObject* InProvideObj, float InValue)
+void UR4ShieldComponent::AddShield(const UObject* InProvideObj, float InValue)
 {
 	// 음수의 쉴드량은 처리하지 않음.
 	if(InValue < 0.f)
@@ -100,7 +100,7 @@ float UR4ShieldComponent::ConsumeShield(float InValue)
  *	@param InProvideObj : 제거할 방어막을 부여한 객체
  *	@return : 성공 여부
  */
-bool UR4ShieldComponent::RemoveShield(UObject* InProvideObj)
+bool UR4ShieldComponent::RemoveShield(const UObject* InProvideObj)
 {
 	// 찾았다면 제거
 	if(FShieldListNode* shield = _FindShieldByObject(InProvideObj))
@@ -117,9 +117,45 @@ bool UR4ShieldComponent::RemoveShield(UObject* InProvideObj)
 }
 
 /**
+ *	InProvideObj가 부여한 모든 Shield를 제거
+ *	@param InProvideObj : 제거할 방어막을 부여한 객체
+ *	@return : 성공 여부
+ */
+bool UR4ShieldComponent::RemoveShieldAll(const UObject* InProvideObj)
+{
+	bool bRemove = false;
+	
+	FShieldListNode* node = Shields.GetHead();
+	
+	while ( node != nullptr )
+	{
+		if ( node->GetValue().Key == InProvideObj )
+		{
+			// 삭제할 노드 캐싱
+			FShieldListNode* targetNode	= node;
+			node = node->GetNextNode();
+
+			// Remove
+			TotalShield -= targetNode->GetValue().Value;
+			Shields.RemoveNode(targetNode);
+			bRemove = true;
+			
+			continue;
+		}
+
+		node = node->GetNextNode();
+	}
+
+	if(bRemove)
+		_OnRep_TotalShield();
+	
+	return bRemove;
+}
+
+/**
  *  Shield Node 찾기
  */
-UR4ShieldComponent::FShieldListNode* UR4ShieldComponent::_FindShieldByObject(UObject* InProvideObj) const
+UR4ShieldComponent::FShieldListNode* UR4ShieldComponent::_FindShieldByObject(const UObject* InProvideObj) const
 {
 	FShieldListNode* node = Shields.GetHead();
 	

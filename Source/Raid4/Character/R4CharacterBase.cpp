@@ -67,8 +67,6 @@ void AR4CharacterBase::BeginPlay()
 	if(HasAuthority())
 	{
 		BuffComp->Server_AddBuff(this, TestingBuff, &TestingDesc);
-
-		ShieldComp->AddShield(this, 100.f);
 	}
 }
 

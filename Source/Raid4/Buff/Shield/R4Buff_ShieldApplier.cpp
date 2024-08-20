@@ -6,11 +6,6 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4Buff_ShieldApplier)
 
-UR4Buff_ShieldApplier::UR4Buff_ShieldApplier()
-{
-	bCanStackShields = false;
-}
-
 /**
  *  버프 적용 전 세팅
  *  @param InInstigator : 버프를 시전한 액터
@@ -52,7 +47,7 @@ void UR4Buff_ShieldApplier::Deactivate()
 
 	// 쉴드 제거.
 	if(CachedShieldComp.IsValid())
-		CachedShieldComp->RemoveShield(this);
+		CachedShieldComp->RemoveShieldAll(this);
 }
 
 /**

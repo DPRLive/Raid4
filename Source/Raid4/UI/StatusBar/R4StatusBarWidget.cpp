@@ -49,8 +49,7 @@ void UR4StatusBarWidget::UpdateCurrentShieldAmount(float InCurrentShieldAmount)
  */
 void UR4StatusBarWidget::UpdateTotalHp(float InTotalHp)
 {
-	// Division By Zero 방지
-	CachedTotalHp = FMath::Max(1.f, InTotalHp);
+	CachedTotalHp = InTotalHp;
 	_UpdateHpBar();
 }
 
@@ -59,9 +58,12 @@ void UR4StatusBarWidget::UpdateTotalHp(float InTotalHp)
  */
 void UR4StatusBarWidget::_UpdateHpBar() const
 {
+	// division by zero 방지
+	float totalAmount = CachedTotalHp + CachedShieldAmount + KINDA_SMALL_NUMBER;
+	
 	// 체력 부분 갱신
-	HpBar->SetTopProgressRatio(CachedCurrentHp / (CachedTotalHp + CachedShieldAmount));
+	HpBar->SetTopProgressRatio(CachedCurrentHp / totalAmount);
 		
 	// 방어막 부분 갱신
-	HpBar->SetBottomProgressRatio(CachedShieldAmount / (CachedTotalHp + CachedShieldAmount));
+	HpBar->SetBottomProgressRatio(CachedShieldAmount / totalAmount);
 }
