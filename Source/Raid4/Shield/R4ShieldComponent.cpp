@@ -29,28 +29,33 @@ void UR4ShieldComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
  *	InValue 만큼의 Shield를 추가. InProvideObj에 따라서 방어막을 부여한 객체를 구분, 동일 객체로부터 여러개의 방어막 중첩 불가
  *	@param InProvideObj : 방어막을 부여할 객체, 동일 객체로부터 여러개의 방어막 중첩 불가
  *	@param InValue : 부여할 방어막 값
+ *	@return : 추가 된 방어막이 삭제 될 때 알릴 Delegate.
  */
-void UR4ShieldComponent::AddShield(UObject* InProvideObj, float InValue)
+FSimpleDelegate* UR4ShieldComponent::AddShield(UObject* InProvideObj, float InValue)
 {
 	// 음수의 쉴드량은 처리하지 않음.
 	if(InValue < 0.f)
 	{
 		LOG_WARN(R4Log, TEXT("Try to add negative shield amount! [%f]"), InValue);
-		return;
+		return nullptr;
 	}
 	
 	// 중복 추가 방지, 찾았다면 제거
-	if(ShieldListNode* shield = _FindShieldByObject(InProvideObj))
+	if(FShieldListNode* shield = _FindShieldByObject(InProvideObj))
 	{
-		TotalShield -= shield->GetValue().Value;
+		TotalShield -= shield->GetValue().ShieldAmount;
+		
+		shield->GetValue().OnRemoveShieldDelegate.ExecuteIfBound();
 		Shields.RemoveNode(shield);
 	}
 
 	// 방어막 추가
-	Shields.AddTail({InProvideObj, InValue});
+	Shields.AddTail(FShieldInfo(InProvideObj, InValue));
 	TotalShield += InValue;
 
 	_OnRep_TotalShield();
+
+	return (Shields.GetTail() ? &(Shields.GetTail()->GetValue().OnRemoveShieldDelegate) : nullptr);
 }
 
 /**
@@ -69,18 +74,21 @@ float UR4ShieldComponent::ConsumeShield(float InValue)
 	
 	float totalConsume = 0.f;
 
-	ShieldListNode* shield = Shields.GetHead();
+	FShieldListNode* shield = Shields.GetHead();
 	while ( shield != nullptr && !FMath::IsNearlyZero(InValue) )
 	{
-		auto& [nowObj, nowShield] = shield->GetValue();
+		auto& [nowObj, nowShield, nowDelegate] = shield->GetValue();
 		
 		// 소모해야 하는 양이 더 많거나 같은 경우
 		if(InValue > nowShield || FMath::IsNearlyEqual(InValue, nowShield))
 		{
 			InValue -= nowShield;
 			totalConsume += nowShield;
-			
+
+			// 쉴드 삭제
+			nowDelegate.ExecuteIfBound();
 			Shields.RemoveNode(shield);
+			
 			shield = Shields.GetHead();
 			continue;
 		}
@@ -110,9 +118,11 @@ float UR4ShieldComponent::ConsumeShield(float InValue)
 bool UR4ShieldComponent::RemoveShield(UObject* InProvideObj)
 {
 	// 찾았다면 제거
-	if(ShieldListNode* shield = _FindShieldByObject(InProvideObj))
+	if(FShieldListNode* shield = _FindShieldByObject(InProvideObj))
 	{
-		TotalShield -= shield->GetValue().Value;
+		TotalShield -= shield->GetValue().ShieldAmount;
+
+		shield->GetValue().OnRemoveShieldDelegate.ExecuteIfBound();
 		Shields.RemoveNode(shield);
 
 		_OnRep_TotalShield();
@@ -126,13 +136,13 @@ bool UR4ShieldComponent::RemoveShield(UObject* InProvideObj)
 /**
  *  Shield Node 찾기
  */
-UR4ShieldComponent::ShieldListNode* UR4ShieldComponent::_FindShieldByObject(UObject* InProvideObj) const
+UR4ShieldComponent::FShieldListNode* UR4ShieldComponent::_FindShieldByObject(UObject* InProvideObj) const
 {
-	ShieldListNode* node = Shields.GetHead();
+	FShieldListNode* node = Shields.GetHead();
 	
 	while ( node != nullptr )
 	{
-		if ( node->GetValue().Key == InProvideObj )
+		if ( node->GetValue().ShieldProvideObj == InProvideObj )
 			break;
 
 		node = node->GetNextNode();
