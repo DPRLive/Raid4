@@ -7,32 +7,8 @@
 #include "R4ShieldComponent.generated.h"
 
 /**
- * '걸린 방어막' 정보를 관리.
- */
-USTRUCT()
-struct FShieldInfo
-{
-	GENERATED_BODY()
-
-	FShieldInfo(UObject* InProvideObj = nullptr, float InValue = 0.f)
-	: ShieldProvideObj(InProvideObj)
-	, ShieldAmount(InValue)
-	, OnRemoveShieldDelegate(FSimpleDelegate())
-	{ }
-	
-	// 방어막을 제공한 객체 정보
-	TWeakObjectPtr<UObject> ShieldProvideObj;
-
-	// 방어막 량
-	float ShieldAmount;
-
-	// 해당 방어막의 삭제를 알리는 Delegate.
-	FSimpleDelegate OnRemoveShieldDelegate;
-};
-
-/**
  * 방어막 기능을 부여해주는 컴포넌트.
- * TODO : Test, UI Bind, 방어막 버프 제작 -> 중첩 방지 필요할 시에 UClass로 구분하면 딱 좋겠다 및 중첩 테스트, Deactive 관련 설명 주석 추가 ㄱㄱ
+ * TODO : Test, UI Bind
  */
 UCLASS(ClassGroup=(Shield), meta=(BlueprintSpawnableComponent))
 class RAID4_API UR4ShieldComponent : public UActorComponent
@@ -45,8 +21,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 public:
-	// InValue 만큼의 Shield를 추가. InProvideObj에 따라서 방어막을 부여한 객체를 구분, 동일 객체로부터 여러개의 방어막 중첩 불가
-	FSimpleDelegate* AddShield(UObject* InProvideObj, float InValue);
+	// InValue 만큼의 Shield를 추가. InProvideObj에 따라서 방어막을 부여한 객체를 구분 가능
+	void AddShield(UObject* InProvideObj, float InValue);
 
 	// InValue 만큼의 Shield를 소모.
 	float ConsumeShield(float InValue);
@@ -59,7 +35,7 @@ public:
 
 private:
 	// Shields 의 Node 타입
-	using FShieldListNode = TDoubleLinkedList<FShieldInfo>::TDoubleLinkedListNode;
+	using FShieldListNode = TDoubleLinkedList<TTuple<TWeakObjectPtr<>, float>>::TDoubleLinkedListNode;
 	
 	// Shield Node 찾기
 	FShieldListNode* _FindShieldByObject(UObject* InProvideObj) const;
@@ -75,7 +51,7 @@ public:
 	
 private:
 	// 현재 적용된 방어막
-	TDoubleLinkedList<FShieldInfo> Shields;
+	TDoubleLinkedList<TPair<TWeakObjectPtr<UObject>, float>> Shields;
 
 	// 현재 방어막의 총량
 	UPROPERTY(Transient, VisibleInstanceOnly, ReplicatedUsing = _OnRep_TotalShield )
