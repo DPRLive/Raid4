@@ -38,8 +38,8 @@ protected:
 	// 버프 해제 시 Deactivate (버프가 한 짓 되돌리기)가 필요하다면 해야할 로직을 정의
 	virtual void Deactivate() override;
 
-	// 버프를 Clear하는 로직을 정의
-	virtual void Clear() override;
+	// 해당 버프 클래스를 초기 상태로 Reset
+	virtual void Reset() override;
 
 private:
 	// 무슨 스탯을 변경할 것인지 태그로 설정, Modifier Stat에 적용.

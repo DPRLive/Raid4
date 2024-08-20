@@ -68,11 +68,11 @@ void UR4Buff_StatCurrModifier::Activate()
 
 
 /**
- *  버프 종료 시 Clear하는 로직을 정의
+ *  해당 버프 클래스를 초기 상태로 Reset
  */
-void UR4Buff_StatCurrModifier::Clear()
+void UR4Buff_StatCurrModifier::Reset()
 {
-	Super::Clear();
+	Super::Reset();
 
 	CachedStatComp.Reset();
 }

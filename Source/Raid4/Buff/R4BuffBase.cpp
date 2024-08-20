@@ -19,7 +19,7 @@ UR4BuffBase::UR4BuffBase()
  */
 void UR4BuffBase::PreReturnPoolObject()
 {
-	Clear();
+	Reset();
 }
 
 /**
@@ -48,20 +48,22 @@ bool UR4BuffBase::ApplyBuff(AActor* InInstigator, AActor* InVictim, const FR4Buf
 
 /**
  *  버프를 제거, 제거 로직 실행 후 버프가 끝남을 알리고 버프를 Clear.
- *  ex) 제거로직 : duration 실행의 경우, 실행 시간이 지나면 원래대로 되돌려야함.
+ *  ex) 제거로직 : duration 실행의 경우, 실행 시간이 지나면 원래대로 되돌려야할 수도있음.
+ *  @param InIsSkipDeactivate : Deactivate boolean 여부 상관 없이 Deactivate 로직을 Skip할 것인지?
  */
-void UR4BuffBase::RemoveBuff()
+void UR4BuffBase::RemoveBuff(bool InIsSkipDeactivate)
 {
 	// 복구 로직이 필요한 경우
-	if(bDeactivate)
+	if(bDeactivate && !InIsSkipDeactivate)
 		Deactivate();
+
+	// 타이머 해제
+	if(TimerHandler.IsValid())
+		TimerHandler->Reset();
 	
 	// 버프가 끝남을 알림.
 	if (OnEndBuffDelegate.IsBound())
 		OnEndBuffDelegate.Broadcast();
-
-	// 버프를 Clear.
-	Clear();
 }
 
 /**
@@ -94,9 +96,9 @@ void UR4BuffBase::Activate()
 }
 
 /**
- *  버프 종료 시 Clear하는 로직을 정의
+ *  해당 버프 클래스를 초기 상태로 Reset
  */
-void UR4BuffBase::Clear()
+void UR4BuffBase::Reset()
 {
 	CachedInstigator.Reset();
 	CachedVictim.Reset();

@@ -140,11 +140,11 @@ void UR4Buff_StatModifier::Deactivate()
 }
 
 /**
- *  버프 종료 시 Clear하는 로직을 정의
+ *  해당 버프 클래스를 초기 상태로 Reset
  */
-void UR4Buff_StatModifier::Clear()
+void UR4Buff_StatModifier::Reset()
 {
-	Super::Clear();
+	Super::Reset();
 
 	CachedStatComp.Reset();
 	CachedDeltaValue = ( ModifierType == EOperatorType::Add ? 0.f : 1.f );

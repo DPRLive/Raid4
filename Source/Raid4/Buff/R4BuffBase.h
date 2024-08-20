@@ -32,7 +32,7 @@ public:
 	bool ApplyBuff(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc = nullptr);
 	
 	// 버프를 제거.
-	void RemoveBuff();
+	void RemoveBuff(bool InIsSkipDeactivate = false);
 
 	// Getter
 	FORCEINLINE AActor* GetInstigator() const { return CachedInstigator.Get(); }
@@ -52,8 +52,8 @@ protected:
 	// 버프 해제 시 Deactivate (버프가 한 짓 되돌리기)가 필요하다면 해야할 로직을 정의
 	virtual void Deactivate() {}
 
-	// 버프를 Clear하는 로직을 정의
-	virtual void Clear();
+	// 해당 버프 클래스를 초기 상태로 Reset
+	virtual void Reset();
 	
 private:
 	// EBuffValueType에 따라서 BuffDesc의 Value를 계산
@@ -80,6 +80,7 @@ protected:
 	// 외부에서 호출 시 FR4BuffDesc를 넘겨주지 않으면 기본 설정 된 값을 사용.
 	UPROPERTY( EditDefaultsOnly, Category = "BaseBuffInfo", meta = (AllowPrivateAccess = true))
 	FR4BuffDesc BuffDesc;
+	
 private:
 	// 버프가 끝났다고 알려주는 delegate.
 	FSimpleMulticastDelegate OnEndBuffDelegate;

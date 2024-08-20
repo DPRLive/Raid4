@@ -28,8 +28,8 @@ protected:
 	// 버프가 실제로 할 로직을 정의
 	virtual void Activate() override;
 
-	// 버프를 Clear하는 로직을 정의
-	virtual void Clear() override;
+	// 해당 버프 클래스를 초기 상태로 Reset
+	virtual void Reset() override;
 	
 private:
 	// 무슨 스탯을 변경할 것인지 태그로 설정
