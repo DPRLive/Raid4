@@ -101,6 +101,7 @@ void UR4Buff_StatModifier::Activate()
 
 /**
  *  버프 해제 시 Deactivate (버프가 한 짓 되돌리기)가 필요하다면 해야할 로직을 정의
+ *  변경했던 Modifier의 Delta만큼 원래대로 복구
  */
 void UR4Buff_StatModifier::Deactivate()
 {

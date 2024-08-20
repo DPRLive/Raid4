@@ -14,6 +14,7 @@ class UR4StatBaseComponent;
  * Stat Modifier를 변경할 수 있는 버프.
  * BuffDesc의 Value를 Modifier Stat와의 피연산자로 사용.
  * Stat Comp에 의존.
+ * Deactivate 시 변경했던 Modifier의 Delta만큼 원래대로 복구
  */
 UCLASS( HideDropdown, NotBlueprintType, Blueprintable, ClassGroup=(Buff) )
 class RAID4_API UR4Buff_StatModifier : public UR4BuffBase
