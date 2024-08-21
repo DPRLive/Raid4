@@ -5,7 +5,7 @@
 #include <UObject/Interface.h>
 #include "R4BuffReceiveInterface.generated.h"
 
-struct FR4BuffDesc;
+struct FR4BuffSettingDesc;
 class UR4BuffBase;
 
 // This class does not need to be modified.
@@ -28,7 +28,7 @@ public:
 	*  Buff를 받는 함수
 	*  @param InInstigator : 버프 시전한 액터
 	*  @param InBuffClass : 버프 클래스
-	*  @param InBuffDesc : Buff Desc
+	*  @param InBuffSettingDesc : 버프 사용 관련 설정
 	*/
-	virtual void ReceiveBuff(AActor* InInstigator, TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc& InBuffDesc) = 0;
+	virtual void ReceiveBuff(AActor* InInstigator, const TSubclassOf<UR4BuffBase>& InBuffClass, const FR4BuffSettingDesc& InBuffSettingDesc) = 0;
 };

@@ -33,3 +33,10 @@ namespace Damage
 	// 데미지의 랜덤 증감량 윗 경계값
 	constexpr static float G_RandomFactorUpper = 1.1f;
 }
+
+
+namespace Buff
+{
+	// Buff 시간 갱신을 얼만큼의 interval 마다 할 것인가?
+	constexpr static float G_BuffTickInterval = 0.01f;
+}

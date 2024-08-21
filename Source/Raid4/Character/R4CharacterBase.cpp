@@ -8,7 +8,7 @@
 #include "../Movement/R4CharacterMovementComponent.h"
 #include "../Skill/R4SkillComponent.h"
 #include "../Skill/R4SkillBase.h"
-#include "../Buff/R4BuffComponent.h"
+#include "../Buff/R4BuffManageComponent.h"
 #include "../Shield/R4ShieldComponent.h"
 #include "../UI/StatusBar/R4StatusBarWidget.h"
 #include "../Damage/R4DamageStruct.h"
@@ -32,7 +32,7 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 
 	SkillComp = CreateDefaultSubobject<UR4SkillComponent>(TEXT("SkillComp"));
 
-	BuffComp = CreateDefaultSubobject<UR4BuffComponent>(TEXT("BuffComp"));
+	BuffManageComp = CreateDefaultSubobject<UR4BuffManageComponent>(TEXT("BuffManageComp"));
 
 	ShieldComp = CreateDefaultSubobject<UR4ShieldComponent>(TEXT("ShieldComp"));
 	
@@ -66,7 +66,7 @@ void AR4CharacterBase::BeginPlay()
 	// test
 	if(HasAuthority())
 	{
-		BuffComp->Server_AddBuff(this, TestingBuff, &TestingDesc);
+		BuffManageComp->Server_AddBuff(this, TestingBuff, TestingDesc);
 	}
 }
 
@@ -197,13 +197,13 @@ void AR4CharacterBase::SetupStatusBarWidget(UUserWidget* InWidget)
 *  Buff를 받는 함수.
 *  @param InInstigator : 버프를 시전한 액터
 *  @param InBuffClass : 버프 클래스
-*  @param InBuffDesc : 버프 factor
+*  @param InBuffSettingDesc : 버프 세팅 정보
 */
-void AR4CharacterBase::ReceiveBuff(AActor* InInstigator, TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc& InBuffDesc)
+void AR4CharacterBase::ReceiveBuff(AActor* InInstigator, const TSubclassOf<UR4BuffBase>& InBuffClass, const FR4BuffSettingDesc& InBuffSettingDesc)
 {
 	// BuffComp에게 넘겨준다.
 	if(GetLocalRole() == ROLE_Authority)
-		BuffComp->Server_AddBuff(InInstigator, InBuffClass, &InBuffDesc);
+		BuffManageComp->Server_AddBuff(InInstigator, InBuffClass, InBuffSettingDesc);
 }
 
 /**

@@ -8,6 +8,7 @@
 
 UR4Buff_DamageApplier::UR4Buff_DamageApplier()
 {
+	Value = FR4ValueSelector();
 	DamageApplyDesc = FR4DamageApplyDesc();
 }
 
@@ -15,12 +16,11 @@ UR4Buff_DamageApplier::UR4Buff_DamageApplier()
  *  버프 적용 전 세팅
  *  @param InInstigator : 버프를 시전한 액터
  *  @param InVictim : 버프를 적용할 대상
- *  @param InBuffDesc : 버프 적용 시 기본 클래스에서 설정한 값 말고 다른 값이 필요한 경우 적용.
- *  BuffDesc.Value : FR4DamageApplyDesc의 Value 값.
+ *  @return : 세팅 성공 실패 여부
  */
-bool UR4Buff_DamageApplier::PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc)
+bool UR4Buff_DamageApplier::SetupBuff(AActor* InInstigator, AActor* InVictim)
 {
-	bool bReady = Super::PreActivate(InInstigator, InVictim, InBuffDesc);
+	bool bReady = Super::SetupBuff(InInstigator, InVictim);
 	
 	if(!InVictim->GetClass())
 		return false;
@@ -29,15 +29,19 @@ bool UR4Buff_DamageApplier::PreActivate(AActor* InInstigator, AActor* InVictim, 
 	return bReady && InVictim->GetClass()->ImplementsInterface(UR4DamageReceiveInterface::StaticClass());
 }
 
-void UR4Buff_DamageApplier::Activate()
+/**
+ *  버프를 적용 ( 데미지를 적용 )
+ */
+bool UR4Buff_DamageApplier::ApplyBuff()
 {
-	Super::Activate();
+	if(!Super::ApplyBuff())
+		return false;
 
 	// 데미지 인터페이스를 통해 데미지 전달
 	if(IR4DamageReceiveInterface* victim = Cast<IR4DamageReceiveInterface>(CachedVictim))
 	{
-		// BuffDesc의 Value로 DamageApplyDesc의 Value를 설정
-		DamageApplyDesc.Value = BuffDesc.Value;
+		//  Value로 DamageApplyDesc의 Value를 설정
+		DamageApplyDesc.Value = Value.GetValue(CachedInstigator.Get(), CachedVictim.Get());
 		
 		// 데미지 계산
 		FR4DamageReceiveInfo damageInfo = UtilDamage::CalculateDamageReceiveInfo(CachedInstigator.Get(), CachedVictim.Get(), DamageApplyDesc);
@@ -47,5 +51,9 @@ void UR4Buff_DamageApplier::Activate()
 			LOG_WARN(R4Log, TEXT("Warning! [%s] : Try to apply negative damage[%f]."), *GetName(), damageInfo.IncomingDamage);
 		
 		victim->ReceiveDamage(CachedInstigator.Get(), damageInfo);
+
+		return true;
 	}
+
+	return false;
 }

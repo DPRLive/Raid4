@@ -2,29 +2,29 @@
 
 #pragma once
 
-#include "R4BuffValueCalculatorInterface.h"
+#include "../R4ValueCalculatorInterface.h"
 
 #include <UObject/Object.h>
 
-#include "R4BuffValueCalculator_StatBase.generated.h"
+#include "R4ValueCalculator_StatBase.generated.h"
 
 /**
- * Stat에 기반하여 BuffValue를 구하는 Calculator Class.
+ * Stat에 기반하여 Value를 구하는 Calculator Class.
  */
-UCLASS( HideDropdown, NotBlueprintType, Blueprintable, ClassGroup=(BuffValueCalculator) )
-class RAID4_API UR4BuffValueCalculator_StatBase : public UObject, public IR4BuffValueCalculatorInterface
+UCLASS( HideDropdown, NotBlueprintType, Blueprintable, ClassGroup=(ValueCalculator) )
+class RAID4_API UR4ValueCalculator_StatBase : public UObject, public IR4ValueCalculatorInterface
 {
 	GENERATED_BODY()
 	
 public:
-	UR4BuffValueCalculator_StatBase();
+	UR4ValueCalculator_StatBase();
 	
 	/**
 	*  Stat에 기반한 Value를 계산.
-	*  @param InInstigator : 버프 시전 객체
-	*  @param InVictim : 버프 받는 객체
+	*  @param InInstigator : 가해자 객체
+	*  @param InVictim : 피해자 객체
 	*/
-	virtual float CalculateBuffValue(const AActor* InInstigator, const AActor* InVictim) const override;
+	virtual float CalculateValue(const AActor* InInstigator, const AActor* InVictim) const override;
 
 private:
 	// 상대의 스탯인지 나의 스탯인지
@@ -39,7 +39,7 @@ private:
 	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
 	EStatOperandType OperandType;
 
-	// 비율 ( 해당 Stat 값에 곱해져서 BuffValue가 구해짐 )
+	// 비율 ( 해당 Stat 값에 곱해져서 Value가 구해짐 )
 	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
 	float Proportion;
 };

@@ -9,13 +9,13 @@
 
 #include <GameFramework/Character.h>
 
-#include "Raid4/Buff/R4BuffDesc.h"
+#include "Raid4/Buff/R4BuffStruct.h"
 #include "R4CharacterBase.generated.h"
 
 class UR4ShieldComponent;
 class UR4CharacterStatComponent;
 class UR4SkillComponent;
-class UR4BuffComponent;
+class UR4BuffManageComponent;
 class UR4CharacterRPCComponent;
 
 /**
@@ -37,7 +37,7 @@ public:
 	TSubclassOf<UR4BuffBase> TestingBuff;
 
 	UPROPERTY( EditDefaultsOnly, Category = "BuffInfo", meta = (AllowPrivateAccess = true))
-	FR4BuffDesc TestingDesc;
+	FR4BuffSettingDesc TestingDesc;
 protected:
 	virtual void BeginPlay() override;
 
@@ -61,8 +61,9 @@ public:
 	// ~ End IR4StatusBarInterface
 	
 	// ~ Begin IR4BuffReceiveInterface
-	virtual void ReceiveBuff(AActor* InInstigator, TSubclassOf<UR4BuffBase> InBuffClass, const FR4BuffDesc& InBuffDesc) override;
+	virtual void ReceiveBuff(AActor* InInstigator, const TSubclassOf<UR4BuffBase>& InBuffClass, const FR4BuffSettingDesc& InBuffSettingDesc) override;
 	// ~ End IR4BuffReceiveInterface
+	
 protected:
 	// StatComp와 필요한 바인딩을 진행
 	virtual void BindStatComponent();
@@ -89,9 +90,9 @@ protected:
 	UPROPERTY( VisibleAnywhere, Category = "Skill", meta = (AllowPrivateAccess = true) )
 	TObjectPtr<UR4SkillComponent> SkillComp;
 
-	// 버프 기능을 부여해주는 Buff Component
+	// 버프 관리 기능을 부여해주는 Buff Component
 	UPROPERTY( VisibleAnywhere, Category = "Buff", meta = (AllowPrivateAccess = true) )
-	TObjectPtr<UR4BuffComponent> BuffComp;
+	TObjectPtr<UR4BuffManageComponent> BuffManageComp;
 
 	// 방어막 기능을 부여해주는 Shield Component
 	UPROPERTY( VisibleAnywhere, Category = "Shield", meta = (AllowPrivateAccess = true) )

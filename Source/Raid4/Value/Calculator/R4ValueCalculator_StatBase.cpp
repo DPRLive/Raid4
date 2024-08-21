@@ -1,12 +1,12 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "R4BuffValueCalculator_StatBase.h"
+#include "R4ValueCalculator_StatBase.h"
 #include "../../Stat/R4StatBaseComponent.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(R4BuffValueCalculator_StatBase)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(R4ValueCalculator_StatBase)
 
-UR4BuffValueCalculator_StatBase::UR4BuffValueCalculator_StatBase()
+UR4ValueCalculator_StatBase::UR4ValueCalculator_StatBase()
 {
 	TargetStatOwner = ETargetType::Instigator;
 	StatTag = FGameplayTag::EmptyTag;
@@ -16,11 +16,11 @@ UR4BuffValueCalculator_StatBase::UR4BuffValueCalculator_StatBase()
 
 /**
 *  Stat에 기반한 Value를 계산.
-*  @param InInstigator : 버프 시전 객체
-*  @param InVictim : 버프 받는 객체
-*  @return : Stat에 기반하여 계산 된 Buff Value
+*  @param InInstigator : 가해자 객체
+*  @param InVictim : 피해자 객체
+*  @return : Stat에 기반하여 계산 된 Value
 */
-float UR4BuffValueCalculator_StatBase::CalculateBuffValue(const AActor* InInstigator, const AActor* InVictim) const
+float UR4ValueCalculator_StatBase::CalculateValue(const AActor* InInstigator, const AActor* InVictim) const
 {
 	const AActor* target = (TargetStatOwner == ETargetType::Instigator ? InInstigator : InVictim);
 	if(!IsValid(target))
@@ -46,5 +46,6 @@ float UR4BuffValueCalculator_StatBase::CalculateBuffValue(const AActor* InInstig
 			break;
 		}
 	}
+	
 	return 0.f;
 }

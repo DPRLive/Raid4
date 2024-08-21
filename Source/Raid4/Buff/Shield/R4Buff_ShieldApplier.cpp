@@ -6,17 +6,21 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4Buff_ShieldApplier)
 
+UR4Buff_ShieldApplier::UR4Buff_ShieldApplier()
+{
+	Value = FR4ValueSelector();
+	bDeactivate = true;
+}
+
 /**
  *  버프 적용 전 세팅
  *  @param InInstigator : 버프를 시전한 액터
  *  @param InVictim : 버프를 적용할 대상
- *  @param InBuffDesc : 버프 적용 시 기본 클래스에서 설정한 값 말고 다른 값이 필요한 경우 적용.
- *  BuffDesc.Value : Shield Comp에 넘겨 줄 방어막 양으로 사용
  *  @return : 세팅 성공 실패 여부
  */
-bool UR4Buff_ShieldApplier::PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc)
+bool UR4Buff_ShieldApplier::SetupBuff(AActor* InInstigator, AActor* InVictim)
 {
-	bool bReady = Super::PreActivate(InInstigator, InVictim, InBuffDesc);
+	bool bReady = Super::SetupBuff(InInstigator, InVictim);
 
 	// 버프 받을 객체의 Shield Comp를 캐싱
 	if(CachedVictim.IsValid())
@@ -28,13 +32,23 @@ bool UR4Buff_ShieldApplier::PreActivate(AActor* InInstigator, AActor* InVictim, 
 /**
  *  버프를 적용 ( 방어막을 적용 )
  */
-void UR4Buff_ShieldApplier::Activate()
+bool UR4Buff_ShieldApplier::ApplyBuff()
 {
-	Super::Activate();
-
-	// 쉴드 추가.
+	if(!Super::ApplyBuff())
+		return false;
+	
 	if(CachedShieldComp.IsValid())
-		CachedShieldComp->AddShield(this, BuffDesc.Value);
+	{
+		// 피연산 값 계산
+		float value = Value.GetValue(CachedInstigator.Get(), CachedVictim.Get());
+
+		// 쉴드 추가.
+		CachedShieldComp->AddShield(this, value);
+
+		return true;
+	}
+
+	return false;
 }
 
 /**

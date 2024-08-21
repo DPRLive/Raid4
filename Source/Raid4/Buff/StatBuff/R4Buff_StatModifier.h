@@ -3,8 +3,7 @@
 #pragma once
 
 #include "../R4BuffBase.h"
-
-#include <GameplayTagContainer.h>
+#include "../../Value/R4ValueSelector.h"
 
 #include "R4Buff_StatModifier.generated.h"
 
@@ -12,7 +11,7 @@ class UR4StatBaseComponent;
 
 /**
  * Stat Modifier를 변경할 수 있는 버프.
- * BuffDesc의 Value를 Modifier Stat와의 피연산자로 사용.
+ * Value를 Modifier Stat와의 피연산자로 사용.
  * Stat Comp에 의존.
  * Deactivate 시 변경했던 Modifier의 Delta만큼 원래대로 복구
  */
@@ -29,13 +28,15 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
-protected:
-	// 버프가 적용 전 해야 할 로직 (세팅 등)해야 하는 것을 정의. 세팅 실패 시 false를 꼭 리턴
-	virtual bool PreActivate(AActor* InInstigator, AActor* InVictim, const FR4BuffDesc* InBuffDesc) override;
+public:
+	// 버프가 적용 전 해야 할 로직 (세팅 등)해야 하는 것을 정의. 세팅( 버프 효과 적용이 가능한 상태인가 ) 실패 시 false를 꼭 리턴,
+	// 클래스 상속 시 추가 정보가 필요하다면 오버라이드 하여 세팅 작업을 추가적으로 진행
+	virtual bool SetupBuff(AActor* InInstigator, AActor* InVictim) override;
 	
-	// 버프가 실제로 할 로직을 정의
-	virtual void Activate() override;
+	// 버프를 적용, 실제로 해당 Buff가 적용할 효과 로직을 정의. SetupBuff 후 사용.
+	virtual bool ApplyBuff() override;
 
+protected:
 	// 버프 해제 시 Deactivate (버프가 한 짓 되돌리기)가 필요하다면 해야할 로직을 정의
 	virtual void Deactivate() override;
 
@@ -51,6 +52,10 @@ private:
 	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
 	EOperatorType ModifierType;
 
+	// 변경할 값, Modifier Stat와의 피연산자로 사용.
+	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
+	FR4ValueSelector Value;
+	
 	// Modifier 변경 시, Current Stat이 존재한다면 비례하여 같이 조정할 것인지?
 	// ex) 최대 체력이 100에서 150으로 50% 증가 시 현재 체력도 50% 증가. 예를 들어, 기존 체력이 50이면 새로운 체력은 75.
 	UPROPERTY( EditDefaultsOnly, Category = "CurrentStat", meta= (AllowPrivateAccess = true))
