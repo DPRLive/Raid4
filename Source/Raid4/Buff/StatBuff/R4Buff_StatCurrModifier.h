@@ -40,10 +40,14 @@ private:
 	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
 	EOperatorType OperatorType;
 	
-	// Current Value가 음수로 내려가는 것을 허용할 것인지 TODO : Clamp 방법 생각해야함. strategy?
-	UPROPERTY( EditDefaultsOnly, Category = "BuffInfo",  meta = (AllowPrivateAccess = true))
+	// Current Value가 음수로 내려가는 것을 허용할 것인지
+	UPROPERTY( EditDefaultsOnly, Category = "Clamp",  meta = (AllowPrivateAccess = true))
 	uint8 bAllowNegative:1;
 
+	// Current Value가 Total 스탯 값((Base + AddModifiy) * MultiplyModify) 을 넘어가는 것을 허용할 것인지
+	UPROPERTY( EditDefaultsOnly, Category = "Clamp",  meta = (AllowPrivateAccess = true))
+	uint8 bAllowOverTotalStat:1;
+	
 	// Base Stat Comp 캐싱
 	TWeakObjectPtr<UR4StatBaseComponent> CachedStatComp;
 };

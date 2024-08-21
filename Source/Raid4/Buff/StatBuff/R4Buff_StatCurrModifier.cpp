@@ -11,6 +11,7 @@ UR4Buff_StatCurrModifier::UR4Buff_StatCurrModifier()
 	TargetStatTag = FGameplayTag::EmptyTag;
 	OperatorType = EOperatorType::Add;
 	bAllowNegative = false;
+	bAllowOverTotalStat = false;
 }
 
 /**
@@ -58,9 +59,13 @@ void UR4Buff_StatCurrModifier::Activate()
 			break;
 		}
 
-		// 음수 비 허용 시, 0에서 멈춤 TODO : Clamp 방법 고민..
-		if(bAllowNegative == false && newValue < 0.f)
-			newValue = 0.f;
+		// 음수 비 허용 시 min을 0으로 최소 값을 제한
+		if(!bAllowNegative)
+			newValue = FMath::Max(newValue, 0.f);
+
+		// Total Stat Over 제한 시 Total Stat으로 최대 값을 제한  
+		if(!bAllowOverTotalStat)
+			newValue = FMath::Min(newValue, statData->GetTotalValue());
 		
 		statData->SetCurrentValue(newValue);
 	}
