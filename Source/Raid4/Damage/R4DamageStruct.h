@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "../Value/R4ValueSelector.h"
 #include "R4DamageStruct.generated.h"
 
 /**
@@ -11,18 +12,13 @@ struct RAID4_API FR4DamageApplyDesc
 	GENERATED_BODY()
 
 	FR4DamageApplyDesc()
-	: ExpressionClass(nullptr)
-	, Value(0.f)
+	: Value(FR4ValueSelector())
 	, bFixedDamage(false)
 	{ }
 
-	// 사용할 Expression Class. CDO를 사용
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, meta = (MustImplement = "R4BaseDamageExpressionInterface") )
-	TSubclassOf<UObject> ExpressionClass;
-	
-	// Damage Value. Expression Class에 따라 다르게 Value가 계산에 사용될 수 있음.
+	// 사용할 Value. 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly )
-	float Value;
+	FR4ValueSelector Value;
 	
 	// 고정 데미지 (데미지 증감의 영향을 받지 않는지)
 	UPROPERTY( EditAnywhere, BlueprintReadOnly )

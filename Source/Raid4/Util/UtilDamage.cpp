@@ -1,6 +1,5 @@
 ﻿#include "UtilDamage.h"
 
-#include "../Damage/Expression/R4BaseDamageExpressionInterface.h"
 #include "../Stat/R4StatBaseComponent.h"
 
 /**
@@ -13,22 +12,10 @@
 FR4DamageReceiveInfo UtilDamage::CalculateDamageReceiveInfo(const AActor* InInstigator, const AActor* InVictim, const FR4DamageApplyDesc& InDamageDesc)
 {
 	FR4DamageReceiveInfo retDamageInfo;
-	
-	if(!IsValid(InDamageDesc.ExpressionClass) ||
-		!ensureMsgf(InDamageDesc.ExpressionClass->ImplementsInterface(UR4BaseDamageExpressionInterface::StaticClass()),
-		TEXT("Damage Expression class must implement IR4BaseDamageExpressionInterface.")))
-	{
-		LOG_ERROR(R4Data, TEXT("Base Damage Calculate Failed. Expression Class is invalid."))
-		return retDamageInfo;
-	}
-	
-	// Expression class CDO를 이용하여 증감이 안된 순수한 데미지 계산.
-	{
-		const UObject* cdo = InDamageDesc.ExpressionClass->GetDefaultObject(true);
-		if(const IR4BaseDamageExpressionInterface* damageCalculator = Cast<IR4BaseDamageExpressionInterface>(cdo))
-			retDamageInfo.IncomingDamage = damageCalculator->CalculateBaseDamage(InInstigator, InVictim, InDamageDesc.Value);
-	}
 
+	// 데미지 계산
+	retDamageInfo.IncomingDamage = InDamageDesc.Value.GetValue(InInstigator, InVictim);
+		
 	// 고정 데미지가 아닐시 데미지 증감 계산
 	if (!InDamageDesc.bFixedDamage)
 	{

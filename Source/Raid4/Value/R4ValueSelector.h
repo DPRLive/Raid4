@@ -53,10 +53,11 @@ struct FR4ValueSelector
 	EValueType ValueType;
 
 	// 'Value'를 산출 시 사용할 CustomClass. CDO를 사용.
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, meta=(EditCondition="ValueType == EValueType::CustomClass", EditConditionHides, MustImplement = "R4ValueCalculatorInterface"))
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, meta=( EditCondition="ValueType == EValueType::CustomClass", EditConditionHides, MustImplement = "R4ValueCalculatorInterface" ))
 	TSubclassOf<UObject> ValueCalculatorClass;
-	
+
+private:
 	// Value. '상수'로 설정 시 이 값이 사용
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, meta=(EditCondition="ValueType == EValueType::Constant", EditConditionHides))
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, meta=(  AllowPrivateAccess = true, EditCondition="ValueType == EValueType::Constant", EditConditionHides ))
 	float Value;
 };

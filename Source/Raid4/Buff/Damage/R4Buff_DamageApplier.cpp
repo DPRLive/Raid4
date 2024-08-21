@@ -8,7 +8,6 @@
 
 UR4Buff_DamageApplier::UR4Buff_DamageApplier()
 {
-	Value = FR4ValueSelector();
 	DamageApplyDesc = FR4DamageApplyDesc();
 }
 
@@ -40,9 +39,6 @@ bool UR4Buff_DamageApplier::ApplyBuff()
 	// 데미지 인터페이스를 통해 데미지 전달
 	if(IR4DamageReceiveInterface* victim = Cast<IR4DamageReceiveInterface>(CachedVictim))
 	{
-		//  Value로 DamageApplyDesc의 Value를 설정
-		DamageApplyDesc.Value = Value.GetValue(CachedInstigator.Get(), CachedVictim.Get());
-		
 		// 데미지 계산
 		FR4DamageReceiveInfo damageInfo = UtilDamage::CalculateDamageReceiveInfo(CachedInstigator.Get(), CachedVictim.Get(), DamageApplyDesc);
 
