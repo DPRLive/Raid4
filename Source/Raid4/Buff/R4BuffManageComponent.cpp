@@ -54,8 +54,19 @@ void UR4BuffManageComponent::Server_AddBuff(AActor* InInstigator, const TSubclas
 	buffInfo.ServerBuffInstance = Cast<UR4BuffBase>(OBJECT_POOL->GetObject(InBuffClass));
 
 	// 버프 인스턴스가 유효하지 않으면 리턴
-	if(!IsValid(buffInfo.ServerBuffInstance)) 
+	if(!IsValid(buffInfo.ServerBuffInstance))
+	{
+		LOG_WARN(R4Data, TEXT("ServerBuffInstance is invalid."));
 		return;
+	}
+
+	// 버프 Tag로 Blocking 여부 확인
+	if(buffInfo.ServerBuffInstance->GetBuffTag().MatchesAny(BlockingBuffTags_Match)	||
+		buffInfo.ServerBuffInstance->GetBuffTag().MatchesAnyExact(BlockingBuffTags_MatchExact))
+	{
+		LOG_N(R4Data, TEXT("[%s], Buff blocked."), *InBuffClass->GetName());
+		return;
+	}
 	
 	// 버프 준비, 적용 실패 시 Object Pool에 반납
 	bool bSetupSuccess = buffInfo.ServerBuffInstance->SetupBuff(InInstigator, GetOwner());
@@ -74,6 +85,48 @@ void UR4BuffManageComponent::Server_AddBuff(AActor* InInstigator, const TSubclas
 }
 
 /**
+ *	무시할 버프의 태그를 추가
+ *	@param InTag : 무시할 버프를 식별할 BuffTag
+ *	@param InQueryType : Tag 쿼리 시 어떤 방식으로 할 것 인지 
+ */
+void UR4BuffManageComponent::Server_AddBlockingBuffTag(const FGameplayTag& InTag, EGameplayTagQueryType InQueryType)
+{
+	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server."))
+		|| !InTag.IsValid())
+		return;
+
+	// 중복을 허용하기 위해 AddTagFast 사용
+	if(InQueryType == EGameplayTagQueryType::Match)
+		BlockingBuffTags_Match.AddTagFast(InTag);
+	else if(InQueryType == EGameplayTagQueryType::MatchExact)
+		BlockingBuffTags_MatchExact.AddTagFast(InTag);
+}
+
+/**
+ *	무시할 버프의 태그들을 추가
+ *	@param InTagContainer : 무시할 버프를 식별할 BuffTag를 담은 Tag Container
+ *	@param InQueryType : Tag 쿼리 시 어떤 방식으로 할 것 인지 
+ */
+void UR4BuffManageComponent::Server_AddBlockingBuffTags(const FGameplayTagContainer& InTagContainer, EGameplayTagQueryType InQueryType)
+{
+	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
+		return;
+
+	const TArray<FGameplayTag>& tags = InTagContainer.GetGameplayTagArray();
+	for(auto& tag : tags)
+	{
+		if(!tag.IsValid())
+			continue;
+		
+		// 중복을 허용하기 위해 AddTagFast 사용
+		if(InQueryType == EGameplayTagQueryType::Match)
+			BlockingBuffTags_Match.AddTagFast(tag);
+		else if(InQueryType == EGameplayTagQueryType::MatchExact)
+			BlockingBuffTags_MatchExact.AddTagFast(tag);
+	}
+}
+
+/**
  *	태그로 해당하는 버프를 모두 제거
  *	(BuffTag.MatchFunc(InTagToQuery))
  *	@param InTagToQuery : 쿼리에 사용할 버프 식별 태그
@@ -81,7 +134,8 @@ void UR4BuffManageComponent::Server_AddBuff(AActor* InInstigator, const TSubclas
  */
 void UR4BuffManageComponent::Server_RemoveBuffAllByTag(const FGameplayTag& InTagToQuery, EGameplayTagQueryType InQueryType)
 {
-	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
+	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server."))
+		|| !InTagToQuery.IsValid())
 		return;
 	
 	auto tagQuery = [&InTagToQuery, InQueryType](const FBuffAppliedInfo& InBuffInfo)
@@ -102,12 +156,12 @@ void UR4BuffManageComponent::Server_RemoveBuffAllByTag(const FGameplayTag& InTag
 }
 
 /**
- *	태그로 해당하는 버프를 모두 제거
+ *	태그로 해당하는 버프들을 모두 제거
  *	(BuffTag.MatchFunc(InTagContainerToQuery))
  *	@param InTagContainerToQuery : 쿼리에 사용할 버프의 식별 태그들
  *	@param InQueryType : 쿼리 타입
  */
-void UR4BuffManageComponent::Server_RemoveBuffAllByTagContainer(const FGameplayTagContainer& InTagContainerToQuery, EGameplayTagQueryType InQueryType)
+void UR4BuffManageComponent::Server_RemoveBuffAllByTags(const FGameplayTagContainer& InTagContainerToQuery, EGameplayTagQueryType InQueryType)
 {
 	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
 		return;
@@ -127,6 +181,39 @@ void UR4BuffManageComponent::Server_RemoveBuffAllByTagContainer(const FGameplayT
 
 	_Server_BuffArrayRemoveAllByPredicate(UpdatingBuffs, tagQuery);
 	_Server_BuffArrayRemoveAllByPredicate(NonUpdatingBuffs, tagQuery);
+}
+
+/**
+ *	무시할 버프로 관리하던 태그를 제거
+ *	@param InTag : 제거할 태그
+ *	@param InQueryType : Tag 쿼리 시 어떤 방식으로 할 것 인지 
+ */
+void UR4BuffManageComponent::Server_RemoveBlockingBuffTag(const FGameplayTag& InTag, EGameplayTagQueryType InQueryType)
+{
+	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server."))
+		|| !InTag.IsValid())
+		return;
+
+	if(InQueryType == EGameplayTagQueryType::Match)
+		BlockingBuffTags_Match.RemoveTag(InTag, true);
+	else if(InQueryType == EGameplayTagQueryType::MatchExact)
+		BlockingBuffTags_MatchExact.RemoveTag(InTag, true);
+}
+
+/**
+ *	무시할 버프로 관리하던 태그들을 제거
+ *	@param InTagContainer : 제거할 태그
+ *	@param InQueryType : Tag 쿼리 시 어떤 방식으로 할 것 인지 
+ */
+void UR4BuffManageComponent::Server_RemoveBlockingBuffTags(const FGameplayTagContainer& InTagContainer, EGameplayTagQueryType InQueryType)
+{
+	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
+		return;
+
+	if(InQueryType == EGameplayTagQueryType::Match)
+		BlockingBuffTags_Match.RemoveTags(InTagContainer);
+	else if(InQueryType == EGameplayTagQueryType::MatchExact)
+		BlockingBuffTags_MatchExact.RemoveTags(InTagContainer);
 }
 
 /**

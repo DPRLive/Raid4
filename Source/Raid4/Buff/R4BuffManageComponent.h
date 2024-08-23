@@ -70,11 +70,23 @@ public:
 	// 버프를 추가
 	void Server_AddBuff(AActor* InInstigator, const TSubclassOf<UR4BuffBase>& InBuffClass, const FR4BuffSettingDesc& InBuffSettingDesc);
 
+	// 무시할 버프의 태그를 추가
+	void Server_AddBlockingBuffTag(const FGameplayTag& InTag, EGameplayTagQueryType InQueryType);
+
+	// 무시할 버프의 태그들을 추가
+	void Server_AddBlockingBuffTags(const FGameplayTagContainer& InTagContainer, EGameplayTagQueryType InQueryType);
+	
 	// 태그로 해당하는 버프를 모두 제거
 	void Server_RemoveBuffAllByTag(const FGameplayTag& InTagToQuery, EGameplayTagQueryType InQueryType);
 
 	// 태그 컨테이너로 해당하는 버프를 모두 제거
-	void Server_RemoveBuffAllByTagContainer(const FGameplayTagContainer& InTagContainerToQuery, EGameplayTagQueryType InQueryType);
+	void Server_RemoveBuffAllByTags(const FGameplayTagContainer& InTagContainerToQuery, EGameplayTagQueryType InQueryType);
+
+	// 무시할 버프로 관리하던 태그를 제거
+	void Server_RemoveBlockingBuffTag(const FGameplayTag& InTag, EGameplayTagQueryType InQueryType);
+
+	// 무시할 버프로 관리하던 태그들을 제거
+	void Server_RemoveBlockingBuffTags(const FGameplayTagContainer& InTagContainer, EGameplayTagQueryType InQueryType);
 	
 private:
 	// 버프 세팅에 맞춰 버프를 등록
@@ -94,4 +106,12 @@ private:
 	// 업데이트가 필요없는, 적용된 버프 정보들을 관리. (서버 및 오너), 순서 유지를 보장하지 않음.
 	UPROPERTY( Replicated, Transient, VisibleInstanceOnly, Category = "Buff" )
 	TArray<FBuffAppliedInfo> NonUpdatingBuffs;
+
+	// 무시할 버프가 있다면, 무시할 버프의 태그를 등록. (부모로 사용되어도 일치)
+	UPROPERTY( Replicated, Transient, VisibleInstanceOnly, Category = "Buff" )
+	FGameplayTagContainer BlockingBuffTags_Match;
+
+	// 무시할 버프가 있다면, 무시할 버프의 태그를 등록. (완벽히 일치)
+	UPROPERTY( Replicated, Transient, VisibleInstanceOnly, Category = "Buff" )
+	FGameplayTagContainer BlockingBuffTags_MatchExact;
 };
