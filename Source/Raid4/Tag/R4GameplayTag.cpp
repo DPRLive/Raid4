@@ -15,3 +15,5 @@ UE_DEFINE_GAMEPLAY_TAG(TAG_STAT_NORMAL_BaseAttackSpeed, "Stat.Normal.BaseAttackS
 UE_DEFINE_GAMEPLAY_TAG(TAG_STAT_NORMAL_MovementSpeed, "Stat.Normal.MovementSpeed");
 UE_DEFINE_GAMEPLAY_TAG(TAG_STAT_NORMAL_ApplyDamageMultiplier, "Stat.Normal.ApplyDamageMultiplier");
 UE_DEFINE_GAMEPLAY_TAG(TAG_STAT_NORMAL_ReceiveDamageMultiplier, "Stat.Normal.ReceiveDamageMultiplier");
+
+UE_DEFINE_GAMEPLAY_TAG(TAG_BUFF, "Buff");

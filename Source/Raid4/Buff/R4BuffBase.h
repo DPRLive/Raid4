@@ -29,6 +29,7 @@ public:
 	// Getter
 	FORCEINLINE AActor* GetInstigator() const { return CachedInstigator.Get(); }
 	FORCEINLINE AActor* GetVictim() const { return CachedVictim.Get(); }
+	FORCEINLINE const FGameplayTag& GetBuffTag() const { return BuffTag; }
 	
 	// 버프가 적용 전 해야 할 로직 (세팅 등)해야 하는 것을 정의. 세팅( 버프 효과 적용이 가능한 상태인가 ) 실패 시 false를 꼭 리턴,
 	// 클래스 상속 시 추가 정보가 필요하다면 오버라이드 하여 세팅 작업을 추가적으로 진행
@@ -48,13 +49,17 @@ protected:
 	virtual void Reset();
 	
 protected:
+	// 버프 해제 시 Deactivate (버프가 한 짓 되돌리기)가 가능하고, 필요한 경우 사용
+	UPROPERTY( EditDefaultsOnly, Category = "Deactivate", meta = ( AllowPrivateAccess = true ) )
+	uint8 bDeactivate:1;
+
+	// Buff를 Tag로 식별하고자 하는 경우 Tag 설정
+	UPROPERTY( EditDefaultsOnly, Category = "Tag", meta = ( Categories = "Buff", AllowPrivateAccess = true ) )
+	FGameplayTag BuffTag;
+	
 	// 시전자가 누군지 캐싱
 	TWeakObjectPtr<AActor> CachedInstigator;
 
 	// 버프를 받은 대상을 캐싱
 	TWeakObjectPtr<AActor> CachedVictim;
-	
-	// 버프 해제 시 Deactivate (버프가 한 짓 되돌리기)가 가능하고, 필요한 경우 사용
-	UPROPERTY( EditDefaultsOnly, Category = "Deactivate", meta = (AllowPrivateAccess = true))
-	uint8 bDeactivate:1;
 };

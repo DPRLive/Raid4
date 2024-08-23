@@ -8,6 +8,7 @@
 UR4BuffBase::UR4BuffBase()
 {
 	bDeactivate = false;
+	BuffTag = FGameplayTag::EmptyTag;
 }
 
 /**
