@@ -8,6 +8,7 @@
 
 UR4Buff_StatModifier::UR4Buff_StatModifier()
 {
+	bDeactivate = false;
 	TargetStatTag = FGameplayTag::EmptyTag;
 	ModifierType = EOperatorType::Add;
 	Value = FR4ValueSelector();

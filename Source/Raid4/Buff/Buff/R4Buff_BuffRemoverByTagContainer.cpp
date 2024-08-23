@@ -6,6 +6,12 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4Buff_BuffRemoverByTagContainer)
 
+UR4Buff_BuffRemoverByTagContainer::UR4Buff_BuffRemoverByTagContainer()
+{
+	bDeactivate = false;
+	QueryType = EGameplayTagQueryType::Match;
+}
+
 /**
  *  버프 적용 전 세팅
  *  @param InInstigator : 버프를 시전한 액터

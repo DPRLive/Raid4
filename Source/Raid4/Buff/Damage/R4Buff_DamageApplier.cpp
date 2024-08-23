@@ -8,6 +8,7 @@
 
 UR4Buff_DamageApplier::UR4Buff_DamageApplier()
 {
+	bDeactivate = false;
 	DamageApplyDesc = FR4DamageApplyDesc();
 }
 
