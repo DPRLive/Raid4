@@ -66,7 +66,8 @@ void AR4CharacterBase::BeginPlay()
 	// test
 	if(HasAuthority())
 	{
-		BuffManageComp->Server_AddBuff(this, TestingBuff, TestingDesc);
+		for(auto& [buffClass, desc] : TestingBuffs)
+			BuffManageComp->Server_AddBuff(this, buffClass, desc);
 	}
 }
 

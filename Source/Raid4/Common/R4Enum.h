@@ -72,3 +72,13 @@ enum class ETargetType : uint8
 	Instigator		UMETA( DisplayName = "가해자 객체" ),
 	Victim			UMETA( DisplayName = "피해자 객체" ),
 };
+
+/**
+ *  GameplayTag간 쿼리 시 사용할 쿼리 타입
+ */
+UENUM( BlueprintType )
+enum class EGameplayTagQueryType : uint8
+{
+	Match			UMETA( DisplayName = "부모로 사용되어도 일치" ),
+	MatchExact		UMETA( DisplayName = "완전히 일치" ),
+};

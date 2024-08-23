@@ -18,6 +18,19 @@ class UR4SkillComponent;
 class UR4BuffManageComponent;
 class UR4CharacterRPCComponent;
 
+// TEST
+USTRUCT(BlueprintType)
+struct FBuffTest
+{
+	GENERATED_BODY()
+
+	UPROPERTY( EditAnywhere )
+	TSubclassOf<UR4BuffBase> BuffClass;
+
+	UPROPERTY( EditAnywhere )
+	FR4BuffSettingDesc BuffDesc;
+};
+
 /**
  * (NPC, PlayerCharacter 등) 캐릭터에 베이스가 되는 클래스
  */
@@ -34,10 +47,7 @@ public:
 	virtual void PostInitializeComponents() override;
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<UR4BuffBase> TestingBuff;
-
-	UPROPERTY( EditDefaultsOnly, Category = "BuffInfo", meta = (AllowPrivateAccess = true))
-	FR4BuffSettingDesc TestingDesc;
+	TArray<FBuffTest> TestingBuffs;
 protected:
 	virtual void BeginPlay() override;
 
