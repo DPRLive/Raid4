@@ -3,14 +3,13 @@
 #pragma once
 
 #include "../R4SkillComponent.h"
-#include "R4PlayerSkillInterface.h"
 #include "R4PlayerSkillComponent.generated.h"
 
 /**
  * Player용 Skill Component
  */
 UCLASS()
-class RAID4_API UR4PlayerSkillComponent : public UR4SkillComponent, public IR4PlayerSkillInterface
+class RAID4_API UR4PlayerSkillComponent : public UR4SkillComponent
 {
 	GENERATED_BODY()
 
@@ -18,7 +17,7 @@ public:
 	UR4PlayerSkillComponent();
 
 	// 스킬 입력 처리
-	virtual void OnInputSkillStarted(ESkillIndex InSkillIndex) override;
-	virtual void OnInputSkillTriggered(ESkillIndex InSkillIndex) override;
-	virtual void OnInputSkillCompleted(ESkillIndex InSkillIndex) override;
+	virtual void OnInputSkillStarted(ESkillIndex InSkillIndex);
+	virtual void OnInputSkillTriggered(ESkillIndex InSkillIndex);
+	virtual void OnInputSkillCompleted(ESkillIndex InSkillIndex);
 };

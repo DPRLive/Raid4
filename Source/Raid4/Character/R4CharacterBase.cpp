@@ -224,7 +224,7 @@ void AR4CharacterBase::ApplyMovementSpeed(float InMovementSpeed) const
 	// 이동 속도를 변경한다.
 	if(UR4CharacterMovementComponent* moveComp = GetCharacterMovement<UR4CharacterMovementComponent>(); IsValid(moveComp))
 	{
-		moveComp->SetMaxWalkSpeed(InMovementSpeed);
+		moveComp->MaxWalkSpeed = InMovementSpeed;
 	}
 }
 

@@ -2,15 +2,12 @@
 
 
 #include "R4PlayerInputComponent.h"
-#include "../Skill/Player/R4PlayerSkillInterface.h"
-#include "../Movement/R4MouseMoveInterface.h"
-#include "R4PlayerInputCompInterface.h"
+#include "R4PlayerInputInterface.h"
 
 #include <EnhancedInputComponent.h>
 #include <EnhancedInputSubsystems.h>
 #include <GameFramework/PlayerController.h>
 #include <Engine/LocalPlayer.h>
-#include <GameFramework/CharacterMovementComponent.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4PlayerInputComponent)
 
@@ -18,9 +15,6 @@ UR4PlayerInputComponent::UR4PlayerInputComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	bWantsInitializeComponent = true;
-	
-	ShortTriggerThreshold = 0.3f;
-	CachedTriggerTime = 0.f;
 }
 
 /**
@@ -30,13 +24,20 @@ void UR4PlayerInputComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 
-	if(!IsValid(GetOwner()))
-		return;
-		
-	// Input Init을 대기한다.
-	if(IR4PlayerInputCompInterface* owner = Cast<IR4PlayerInputCompInterface>(GetOwner()))
+	// Owner 등록
+	if(IsValid(GetOwner()))
 	{
-		owner->OnSetupPlayerInput().AddUObject(this, &UR4PlayerInputComponent::_InitializePlayerInput);
+		if(!ensureMsgf(GetOwner()->GetClass()->ImplementsInterface(UR4PlayerInputInterface::StaticClass()),
+			TEXT("UR4PlayerInputComponent's owner must implement IR4PlayerInputInterface.")))
+				return;
+		
+		Owner = Cast<IR4PlayerInputInterface>(GetOwner());
+	}
+
+	// Init
+	if(Owner.IsValid())
+	{
+		Owner->OnSetupPlayerInput().AddUObject(this, &UR4PlayerInputComponent::_InitializePlayerInput);
 	}
 }
 
@@ -53,16 +54,27 @@ void UR4PlayerInputComponent::BeginPlay()
  */
 void UR4PlayerInputComponent::_InitializePlayerInput(UInputComponent* InPlayerInputComponent)
 {
+	if(!Owner.IsValid())
+		return;
+	
 	// 액션 바인딩
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InPlayerInputComponent); IsValid(EnhancedInputComponent))
 	{
 		EnhancedInputComponent->ClearActionBindings();
 
 		// 이동 입력 액션 바인딩
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &UR4PlayerInputComponent::_OnInputMoveStarted);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &UR4PlayerInputComponent::_OnInputMoveTriggered);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &UR4PlayerInputComponent::_OnInputMoveCompleted);
 
+		// Look 입력 액션 바인딩
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &UR4PlayerInputComponent::_OnInputLookTriggered);
+
+		// 점프 입력 액션 바인딩
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &UR4PlayerInputComponent::_OnInputJumpStarted);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &UR4PlayerInputComponent::_OnInputJumpCompleted);
+		
+		// 회피 입력 액션 바인딩
+		EnhancedInputComponent->BindAction(EvasionAction, ETriggerEvent::Started, this, &UR4PlayerInputComponent::_OnInputEvasionStarted);
+		
 		// 스킬 입력 액션 바인딩
 		for( const TPair<ESkillIndex, TObjectPtr<UInputAction>>& skillAction : SkillActions )
 		{
@@ -73,17 +85,7 @@ void UR4PlayerInputComponent::_InitializePlayerInput(UInputComponent* InPlayerIn
 		}
 	}
 
-	if(!IsValid(GetOwner()))
-		return;
-	
-	IR4PlayerInputCompInterface* owner = Cast<IR4PlayerInputCompInterface>(GetOwner());
-	if(owner == nullptr)
-	{
-		LOG_ERROR(R4Input, TEXT("Owner does not implement IR4PlayerInputCompInterface."));
-		return;
-	}
-
-	const APlayerController* playerController = owner->GetPlayerController();
+	const APlayerController* playerController = Owner->GetPlayerController();
 	if(!IsValid(playerController))
 	{
 		LOG_WARN(R4Input, TEXT("Owner's Controller is nullptr."));
@@ -104,85 +106,58 @@ void UR4PlayerInputComponent::_InitializePlayerInput(UInputComponent* InPlayerIn
 }
 
 /**
- *  이동 입력 시작
+ *  이동 입력
  */
-void UR4PlayerInputComponent::_OnInputMoveStarted()
+void UR4PlayerInputComponent::_OnInputMoveTriggered(const FInputActionValue& Value)
 {
-	if(!IsValid(GetOwner()))
-		return;
-	
-	if(IR4MouseMoveInterface* owner = Cast<IR4MouseMoveInterface>(GetOwner()))
+	if(Owner.IsValid())
 	{
-		owner->StopMove();
-	}
-}
-
-/**
- *  이동 입력 Triggered
- */
-void UR4PlayerInputComponent::_OnInputMoveTriggered()
-{
-	if(!IsValid(GetOwner()))
-		return;
-	
-	CachedTriggerTime += GetWorld()->GetDeltaSeconds();
-
-	IR4MouseMoveInterface* mouseMoveObj = Cast<IR4MouseMoveInterface>(GetOwner());
-	if(mouseMoveObj == nullptr)
-	{
-		LOG_WARN(R4Input, TEXT("Owner is nullptr."));
-		return;
-	}
-	
-	APlayerController* playerController = nullptr;
-	if(IR4PlayerInputCompInterface* owner = Cast<IR4PlayerInputCompInterface>(GetOwner()))
-	{
-		playerController = owner->GetPlayerController();
-	}
-
-	FHitResult hit;
-	if(AActor* ownerActor = GetOwner();
-		IsValid(ownerActor)
-		&& IsValid(playerController)
-		&& playerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, hit))
-	{
-		FVector dir = hit.Location - ownerActor->GetActorLocation();
-		dir.Z = 0.f;
-		dir.Normalize();
+		// 2D로 분해
+		FVector2D movementVector = Value.Get<FVector2D>();
 		
-		mouseMoveObj->AddMovement(dir);
-		CachedLastHitLocation = hit.Location;
+		Owner->OnInputMoveTriggered(movementVector);
 	}
 }
 
 /**
- *  이동 입력 종료
+ *  마우스 Look 입력
  */
-void UR4PlayerInputComponent::_OnInputMoveCompleted()
+void UR4PlayerInputComponent::_OnInputLookTriggered(const FInputActionValue& Value)
 {
-	if(!IsValid(GetOwner()))
-		return;
-	
-	IR4MouseMoveInterface* mouseMoveObj = Cast<IR4MouseMoveInterface>(GetOwner());
-	if(mouseMoveObj == nullptr)
+	if(Owner.IsValid())
 	{
-		LOG_WARN(R4Input, TEXT("Owner is nullptr."));
-		return;
-	}
+		// Rotator로 분해
+		FVector2D lookVector = Value.Get<FVector2D>();
 
-	// 짧은 입력이면, 위치로 이동 실행
-	if(CachedTriggerTime < ShortTriggerThreshold)
-	{
-		UtilEffect::SpawnNiagaraAtLocation_Local(FXCursor, CachedLastHitLocation, FRotator::ZeroRotator, FVector(1.f), GetWorld());
-		mouseMoveObj->MoveToLocation(CachedLastHitLocation);
+		Owner->OnInputLookTriggered(FRotator(lookVector.Y, lookVector.X, 0.f));
 	}
-	else
-	{
-		// 긴 입력이었다면, 멈춤
-		mouseMoveObj->StopMove();
-	}
-	
-	CachedTriggerTime = 0.f;
+}
+
+/**
+ *  점프 입력 시작
+ */
+void UR4PlayerInputComponent::_OnInputJumpStarted(const FInputActionValue& Value)
+{
+	if(Owner.IsValid())
+		Owner->OnInputJumpStarted();
+}
+
+/**
+ *  점프 입력 종료
+ */
+void UR4PlayerInputComponent::_OnInputJumpCompleted(const FInputActionValue& Value)
+{
+	if(Owner.IsValid())
+		Owner->OnInputJumpCompleted();
+}
+
+/**
+ *  회피 입력 종료
+ */
+void UR4PlayerInputComponent::_OnInputEvasionStarted(const FInputActionValue& Value)
+{
+	if(Owner.IsValid())
+		Owner->OnInputEvasionStarted();
 }
 
 /**
@@ -190,27 +165,17 @@ void UR4PlayerInputComponent::_OnInputMoveCompleted()
  */
 void UR4PlayerInputComponent::_OnInputSkillStarted(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
-	if(!IsValid(GetOwner()))
-		return;
-	
-	if(IR4PlayerSkillInterface* owner = Cast<IR4PlayerSkillInterface>(GetOwner()))
-	{
-		owner->OnInputSkillStarted(InSkillIndex);
-	}
+	if(Owner.IsValid())
+		Owner->OnInputSkillStarted(InSkillIndex);
 }
 
 /**
  *  스킬 입력 중
- */
+ */ 
 void UR4PlayerInputComponent::_OnInputSkillTriggered(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
-	if(!IsValid(GetOwner()))
-		return;
-	
-	if(IR4PlayerSkillInterface* owner = Cast<IR4PlayerSkillInterface>(GetOwner()))
-	{
-		owner->OnInputSkillTriggered(InSkillIndex);
-	}
+	if(Owner.IsValid())
+		Owner->OnInputSkillTriggered(InSkillIndex);
 }
 
 /**
@@ -218,11 +183,6 @@ void UR4PlayerInputComponent::_OnInputSkillTriggered(const FInputActionValue& In
  */
 void UR4PlayerInputComponent::_OnInputSkillCompleted(const FInputActionValue& InValue, ESkillIndex InSkillIndex)
 {
-	if(!IsValid(GetOwner()))
-		return;
-	
-	if(IR4PlayerSkillInterface* owner = Cast<IR4PlayerSkillInterface>(GetOwner()))
-	{
-		owner->OnInputSkillCompleted(InSkillIndex);
-	}
+	if(Owner.IsValid())
+		Owner->OnInputSkillCompleted(InSkillIndex);
 }

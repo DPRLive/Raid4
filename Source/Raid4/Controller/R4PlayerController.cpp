@@ -9,8 +9,6 @@
 
 AR4PlayerController::AR4PlayerController()
 {
-	bShowMouseCursor = true;
-	DefaultMouseCursor = EMouseCursor::Default;
 }
 
 /**

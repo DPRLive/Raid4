@@ -3,12 +3,10 @@
 #pragma once
 
 #include "../R4CharacterBase.h"
-#include "../../Skill/Player/R4PlayerSkillInterface.h"
-#include "../../Movement/R4MouseMoveInterface.h"
-#include "../../Input/R4PlayerInputCompInterface.h"
+#include "../../Input/R4PlayerInputInterface.h"
 #include "R4PlayerCharacter.generated.h"
 
-class UR4DAPCCommonData;
+class UR4DataAsset_PCCommonData;
 class UR4PlayerInputComponent;
 class UR4CameraManageComponent;
 class USpringArmComponent;
@@ -18,7 +16,7 @@ class UCameraComponent;
  *  PlayerCharacter의 베이스가 되는 클래스
  */
 UCLASS()
-class RAID4_API AR4PlayerCharacter : public AR4CharacterBase, public IR4PlayerInputCompInterface, public IR4MouseMoveInterface, public IR4PlayerSkillInterface
+class RAID4_API AR4PlayerCharacter : public AR4CharacterBase, public IR4PlayerInputInterface
 {
 	GENERATED_BODY()
 	
@@ -33,22 +31,23 @@ protected:
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent) override;
 
-	// ~ Begin IR4PlayerInputCompInterface
+	// ~ Begin IR4PlayerInputInterface
 	virtual APlayerController* GetPlayerController() override;
 	FORCEINLINE virtual FSetupPlayerInputDelegate& OnSetupPlayerInput() override { return OnSetupPlayerInputDelegate; }
-	// ~ End IR4PlayerInputCompInterface
 
-	// ~ Begin IR4MouseMovable
-	virtual void StopMove() override;
-	virtual void AddMovement(const FVector& InWorldDir) override;
-	virtual void MoveToLocation(const FVector& InLoc) override;
-	// ~ End IR4MouseMovable
+	virtual void OnInputMoveTriggered(const FVector2D& InDirection) override;
+
+	virtual void OnInputLookTriggered(const FRotator& InDelta) override;
+
+	virtual void OnInputJumpStarted() override;
+	virtual void OnInputJumpCompleted() override;
+
+	virtual void OnInputEvasionStarted() override;
 	
-	// ~ begin IR4PlayerSkillInterface (스킬 입력 처리, SkillComp 로 처리를 위임) 
 	virtual void OnInputSkillStarted(ESkillIndex InSkillIndex) override;
 	virtual void OnInputSkillTriggered(ESkillIndex InSkillIndex) override;
 	virtual void OnInputSkillCompleted(ESkillIndex InSkillIndex) override;
-	// ~ end IR4PlayerSkillInterface
+	// ~ End IR4PlayerInputInterface
 	
 private:
 	// PlayerCharacter들의 공통된 데이터를 초기화한다.  
@@ -60,7 +59,7 @@ private:
 	
 	// PlayerCharacter 들이 사용할 공통 데이터들
 	UPROPERTY( EditAnywhere, Category = "Data", meta = (AllowPrivateAccess = true) )
-	TObjectPtr<UR4DAPCCommonData> PlayerCharacterCommonData;
+	TObjectPtr<UR4DataAsset_PCCommonData> PlayerCharacterCommonData;
 	
 	// 입력을 담당하는 Input Component
 	UPROPERTY( VisibleAnywhere, Category = "Input", meta = (AllowPrivateAccess = true) )

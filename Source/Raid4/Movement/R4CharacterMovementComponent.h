@@ -7,6 +7,7 @@
 
 /**
  * Character가 사용할 R4Character Movement Component.
+ * TODO : 이걸 써? 말아 ?
  */
 UCLASS()
 class RAID4_API UR4CharacterMovementComponent : public UCharacterMovementComponent
@@ -18,14 +19,4 @@ public:
 
 	// 컴포넌트를 초기화 한다.
 	virtual void InitializeComponent() override;
-
-	// 속도를 변경한다.
-	void SetMaxWalkSpeed(float InMaxWalkSpeed);
-
-	// 특정 위치로 이동한다.
-	void MoveToLocation(AController* InController, const FVector& InLoc);
-private:
-	// 가속 -> 최고 속도 / 감속 -> 0 에 도달할때 걸리는 시간(seconds) 설정.
-	UPROPERTY( EditAnywhere, Category = "Setting", meta = (AllowPrivateAccess = true, ClampMin = "0.001", UIMin = "0.001") )
-	float AccelerationTime;
 };

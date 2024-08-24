@@ -3,22 +3,23 @@
 #pragma once
 
 #include <Engine/DataAsset.h>
-#include "R4DAPCCommonData.generated.h"
+#include "R4DataAsset_PCCommonData.generated.h"
 
 /**
  * 모든 PlayerCharacter가 사용할 초기 Data  
  */
 UCLASS()
-class RAID4_API UR4DAPCCommonData : public UPrimaryDataAsset
+class RAID4_API UR4DataAsset_PCCommonData : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 public:
-	UR4DAPCCommonData() :
+	UR4DataAsset_PCCommonData() :
 	bUseControllerRotationYaw(false),
 	bOrientRotationToMovement(false),
 	bUseControllerDesiredRotation(false),
 	RotationRate(FRotator()),
 	TargetArmLength(0.f),
+	RelativeLocation(FVector()),
 	RelativeRotation(FRotator()),
 	bUsePawnControlRotation(false),
 	bInheritPitch(false),
@@ -42,6 +43,9 @@ public:
 	UPROPERTY( EditAnywhere, Category = "SpringArm" )
 	float TargetArmLength;
 
+	UPROPERTY( EditAnywhere, Category = "SpringArm" )
+	FVector RelativeLocation;
+	
 	UPROPERTY( EditAnywhere, Category = "SpringArm" )
 	FRotator RelativeRotation;
 

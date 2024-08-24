@@ -3,11 +3,13 @@
 #pragma once
 
 #include <Components/ActorComponent.h>
+#include <UObject/WeakInterfacePtr.h>
+
 #include "R4PlayerInputComponent.generated.h"
 
+class IR4PlayerInputInterface;
 class UInputMappingContext;
 class UInputAction;
-class UNiagaraSystem;
 struct FInputActionValue;
 
 /**
@@ -28,19 +30,28 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	// 입력을 바인딩 하는 함수
+	// Input Binding
 	void _InitializePlayerInput(UInputComponent* InPlayerInputComponent);
-	
-	// Move Input Func
-	void _OnInputMoveStarted();
-	void _OnInputMoveTriggered();
-	void _OnInputMoveCompleted();
 
-	// Skill Input Func
+	// Movement Input
+	void _OnInputMoveTriggered(const FInputActionValue& Value);
+
+	// Look Input
+	void _OnInputLookTriggered(const FInputActionValue& Value);
+
+	// Jump Input
+	void _OnInputJumpStarted(const FInputActionValue& Value);
+	void _OnInputJumpCompleted(const FInputActionValue& Value);
+	
+	// Evasion Input
+	void _OnInputEvasionStarted(const FInputActionValue& Value);
+
+	// Skill Input
 	void _OnInputSkillStarted(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
 	void _OnInputSkillTriggered(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
 	void _OnInputSkillCompleted(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
-	
+
+private:
 	// MappingContext
 	UPROPERTY( EditAnywhere, Category = "Data|Mapping", meta = (AllowPrivateAccess = true) )
 	TObjectPtr<UInputMappingContext> InputMapping;
@@ -49,21 +60,22 @@ private:
 	UPROPERTY( EditAnywhere, Category = "Data|Action", meta = (AllowPrivateAccess = true) )
 	TObjectPtr<UInputAction> MoveAction;
 
+	// Look 입력 액션
+	UPROPERTY( EditAnywhere, Category = "Data|Action", meta = (AllowPrivateAccess = true) )
+	TObjectPtr<UInputAction> LookAction;
+
+	// 점프 입력 액션
+	UPROPERTY( EditAnywhere, Category = "Data|Action", meta = (AllowPrivateAccess = true) )
+	TObjectPtr<UInputAction> JumpAction;
+
+	// 회피 입력 액션
+	UPROPERTY( EditAnywhere, Category = "Data|Action", meta = (AllowPrivateAccess = true) )
+	TObjectPtr<UInputAction> EvasionAction;
+	
 	// 스킬 입력 액션들
 	UPROPERTY( EditAnywhere, Category = "Data|Action", meta = (AllowPrivateAccess = true) )
 	TMap<ESkillIndex, TObjectPtr<UInputAction>> SkillActions;
-	
-	// 짧은 입력 / 긴 입력을 구분하는 경계시간
-	UPROPERTY( EditAnywhere, Category = "Data|Setting", meta = (AllowPrivateAccess = true) )
-	float ShortTriggerThreshold;
 
-	// 클릭시 스폰되는 FX (어디를 클릭했는지 표시)
-	UPROPERTY( EditAnywhere, Category = "Data|Setting", meta=(AllowPrivateAccess = true) )
-	TSoftObjectPtr<UNiagaraSystem> FXCursor;
-
-	// 눌린 시간을 측정하는 임시 변수
-	float CachedTriggerTime;
-
-	// 마지막에 눌린 위치를 기억하는 임시 변수
-	FVector CachedLastHitLocation;
+	// Cached Owner
+	TWeakInterfacePtr<IR4PlayerInputInterface> Owner;
 };
