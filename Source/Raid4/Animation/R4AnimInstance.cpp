@@ -51,7 +51,10 @@ void UR4AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		CharacterToAimRotation = Owner->GetBaseAimRotation() - Owner->GetActorRotation();
 		
 		// Yaw Delta를 보간하여 계산
-		float targetYaw = (PrevRotation - Owner->GetActorRotation()).Yaw / (LeanScaling * DeltaSeconds);
+		FRotator delta = PrevRotation - Owner->GetActorRotation();
+		delta.Normalize();
+		
+		float targetYaw = delta.Yaw / (LeanScaling * DeltaSeconds);
 		YawDelta = FMath::FInterpTo(YawDelta, targetYaw, DeltaSeconds, 6.f);
 		PrevRotation = Owner->GetActorRotation();
 	}
