@@ -25,7 +25,9 @@ public:
 	
 	// 새로운 Time 제한 Check 추가. 기존 key와 중복시 override
 	void AddNewTimeCheck( int32 InKey, float InTimeLimitDuration, float InServerTime = -1.f );
-	
+
+	// 모든 제한시간 해제
+	void Clear();
 private:
 	// 측정 중인 시간들 모음. TPair<제한 시간, 제한 시간 체크의 기준이 되는 시작 시간(서버)>
 	TMap<int32, TPair<float, float>> TimeLimits;

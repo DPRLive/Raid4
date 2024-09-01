@@ -75,3 +75,11 @@ void FTimeLimitChecker::AddNewTimeCheck( int32 InKey, float InTimeLimitDuration,
 	InServerTime = (InServerTime < 0.f ? R4GetServerTimeSeconds() : InServerTime);
 	TimeLimits.Emplace(InKey, {InTimeLimitDuration, InServerTime});
 }
+
+/**
+ *  모든 제한시간 해제
+ */
+void FTimeLimitChecker::Clear()
+{
+	TimeLimits.Empty();
+}
