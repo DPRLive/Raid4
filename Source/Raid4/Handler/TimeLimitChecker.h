@@ -9,27 +9,24 @@
 class FTimeLimitChecker
 {
 public:
-	FTimeLimitChecker();
+	FTimeLimitChecker() = default;
 	
 	// 제한 시간을 리턴
-	FORCEINLINE float GetTimeLimit() const { return TimeLimitDuration; }
+	float GetTimeLimit( int32 InKey ) const;
 	
-	// 제한 시간 설정
-	FORCEINLINE void SetTimeLimit( float InTimeLimitDuration ) { TimeLimitDuration = InTimeLimitDuration; }
+	// 제한 시간을 다시 설정
+	bool SetTimeLimit( int32 InKey, float InTimeLimitDuration );
 	
-	// 새로운 Time 제한 적용.
-	void SetNewTimeCheck( float InTimeLimitDuration, float InServerTime = -1.f );
-
 	// 남은 제한 시간을 리턴
-	float GetRemainingTime( float InServerTime = -1.f ) const;
-
+	float GetRemainingTime( int32 InKey, float InServerTime = -1.f ) const;
+	
 	// 제한시간이 지났는지 리턴
-	bool IsTimeLimitExpired( float InServerTime = -1.f ) const;
+	bool IsTimeLimitExpired( int32 InKey, float InServerTime = -1.f ) const;
+	
+	// 새로운 Time 제한 Check 추가. 기존 key와 중복시 override
+	void AddNewTimeCheck( int32 InKey, float InTimeLimitDuration, float InServerTime = -1.f );
 	
 private:
-	// 제한 시간
-	float TimeLimitDuration;
-	
-	// 제한시간 체크의 기준이 되는 시작시간(서버).
-    float TimeLimitStartServerTime;
+	// 측정 중인 시간들 모음. TPair<제한 시간, 제한 시간 체크의 기준이 되는 시작 시간(서버)>
+	TMap<int32, TPair<float, float>> TimeLimits;
 };
