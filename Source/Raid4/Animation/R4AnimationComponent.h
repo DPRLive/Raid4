@@ -3,7 +3,8 @@
 #pragma once
 
 #include <Components/ActorComponent.h>
-#include "R4CharacterRPCComponent.generated.h"
+
+#include "R4AnimationComponent.generated.h"
 
 class UAnimMontage;
 
@@ -37,15 +38,16 @@ struct FPlayAnimInfo
 };
 
 /**
- * Character에 필요한 RPC들을 모아둔 Component
+ * Animation RPC, 동기화등 Anim 관련 기능 Comp.
+ * 한개의 AnimMontage에 대해 ServerTime 조정으로 동기화 가능
  */
-UCLASS( ClassGroup=(RPC), meta=(BlueprintSpawnableComponent) )
-class RAID4_API UR4CharacterRPCComponent : public UActorComponent
+UCLASS( ClassGroup=(Animation), meta=(BlueprintSpawnableComponent) )
+class RAID4_API UR4AnimationComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
-	UR4CharacterRPCComponent();
+	UR4AnimationComponent();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
@@ -57,20 +59,15 @@ private:
 	virtual void AfterBeginPlay();
 	
 public:
-	// Animation 을 플레이한다. AnimMontage의 링크를 포함한 특정 Section Anim 1개의 몽타주 플레이 동기화 보장
-	float PlayAnim(UAnimMontage* InAnimMontage, const FName& InStartSectionName = NAME_None, float InPlayRate = 1.f);
-
-	// 모든 Anim Montage를 Stop한다.
-	void StopAllAnim();
+	// Server에서, Autonomous Proxy를 제외하고 AnimPlay를 명령. ServerTime 조정으로 동기화 가능.
+	float Server_PlayAnim_WithoutAutonomous(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, bool InIsWithServer, float InServerTime = -1);
+	
+	// Server에서, Autonomous Proxy를 제외하고 AnimStop을 명령.
+	void Server_StopAnim_WithoutAutonomous(bool InIsWithServer);
 	
 private:
-	// Server로 Animation 플레이를 요청
-	UFUNCTION( Server, Reliable )
-	void _ServerRPC_PlayAnim(const FPlayAnimInfo& InAnimInfo);
-
-	// Server로 Anim All Stop을 요청
-	UFUNCTION( Server, Reliable )
-	void _ServerRPC_StopAllAnim();
+	// delay를 적용하여 동기화 된 Animation Play.
+	void _PlayAnimSync(const FPlayAnimInfo& InRepAnimInfo) const;
 	
 	// Replicate 된 Anim Info를 처리
 	UFUNCTION()

@@ -2,7 +2,6 @@
 
 
 #include "R4CharacterBase.h"
-#include "R4CharacterRPCComponent.h"
 #include "R4CharacterRow.h"
 #include "../Stat/CharacterStat/R4CharacterStatComponent.h"
 #include "../Movement/R4CharacterMovementComponent.h"
@@ -12,7 +11,9 @@
 #include "../Shield/R4ShieldComponent.h"
 #include "../UI/StatusBar/R4StatusBarWidget.h"
 #include "../Damage/R4DamageStruct.h"
+#include "../Animation/R4AnimationComponent.h"
 #include "../Util/UtilDamage.h"
+#include "../Util/UtilAnimation.h"
 
 #include <Components/SkeletalMeshComponent.h>
 #include <Engine/SkeletalMesh.h>
@@ -36,7 +37,7 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 
 	ShieldComp = CreateDefaultSubobject<UR4ShieldComponent>(TEXT("ShieldComp"));
 	
-	RPCComp = CreateDefaultSubobject<UR4CharacterRPCComponent>(TEXT("RPCComp"));
+	AnimComp = CreateDefaultSubobject<UR4AnimationComponent>(TEXT("AnimComp"));
 }
 
 /**
@@ -72,20 +73,45 @@ void AR4CharacterBase::BeginPlay()
 }
 
 /**
- *  Replicate를 거쳐서 anim을 play
- *  @return : AnimMontage의 링크를 포함한 특정 Section에 대한 시간
+ *  Local에서 Anim Play
  */
-float AR4CharacterBase::PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
+float AR4CharacterBase::PlayAnim_Local(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate)
 {
-	return RPCComp->PlayAnim(AnimMontage, StartSectionName, InPlayRate);
+	if(!IsValid(InAnimMontage))
+		return 0.0f;
+	
+	PlayAnimMontage(InAnimMontage, InPlayRate, InStartSectionName);
+
+	int32 sectionIndex = InAnimMontage->GetSectionIndex(InStartSectionName);
+
+	if(sectionIndex == INDEX_NONE) // INDEX가 NONE이면 시작 Section Index를 설정
+		sectionIndex= InAnimMontage->GetSectionIndexFromPosition(0);
+	
+	return UtilAnimation::GetCompositeAnimLength(InAnimMontage, sectionIndex);
 }
 
 /**
- *  Replicate를 거쳐서 anim을 Stop
+ *  Local에서 Anim Stop
  */
-void AR4CharacterBase::StopAnimMontage(UAnimMontage* AnimMontage)
+void AR4CharacterBase::StopAnim_Local()
 {
-	RPCComp->StopAllAnim();
+	StopAnimMontage(nullptr);
+}
+
+/**
+ *  Server에서, Autonomous Proxy를 제외하고 AnimPlay를 명령. ServerTime 조정으로 동기화 가능.
+ */
+float AR4CharacterBase::Server_PlayAnim_WithoutAutonomous(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, bool InIsWithServer, float InServerTime)
+{
+	return AnimComp->Server_PlayAnim_WithoutAutonomous(InAnimMontage, InStartSectionName, InPlayRate, InIsWithServer, InServerTime);
+}
+
+/**
+ *  Server에서, Autonomous Proxy를 제외하고 AnimStop을 명령.
+ */
+void AR4CharacterBase::Server_StopAnim_WithoutAutonomous(bool InIsWithServer)
+{
+	AnimComp->Server_StopAnim_WithoutAutonomous(InIsWithServer);
 }
 
 /**

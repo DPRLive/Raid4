@@ -6,6 +6,7 @@
 #include "../Damage/R4DamageReceiveInterface.h"
 #include "../UI/StatusBar/R4StatusBarInterface.h"
 #include "../Buff/R4BuffReceiveInterface.h"
+#include "../Animation/R4AnimationInterface.h"
 
 #include <GameFramework/Character.h>
 
@@ -16,7 +17,7 @@ class UR4ShieldComponent;
 class UR4CharacterStatComponent;
 class UR4SkillComponent;
 class UR4BuffManageComponent;
-class UR4CharacterRPCComponent;
+class UR4AnimationComponent;
 
 // TEST
 USTRUCT(BlueprintType)
@@ -36,8 +37,8 @@ struct FBuffTest
  */
 UCLASS()
 class RAID4_API AR4CharacterBase : public ACharacter, public IR4DTDataPushInterface,
-									public IR4DamageReceiveInterface,
-									public IR4BuffReceiveInterface,	public IR4StatusBarInterface
+									public IR4DamageReceiveInterface, public IR4BuffReceiveInterface,
+									public IR4StatusBarInterface, public IR4AnimationInterface
 {
 	GENERATED_BODY()
 
@@ -52,11 +53,12 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	// Replicate를 거쳐서 anim을 play
-	virtual float PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName) override;
-
-	// Replicate를 거쳐서 anim을 stop
-	virtual void StopAnimMontage(UAnimMontage* AnimMontage) override;
+	// ~ Begin IR4AnimationInterface
+	virtual float PlayAnim_Local(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate) override;
+	virtual void StopAnim_Local() override;
+	virtual float Server_PlayAnim_WithoutAutonomous(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, bool InIsWithServer, float InServerTime = -1) override;
+	virtual void Server_StopAnim_WithoutAutonomous(bool InIsWithServer) override;
+	// ~ End IR4AnimationInterface
 
 	// ~ Begin IR4DTDataPushable (Character의 데이터를 초기화한다. ( By DT_Character))
 	virtual void PushDTData(FPriKey InPk) override; 
@@ -108,7 +110,7 @@ protected:
 	UPROPERTY( VisibleAnywhere, Category = "Shield", meta = (AllowPrivateAccess = true) )
 	TObjectPtr<UR4ShieldComponent> ShieldComp;
 	
-	// 여러가지 Character를 위한 RPC 기능을 부여해주는 Component
-	UPROPERTY( )
-	TObjectPtr<UR4CharacterRPCComponent> RPCComp;
+	// 여러가지 Animation 기능을 위한 Component
+	UPROPERTY( VisibleAnywhere, Category = "Anim", meta = (AllowPrivateAccess = true) )
+	TObjectPtr<UR4AnimationComponent> AnimComp;
 };
