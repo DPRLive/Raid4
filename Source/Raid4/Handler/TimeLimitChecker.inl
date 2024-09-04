@@ -1,11 +1,14 @@
-﻿#include "TimeLimitChecker.h"
+﻿#pragma once
+
+#include "TimeLimitChecker.h"
 
 /**
  *  제한 시간을 리턴
  *  @param InKey : 제한 시간 적용 시 사용했던 키
  *  @return : 제한시간, -1.f = 키에 맞는 값을 찾지 못함 
  */
-float FTimeLimitChecker::GetTimeLimit( int32 InKey ) const
+template<typename Type>
+float TTimeLimitChecker<Type>::GetTimeLimit( Type InKey ) const
 {
 	if(auto it = TimeLimits.Find(InKey))
 		return it->Key;
@@ -19,7 +22,8 @@ float FTimeLimitChecker::GetTimeLimit( int32 InKey ) const
  *  @param InTimeLimitDuration : 새로운 제한 시간
  *  @return : 성공여부, false = 키에 맞는 값을 찾지 못함 
  */
-bool FTimeLimitChecker::SetTimeLimit( int32 InKey, float InTimeLimitDuration )
+template <typename Type>
+bool TTimeLimitChecker<Type>::SetTimeLimit( Type InKey, float InTimeLimitDuration )
 {
 	if(auto it = TimeLimits.Find(InKey))
 	{
@@ -36,7 +40,8 @@ bool FTimeLimitChecker::SetTimeLimit( int32 InKey, float InTimeLimitDuration )
  *  @param InServerTime : 현재 서버 시간.
  *  @return : 남은 제한 시간, -1.f = 키에 맞는 값을 찾지 못함 
  */
-float FTimeLimitChecker::GetRemainingTime( int32 InKey, float InServerTime ) const
+template <typename Type>
+float TTimeLimitChecker<Type>::GetRemainingTime( Type InKey, float InServerTime ) const
 {
 	// 서버시간 안줬으면 R4GetServerTimeSeconds 사용
 	InServerTime = (InServerTime < 0.f ? R4GetServerTimeSeconds() : InServerTime);
@@ -51,12 +56,13 @@ float FTimeLimitChecker::GetRemainingTime( int32 InKey, float InServerTime ) con
 }
 
 /**
- *  제한시간이 지났는지 리턴
+ *  제한시간이 지났는지 리턴.
  *  @param InKey : 제한 시간 적용 시 사용했던 키
  *  @param InServerTime : 현재 서버 시간.
  *  @return : 제한시간이 만료 되었는지 여부
  */
-bool FTimeLimitChecker::IsTimeLimitExpired( int32 InKey, float InServerTime ) const
+template <typename Type>
+bool TTimeLimitChecker<Type>::IsTimeLimitExpired( Type InKey, float InServerTime ) const
 {
 	float remainingTime = GetRemainingTime( InServerTime );
 
@@ -70,16 +76,44 @@ bool FTimeLimitChecker::IsTimeLimitExpired( int32 InKey, float InServerTime ) co
  *  @param InTimeLimitDuration : 제한 시간
  *  @param InServerTime : 제한시간 체크의 기준이 되는 시작시간(서버).
  */
-void FTimeLimitChecker::AddNewTimeCheck( int32 InKey, float InTimeLimitDuration, float InServerTime )
+template <typename Type>
+void TTimeLimitChecker<Type>::AddNewTimeCheck( Type InKey, float InTimeLimitDuration, float InServerTime )
 {
 	InServerTime = (InServerTime < 0.f ? R4GetServerTimeSeconds() : InServerTime);
 	TimeLimits.Emplace(InKey, {InTimeLimitDuration, InServerTime});
 }
 
 /**
- *  모든 제한시간 해제
+ *  시간 Time 제한 Check 제거.
+ *  @param InKey : 제한 시간 적용 시 사용했던 키
  */
-void FTimeLimitChecker::Clear()
+template <typename Type>
+void TTimeLimitChecker<Type>::RemoveTimeCheck(Type InKey)
+{
+	TimeLimits.Remove(InKey);
+}
+
+/**
+ *  InServerTime 기준으로 만료된 시간 제한들 삭제.
+ */
+template <typename Type>
+void TTimeLimitChecker<Type>::ClearExpiredTimes( float InServerTime )
+{
+	InServerTime = (InServerTime < 0.f ? R4GetServerTimeSeconds() : InServerTime);
+
+	for(auto it = TimeLimits.CreateIterator(); it; ++it)
+	{
+		// 제한 시간이 만료된 경우 제거.
+		if( (it->Value.Key + it->Value.Value) < InServerTime )
+			it.RemoveCurrentSwap();
+	}
+}
+
+/**
+ *  모든 제한시간 삭제
+ */
+template <typename Type>
+void TTimeLimitChecker<Type>::Reset()
 {
 	TimeLimits.Empty();
 }
