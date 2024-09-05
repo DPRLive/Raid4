@@ -23,7 +23,7 @@ UAnimNotify_OverlapCheck::UAnimNotify_OverlapCheck()
 void UAnimNotify_OverlapCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	Super::Notify(MeshComp, Animation, EventReference);
-	
+
 	// 클라에서 Notify 시 Server로는 가지 않지만 서버에서도 클라로 히트체크를 굳이 보내지 않도록 함
 	const APawn* owner = Cast<APawn>(MeshComp->GetOwner());
 	if(!IsValid(owner))
@@ -70,8 +70,9 @@ void UAnimNotify_OverlapCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 		for (const FOverlapResult& overlapResult : overlapResults)
 		{
 			_ProcessOverlapActor(overlapResult.GetActor());
-			if(OnBeginDetectDelegate.IsBound())
-				OnBeginDetectDelegate.Broadcast(FDetectResult(FVector(0.f), overlapResult.GetComponent(), overlapResult.GetActor()));
+			// if(OnBeginDetectDelegate.IsBound())
+			// 	OnBeginDetectDelegate.Broadcast(FDetectResult(FVector(0.f), overlapResult.GetComponent(), overlapResult.GetActor()));
+
 			_SpawnNiagara(owner, overlapResult);
 		}
 	}

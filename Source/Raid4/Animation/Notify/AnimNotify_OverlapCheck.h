@@ -2,10 +2,11 @@
 
 #pragma once
 
-#include "../../Detect/R4DetectableInterface.h"
+#include "../../Detect/R4NotifyDetectInterface.h"
 
 #include <Animation/AnimNotifies/AnimNotify.h>
 #include <PhysicsEngine/BodyInstance.h>
+
 #include "AnimNotify_OverlapCheck.generated.h"
 
 class UNiagaraSystem;
@@ -32,9 +33,10 @@ struct FOverlapEffectInfo
 
 /**
  * Overlap을 체크하는 Notify
+ * TODO : 너 곧 사라질거야
  */
 UCLASS()
-class RAID4_API UAnimNotify_OverlapCheck : public UAnimNotify, public IR4DetectableInterface
+class RAID4_API UAnimNotify_OverlapCheck : public UAnimNotify
 {
 	GENERATED_BODY()
 
@@ -43,12 +45,6 @@ public:
 	
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 	
-public:
-	// ~ Begin IR4Detectable
-	FORCEINLINE virtual FOnDetectDelegate& OnBeginDetect() override { return OnBeginDetectDelegate; }
-	FORCEINLINE virtual FOnDetectDelegate& OnEndDetect() override { return OnEndDetectDelegate; }
-	// ~ End IR4Detectable
-	
 private:
 	// Overlap 결과를 처리
 	void _ProcessOverlapActor(const AActor* InActor) const;
@@ -56,11 +52,6 @@ private:
 	// Effect를 출력
 	void _SpawnNiagara(const AActor* InInstigator, const FOverlapResult& InResult) const;
 private:
-	// Detect시 broadcast
-	FOnDetectDelegate OnBeginDetectDelegate;
-
-	// Detect 종료 시 broadcast
-	FOnDetectDelegate OnEndDetectDelegate;
 	
 	// Overlap할 형태 결정
 	UPROPERTY( EditAnywhere, Category="Collision", meta =(AllowPrivateAccess = true) )

@@ -41,7 +41,7 @@ private:
 	
 private:
 	// Actor Pool의 최대 size를 관리
-	uint16 MaxPoolSize = GObjectPoolSize;
+	uint16 MaxPoolSize = G_ObjectPoolSize;
 
 	// 현재 Pool의 Size
 	uint16 NowPoolSize = 0;

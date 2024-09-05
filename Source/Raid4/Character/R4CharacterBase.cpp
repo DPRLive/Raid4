@@ -38,6 +38,9 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 	ShieldComp = CreateDefaultSubobject<UR4ShieldComponent>(TEXT("ShieldComp"));
 	
 	AnimComp = CreateDefaultSubobject<UR4AnimationComponent>(TEXT("AnimComp"));
+
+	// Mesh NoCollision
+	GetMesh()->SetCollisionProfileName(Collision::G_ProfileNoCollision);
 }
 
 /**

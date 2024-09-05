@@ -5,7 +5,7 @@
  */
 
 // Object Pool의 기본 최대 저장 크기
-constexpr static uint16 GObjectPoolSize = 100;
+constexpr static uint16 G_ObjectPoolSize = 100;
 
 namespace DTConst
 {
@@ -15,8 +15,8 @@ namespace DTConst
 
 namespace Validation
 {
-	// 서버에서 쿨타임 검증 시 허용 범위
-	constexpr static float G_AcceptMinCoolTime = 0.1f;
+	// 서버 <-> 클라이언트 시간 오차 허용 범위
+	constexpr static float G_AcceptMinTime = 0.1f;
 }
 
 namespace Damage
@@ -34,9 +34,14 @@ namespace Damage
 	constexpr static float G_RandomFactorUpper = 1.1f;
 }
 
-
 namespace Buff
 {
 	// Buff 시간 갱신을 얼만큼의 interval 마다 할 것인가?
 	constexpr static float G_BuffTickInterval = 0.01f;
+}
+
+namespace Collision
+{
+	// NoCollision Profile
+	const static FName G_ProfileNoCollision = TEXT("NoCollision");
 }
