@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "Animation/AnimNotifies/AnimNotify.h"
 #include "../../Detect/R4NotifyDetectInterface.h"
+
+#include <Animation/AnimNotifies/AnimNotify.h>
 
 #include "AnimNotify_NotifyDetect.generated.h"
 
@@ -22,10 +23,10 @@ public:
 
 public:
 	// ~ Begin IR4NotifyDetectInterface
-	virtual FSimpleDelegate& OnNotifyDetect( AActor* InReqActor ) override;
+	virtual FSimpleDelegate& OnNotifyDetect( const AActor* InReqActor ) override;
 	// ~ End IR4NotifyDetectInterface
 
 private:
 	// 탐지 시점을 알려주기 위한 탐지 요청 {객체, delegate} 캐싱
-	TArray<TPair<TWeakObjectPtr<AActor>, FSimpleDelegate>> CachedDetectable;
+	TArray<TPair<TWeakObjectPtr<const AActor>, FSimpleDelegate>> CachedDetectable;
 };

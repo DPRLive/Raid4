@@ -5,7 +5,7 @@
 
 #include <Components/SkeletalMeshComponent.h>
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME( AnimNotify_NotifyDetect )
+#include UE_INLINE_GENERATED_CPP_BY_NAME(AnimNotify_NotifyDetect)
 
 UAnimNotify_NotifyDetect::UAnimNotify_NotifyDetect()
 {
@@ -38,9 +38,9 @@ void UAnimNotify_NotifyDetect::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 
 /**
  *	탐지 시점을 알려주는 Delegate를 반환
- *	@param InReqActor : 탐지 타이밍을 알고 싶어하는 Actor 또는 객체의 Owner(Actor).
+ *	@param InReqActor : 탐지 타이밍을 알고 싶어하는 Actor 또는 객체의 Owner(Actor). nullptr은 넣어도 나중에 알림을 받을 수 없으니 주의!
  */
-FSimpleDelegate& UAnimNotify_NotifyDetect::OnNotifyDetect( AActor* InReqActor )
+FSimpleDelegate& UAnimNotify_NotifyDetect::OnNotifyDetect( const AActor* InReqActor )
 {
 	for(auto it = CachedDetectable.CreateIterator(); it; ++it)
 	{

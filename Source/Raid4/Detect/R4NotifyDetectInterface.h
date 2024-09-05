@@ -25,6 +25,6 @@ public:
 	 * 탐지 타이밍을 broadcast로 알리는 delegate를 반환
 	 * @param InReqActor : 탐지 타이밍을 알고 싶은 객체. 일반적으로 판정 시 Owner로 판정하는 경우가 많을 듯.
 	 */
-	virtual FSimpleDelegate& OnNotifyDetect( AActor* InReqActor ) = 0;
+	virtual FSimpleDelegate& OnNotifyDetect( const AActor* InReqActor ) = 0;
 	
 };
