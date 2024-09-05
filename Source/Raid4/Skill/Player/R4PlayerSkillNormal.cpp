@@ -2,6 +2,7 @@
 
 
 #include "R4PlayerSkillNormal.h"
+#include "../../Animation/R4AnimationInterface.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4PlayerSkillNormal)
 
@@ -17,7 +18,15 @@ UR4PlayerSkillNormal::UR4PlayerSkillNormal()
  */
 void UR4PlayerSkillNormal::OnInputStarted()
 {
-    PlaySkillAnim(SkillAnimInfo);
+    //ServerRPC_PlayAnim();
+
+	if(GetOwnerRole() != ROLE_Authority)
+	{
+		if(IR4AnimationInterface* owner = Cast<IR4AnimationInterface>(GetOwner()))
+		{
+			owner->PlayAnim_Local(SkillAnimInfo.SkillAnim, NAME_None, 1.f);
+		}
+	}
 }
 
 /**
@@ -33,3 +42,11 @@ void UR4PlayerSkillNormal::OnInputTriggered()
 void UR4PlayerSkillNormal::OnInputCompleted()
 {
 }
+
+// void UR4PlayerSkillNormal::ServerRPC_PlayAnim_Implementation()
+// {
+// 	if(IR4AnimationInterface* owner = Cast<IR4AnimationInterface>(GetOwner()))
+// 	{
+// 		owner->Server_PlayAnim_WithoutAutonomous(SkillAnimInfo.SkillAnim, NAME_None, 1.f, true, R4GetServerTimeSeconds());
+// 	}
+// }

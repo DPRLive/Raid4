@@ -1,11 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "R4SkillBase.h"
-#include "../Handler/TimerHandler.h"
-#include "../Detect/R4DetectableInterface.h"
+#include "../Buff/R4BuffReceiveInterface.h"
+#include "../Damage/R4DamageReceiveInterface.h"
+#include "../Detect/R4NotifyDetectInterface.h"
+#include "../Detect/Detector/R4DetectorInterface.h"
+#include "../Detect/DetectResult.h"
+#include "../Util/UtilDamage.h"
 
-#include <GameFramework/Character.h>
 #include <Animation/AnimMontage.h>
 #include <Animation/AnimNotifies/AnimNotify.h>
 
@@ -13,34 +15,37 @@
 
 UR4SkillBase::UR4SkillBase()
 {
+	// 필요 시에만 Ticking
     PrimaryComponentTick.bCanEverTick = false;
+	
     SetIsReplicatedByDefault(true);
-
-	CachedLastActivateTime = 0.f;
 }
 
 void UR4SkillBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CoolTimeHandler = MakeShared<FTimerHandler>(this);
+	CoolTimeChecker = MakeUnique<TTimeLimitChecker<int32>>();
 
-	// bind anim affect index <-> DetectNotify
+	// bind DetectNotify <-> FR4SkillDetectEffectInfo
+	// Detect는 Local에서 직접 진행.
 	for(const auto& [prop, value] : TPropertyValueRange<FStructProperty>(GetClass(), this))
 	{
 		// FSkillAnimInfo 타입의 struct를 찾아서 bind
-		if(prop->Struct == FSkillAnimInfo::StaticStruct())
+		if(prop->Struct != FR4SkillAnimInfo::StaticStruct())
+			continue;
+		
+		FR4SkillAnimInfo* animInfo = prop->ContainerPtrToValuePtr<FR4SkillAnimInfo>(this);
+		UAnimMontage* anim = animInfo->SkillAnim;
+		if(!IsValid(anim))
+			return;
+		
+		for(const auto& [notifyIdx, detectEffectInfo] : animInfo->DetectNotify)
 		{
-			FSkillAnimInfo* animInfo = prop->ContainerPtrToValuePtr<FSkillAnimInfo>(this);
-			UAnimMontage* anim = animInfo->SkillAnim;
-			if(!IsValid(anim))
-				return;
-			
-			for(auto& [notifyIdx, affect] : animInfo->DetectNotify)
-			{
-				if(anim->Notifies.IsValidIndex(notifyIdx))
-					BindAffect(anim->Notifies[notifyIdx].Notify, affect);
-			}
+			if(!anim->Notifies.IsValidIndex(notifyIdx))
+				continue;
+	
+			_BindDetectAndEffect(anim->Notifies[notifyIdx].Notify, detectEffectInfo);
 		}
 	}
 }
@@ -53,13 +58,14 @@ void UR4SkillBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 	if(PropertyChangedEvent.MemberProperty == nullptr)
 		return;
 	
-	// 변경된 프로퍼티가 FSkillAnimInfo 형식이면, 해당 Anim에서 Notify를 읽어와 배열을 자동으로 채움
+	// 변경된 프로퍼티가 FSkillAnimInfo 형식이면, 해당 Anim에서 Notify를 읽어와 배열을 자동으로 채움. 하하 아주 편리하지?
 	if(FStructProperty* prop = CastField<FStructProperty>(PropertyChangedEvent.MemberProperty);
 		prop != nullptr &&
-		prop->Struct == FSkillAnimInfo::StaticStruct())
+		prop->Struct == FR4SkillAnimInfo::StaticStruct())
 	{
-		FSkillAnimInfo* animInfo = prop->ContainerPtrToValuePtr<FSkillAnimInfo>(this);
+		FR4SkillAnimInfo* animInfo = prop->ContainerPtrToValuePtr<FR4SkillAnimInfo>(this);
 		UAnimMontage* anim = animInfo->SkillAnim;
+		
 		if(!IsValid(anim))
 			return;
 
@@ -67,7 +73,7 @@ void UR4SkillBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 		TSet<int32> idxs;
 		for(int32 i = 0; i < anim->Notifies.Num(); i++)
 		{
-			if(IR4DetectableInterface* detectNotify = Cast<IR4DetectableInterface>(anim->Notifies[i].Notify))
+			if(IR4NotifyDetectInterface* detectNotify = Cast<IR4NotifyDetectInterface>(anim->Notifies[i].Notify))
 				idxs.Emplace(i);
 		}
 
@@ -99,64 +105,136 @@ void UR4SkillBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 #endif
 
 /**
- *  스킬이 사용 가능 상태인지 판단한다.
+ *  스킬 사용이 가능한지 판단
+ *  TODO : 현재 스킬 사용중인지 판단 추가
  */
-bool UR4SkillBase::CanUseSkill()
+bool UR4SkillBase::CanActivateSkill()
 {
-	return FMath::IsNearlyEqual(0.f, CoolTimeHandler->GetRemainingTime());
+	bool bReady = true;
+
+	// 스킬 자체에 대한 쿨타임 체크
+	// if(CoolTimeChecker.IsValid())
+	// {
+	// 	AActor* owner = GetOwner();
+	// 	
+	// 	// 서버에서 Remote를 체크하는 경우 약간의 오차 허용
+	// 	if(	IsValid(owner)
+	// 		&& owner->GetLocalRole() == ROLE_Authority
+	// 		&& owner->GetRemoteRole() == ROLE_AutonomousProxy )
+	// 	{
+	// 		bReady &= CoolTimeChecker->IsTimeLimitExpired(static_cast<int32>(ER4SkillTimeType::Skill), R4GetServerTimeSeconds(GetWorld()) + Validation::G_AcceptMinTime);
+	// 	}			
+	// 	else
+	// 		bReady &= CoolTimeChecker->IsTimeLimitExpired(static_cast<int32>(ER4SkillTimeType::Skill), R4GetServerTimeSeconds(GetWorld()));
+	// }
+
+	return bReady;
 }
 
 /**
- *  AnimMontage를 Play한다.
+ *  DetectNotify <-> FR4DetectEffectWrapper 연결
+ *  @param InDetectNotify : 탐지 타이밍 알림을 전달할 객체
+ *  @param InDetectEffectInfo : Skill에서 무언가 탐지하고 줄 영향
  */
-float UR4SkillBase::PlaySkillAnim(const FSkillAnimInfo& InSkillAnimInfo, float InPlayRate, const FName& InSectionName)
+void UR4SkillBase::_BindDetectAndEffect( const TScriptInterface<IR4NotifyDetectInterface>& InDetectNotify, const FR4DetectEffectWrapper& InDetectEffectInfo )
 {
-	if(ACharacter* owner = Cast<ACharacter>(GetOwner()); IsValid(owner))
+	if( IR4NotifyDetectInterface* detectNotifyObj = InDetectNotify.GetInterface() )
 	{
-		return owner->PlayAnimMontage(InSkillAnimInfo.SkillAnim, InPlayRate, InSectionName);
-
-		// TODO : hit check
+		// this 캡처, WeakLambda 사용
+		detectNotifyObj->OnNotifyDetect( GetOwner() ).BindWeakLambda(this,
+			[this, &InDetectEffectInfo]()
+			{
+				// 탐지 실행
+				_ExecuteDetect(InDetectEffectInfo);
+			});
 	}
-
-	return 0.f;
 }
 
 /**
- *  Anim Montage를 stop
+ *  Detect 실행
+ *  @param InDetectEffectInfo : 탐지 클래스 및 효과.
  */
-void UR4SkillBase::StopAllAnim()
+void UR4SkillBase::_ExecuteDetect( const FR4DetectEffectWrapper& InDetectEffectInfo )
 {
-	if(ACharacter* owner = Cast<ACharacter>(GetOwner()); IsValid(owner))
-		owner->StopAnimMontage();
-
-	// TODO : clear reserved hitcheck
-}
-
-/**
- *  Detectable과 Affect를 연결
- *  @param InDetectable : 탐지하는 주체 Object
- *  @param InAffectInfo : 입힐 영향
- */
-void UR4SkillBase::BindAffect(UObject* InDetectable, const FString& InAffectInfo)
-{
-	if(!IsValid(InDetectable))
+	if(!IsValid(InDetectEffectInfo.DetectInfo.DetectClass))
 		return;
 
-	if(IR4DetectableInterface* detectableObj = Cast<IR4DetectableInterface>(InDetectable))
-	{
-		auto affectLambda = [owner = TWeakObjectPtr<UR4SkillBase>(this), &affectInfo = InAffectInfo]
-				(const FDetectResult& InDetectResult)
-		{
-			if(owner.IsValid())
-				owner->ApplyAffect(InDetectResult, affectInfo);
-		};
-		
-		// Detect 시작 Bind
-		// TODO : 사용 후 지워야겠지?
-		detectableObj->OnBeginDetect().AddLambda(affectLambda);
+	// Ready Detect
+	UObject* detectObj = OBJECT_POOL->GetObject(InDetectEffectInfo.DetectInfo.DetectClass);
 
-		// Detect 종료 Bind
-		detectableObj->OnEndDetect().AddLambda(affectLambda);
+	if(!IsValid(detectObj))
+		return;
+	
+	if( IR4DetectorInterface* detectInterface = Cast<IR4DetectorInterface>(detectObj) )
+	{
+		// this capture, weak lambda 사용
+
+		// bind OnBeginDetect buff, damage
+		detectInterface->OnBeginDetect().AddWeakLambda(this,
+			[this, &InDetectEffectInfo](const FDetectResult& InDetectResult)
+		{
+			_ApplyBuffs( InDetectResult, InDetectEffectInfo.EffectInfo.OnBeginDetectBuffs );
+			_ApplyDamages( InDetectResult, InDetectEffectInfo.EffectInfo.OnBeginDetectDamages );
+		});
+
+		// bind OnEndDetect buff, damage
+		detectInterface->OnEndDetect().AddWeakLambda(this,
+	[this, &InDetectEffectInfo](const FDetectResult& InDetectResult)
+		{
+			_ApplyBuffs( InDetectResult, InDetectEffectInfo.EffectInfo.OnEndDetectBuffs );
+			_ApplyDamages( InDetectResult, InDetectEffectInfo.EffectInfo.OnEndDetectDamages );
+		});
+	}
+
+	// TODO : Execute Detect ...
+}
+
+/**
+ *  Detect 시 특정한 버프들을 적용.
+ *  @param InDetectResult : 탐지 결과.
+ *  @param InSkillBuffInfos : 입힐 SkillBuff 들
+ */
+void UR4SkillBase::_ApplyBuffs( const FDetectResult& InDetectResult, const TArray<FR4SkillBuffInfo>& InSkillBuffInfos ) const
+{
+	for(const FR4SkillBuffInfo& buffInfo : InSkillBuffInfos)
+	{
+		AActor* target = nullptr;
+
+		// 버프 입힐 대상 판정
+		if(buffInfo.Target == ETargetType::Instigator) // 나를 대상으로 하는 버프
+			target = GetOwner();
+		else if(buffInfo.Target == ETargetType::Victim) // 탐지 대상에게 적용하는 버프
+			target = InDetectResult.DetectedActor.Get();
+
+		// 버프 적용
+		if( IR4BuffReceiveInterface* victim = Cast<IR4BuffReceiveInterface>(target) )
+			victim->ReceiveBuff(GetOwner(), buffInfo.BuffClass, buffInfo.BuffSetting);
+	}
+}
+
+/**
+ *  Detect 시 특정한 데미지들을 적용.
+ *  @param InDetectResult : 탐지 결과.
+ *  @param InSkillDamageInfos : 입힐 데미지들.
+ */
+void UR4SkillBase::_ApplyDamages(const FDetectResult& InDetectResult, const TArray<FR4SkillDamageInfo>& InSkillDamageInfos) const
+{
+	for(const FR4SkillDamageInfo& damageInfo : InSkillDamageInfos)
+	{
+		AActor* target = nullptr;
+
+		// 데미지 입힐 대상 판정
+		if(damageInfo.Target == ETargetType::Instigator) // 나를 대상으로 하는 데미지
+			target = GetOwner();
+		else if(damageInfo.Target == ETargetType::Victim) // 탐지 대상에게 적용하는 데미지
+			target = InDetectResult.DetectedActor.Get();
+
+		// 데미지 적용
+		if( IR4DamageReceiveInterface* victim = Cast<IR4DamageReceiveInterface>(target) )
+		{
+			FR4DamageReceiveInfo damageRecvInfo = UtilDamage::CalculateDamageReceiveInfo( GetOwner(), target, damageInfo.DamageInfo );
+			victim->ReceiveDamage( GetOwner(), damageRecvInfo );
+		}
 	}
 }
 
