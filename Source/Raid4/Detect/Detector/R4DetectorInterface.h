@@ -5,10 +5,11 @@
 #include <UObject/Interface.h>
 #include "R4DetectorInterface.generated.h"
 
-struct FDetectResult;
+struct FR4DetectDesc;
+struct FR4DetectResult;
 
 // Detect 결과를 돌려주는 Delegate
-DECLARE_MULTICAST_DELEGATE_OneParam( FOnDetectDelegate, const FDetectResult& /* InDetectResult */);
+DECLARE_MULTICAST_DELEGATE_OneParam( FOnDetectDelegate, const FR4DetectResult& /* InDetectResult */);
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
@@ -29,10 +30,17 @@ public:
 	/**
 	 * 탐지 시작 시 broadcast하는 delegate를 반환
 	 */
-	virtual FOnDetectDelegate& OnBeginDetect( ) = 0;
+	virtual FOnDetectDelegate& OnBeginDetect() = 0;
 
 	/**
 	 * 탐지 종료 시 broadcast하는 delegate를 반환
 	 */
-	virtual FOnDetectDelegate& OnEndDetect( ) = 0;
+	virtual FOnDetectDelegate& OnEndDetect() = 0;
+
+	/**
+	 * 탐지 실행
+	 * @param InInstigator : 탐지의 주체
+	 * @param InDetectDesc : 탐지 관련 Param 
+	 */
+	virtual void ExecuteDetect( const AActor* InInstigator, const FR4DetectDesc& InDetectDesc ) = 0;
 };

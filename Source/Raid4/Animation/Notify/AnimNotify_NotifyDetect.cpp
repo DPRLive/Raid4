@@ -28,7 +28,7 @@ void UAnimNotify_NotifyDetect::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 			continue;
 		}
 
-		if(it->Key == MeshComp->GetOwner())
+		if(it->Key.Get() == MeshComp->GetOwner())
 		{
 			it->Value.ExecuteIfBound();
 			return;
@@ -51,7 +51,7 @@ FSimpleDelegate& UAnimNotify_NotifyDetect::OnNotifyDetect( const AActor* InReqAc
 			continue;
 		}
 
-		if(it->Key == InReqActor)
+		if(it->Key.Get() == InReqActor)
 			return it->Value;
 	}
 
