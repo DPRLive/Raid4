@@ -5,11 +5,12 @@
 #include "../Damage/R4DamageReceiveInterface.h"
 #include "../Detect/R4NotifyDetectInterface.h"
 #include "../Detect/Detector/R4DetectorInterface.h"
-#include "../Detect/DetectResult.h"
+#include "../Detect/R4DetectStruct.h"
 #include "../Util/UtilDamage.h"
 
 #include <Animation/AnimMontage.h>
 #include <Animation/AnimNotifies/AnimNotify.h>
+#include <GameFramework/Pawn.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4SkillBase)
 
@@ -142,51 +143,145 @@ void UR4SkillBase::_BindDetectAndEffect( const TScriptInterface<IR4NotifyDetectI
 	{
 		// this 캡처, WeakLambda 사용
 		detectNotifyObj->OnNotifyDetect( GetOwner() ).BindWeakLambda(this,
-			[this, &InDetectEffectInfo]()
+			[this, &InDetectEffectInfo, reqObj = InDetectNotify.GetObject() ]()
 			{
 				// 탐지 실행
-				_ExecuteDetect(InDetectEffectInfo);
+				_ExecuteDetect( reqObj, InDetectEffectInfo );
 			});
 	}
 }
-
+ 
 /**
  *  Detect 실행
+ *  Owner Client(Disable Collision), Server(+ Enable Collision) 경우에만 생성
+ *  Owner Client : Visual 적인 요소가 필요한 경우 Dummy 생성, 후에 서버에서 생성되면 Dummy 제거
+ *  Server : Collision을 포함한 실제 Detector 생성
+ *  @param InRequestObj : 탐지 시점을 알린 객체. (AnimNotify 라던가)
  *  @param InDetectEffectInfo : 탐지 클래스 및 효과.
  */
-void UR4SkillBase::_ExecuteDetect( const FR4DetectEffectWrapper& InDetectEffectInfo )
+void UR4SkillBase::_ExecuteDetect( const UObject* InRequestObj, const FR4DetectEffectWrapper& InDetectEffectInfo )
 {
-	if(!IsValid(InDetectEffectInfo.DetectInfo.DetectClass))
+	if(!IsValid(InDetectEffectInfo.DetectInfo.DetectClass) || !IsValid(InRequestObj))
 		return;
 
-	// Ready Detect
-	UObject* detectObj = OBJECT_POOL->GetObject(InDetectEffectInfo.DetectInfo.DetectClass);
-
-	if(!IsValid(detectObj))
+	// Simulated Proxy인 경우, 필요 없음.
+	if(GetOwnerRole() == ROLE_SimulatedProxy)
 		return;
-	
-	if( IR4DetectorInterface* detectInterface = Cast<IR4DetectorInterface>(detectObj) )
+
+	// Owner Client 이지만 Dummy가 필요한 경우 (Visual 적인 요소가 필요한 경우)
+	if(GetOwnerRole() == ROLE_AutonomousProxy && InDetectEffectInfo.DetectInfo.bHasVisual)
 	{
-		// this capture, weak lambda 사용
-
-		// bind OnBeginDetect buff, damage
-		detectInterface->OnBeginDetect().AddWeakLambda(this,
-			[this, &InDetectEffectInfo](const FDetectResult& InDetectResult)
-		{
-			_ApplyBuffs( InDetectResult, InDetectEffectInfo.EffectInfo.OnBeginDetectBuffs );
-			_ApplyDamages( InDetectResult, InDetectEffectInfo.EffectInfo.OnBeginDetectDamages );
-		});
-
-		// bind OnEndDetect buff, damage
-		detectInterface->OnEndDetect().AddWeakLambda(this,
-	[this, &InDetectEffectInfo](const FDetectResult& InDetectResult)
-		{
-			_ApplyBuffs( InDetectResult, InDetectEffectInfo.EffectInfo.OnEndDetectBuffs );
-			_ApplyDamages( InDetectResult, InDetectEffectInfo.EffectInfo.OnEndDetectDamages );
-		});
+		_CreateDummyDetector( InRequestObj, InDetectEffectInfo.DetectInfo );
+		return;
 	}
 
-	// TODO : Execute Detect ...
+	// Server인 경우, 실제 Collision을 사용 & Effect 적용
+	if(GetOwnerRole() == ROLE_Authority)
+		_CreateAuthorityDetector( InRequestObj, InDetectEffectInfo );
+}
+
+/**
+ *  Collision 설정을 변경하지 않는 Dummy Detector 생성.
+ *  @param InRequestObj : Detect를 요청한 객체. Authority에 의한 Dummy Detector 제거 등에 사용
+ *  @param InSkillDetectInfo : 탐지 정보
+ */
+void UR4SkillBase::_CreateDummyDetector( const UObject* InRequestObj, const FR4SkillDetectInfo& InSkillDetectInfo )
+{
+	// Detector 준비 Dummy를 생성.
+	TScriptInterface<IR4DetectorInterface> detector(OBJECT_POOL->GetObject(InSkillDetectInfo.DetectClass));
+	if(!IsValid(detector.GetObject()) || detector.GetInterface() == nullptr)
+	{
+		OBJECT_POOL->ReturnPoolObject(detector.GetObject());
+		return;
+	}
+
+	// TODO : Origin 넘기는 방법 여러가지로 ..
+	FTransform origin;
+	if(GetOwner())
+		origin = GetOwner()->GetActorTransform();
+	
+	detector->ExecuteDetect( origin, InSkillDetectInfo.DetectDesc);
+
+	// Dummy에 Push
+	CachedDetectorDummy.Emplace( InRequestObj, detector.GetObject() );
+}
+
+/**
+ *  Collision을 활성화 시킨 Detector 생성. 
+ *  @param InRequestObj : Detect를 요청한 객체. Authority에 의한 Dummy Detector 제거 등에 사용
+ *  @param InDetectEffectInfo : 탐지 정보 및 효과
+ */
+void UR4SkillBase::_CreateAuthorityDetector( const UObject* InRequestObj, const FR4DetectEffectWrapper& InDetectEffectInfo )
+{
+	// Detector 준비
+	TScriptInterface<IR4DetectorInterface> detector(OBJECT_POOL->GetObject(InDetectEffectInfo.DetectInfo.DetectClass));
+	if(!IsValid(detector.GetObject()) || detector.GetInterface() == nullptr)
+	{
+		OBJECT_POOL->ReturnPoolObject(detector.GetObject());
+		return;
+	}
+
+	// this capture, weak lambda 사용
+	// bind OnBeginDetect buff, damage
+	detector.GetInterface()->OnBeginDetect().AddWeakLambda(this,
+		[this, &InDetectEffectInfo](const FR4DetectResult& InDetectResult)
+	{
+		_Server_ApplyBuffs( InDetectResult, InDetectEffectInfo.EffectInfo.OnBeginDetectBuffs );
+		_Server_ApplyDamages( InDetectResult, InDetectEffectInfo.EffectInfo.OnBeginDetectDamages );
+	});
+	
+	// bind OnEndDetect buff, damage
+	detector.GetInterface()->OnEndDetect().AddWeakLambda(this,
+[this, &InDetectEffectInfo](const FR4DetectResult& InDetectResult)
+	{
+		_Server_ApplyBuffs( InDetectResult, InDetectEffectInfo.EffectInfo.OnEndDetectBuffs );
+		_Server_ApplyDamages( InDetectResult, InDetectEffectInfo.EffectInfo.OnEndDetectDamages );
+	});
+
+	// enable collision
+	if(AActor* detectActor = Cast<AActor>(detector.GetObject()))
+		detectActor->SetActorEnableCollision(true);
+
+	// TODO : Origin 넘기는 방법 여러가지로 ..
+	FTransform origin;
+	if(GetOwner())
+		origin = GetOwner()->GetActorTransform();
+	
+	// 탐지 실행
+	detector.GetInterface()->ExecuteDetect(origin, InDetectEffectInfo.DetectInfo.DetectDesc);
+
+	// Owner Client에게 Dummy 제거 명령 전송
+	_ClientRPC_RemoveDummy( InRequestObj );
+}
+
+/**
+ *  Collision을 활성화 시킨 Detector 생성. 
+ *  @param InRequestObj : Detect를 요청한 객체. Authority에 의한 Dummy Detector 제거 등에 사용
+ */
+void UR4SkillBase::_ClientRPC_RemoveDummy_Implementation( const UObject* InRequestObj )
+{
+	if(GetOwnerRole() != ROLE_AutonomousProxy)
+		return;
+	
+	// InRequestObj가 요청했던 Detector는 생성했으니 이만 제거
+	for(auto it = CachedDetectorDummy.CreateIterator(); it; ++it)
+	{
+		// Key 또는 Value가 Invalid한 객체에 대한 element는 삭제
+		if(!(it->Key.IsValid()) || !(it->Value.IsValid()))
+		{
+			it.RemoveCurrentSwap();
+			continue;
+		}
+
+		// match 되는 key를 찾으면 dummy 제거.
+		if(it->Key.Get() == InRequestObj)
+		{
+			OBJECT_POOL->ReturnPoolObject(it->Value.Get());
+			it.RemoveCurrentSwap();
+
+			return;
+		}
+	}
 }
 
 /**
@@ -194,8 +289,11 @@ void UR4SkillBase::_ExecuteDetect( const FR4DetectEffectWrapper& InDetectEffectI
  *  @param InDetectResult : 탐지 결과.
  *  @param InSkillBuffInfos : 입힐 SkillBuff 들
  */
-void UR4SkillBase::_ApplyBuffs( const FDetectResult& InDetectResult, const TArray<FR4SkillBuffInfo>& InSkillBuffInfos ) const
+void UR4SkillBase::_Server_ApplyBuffs( const FR4DetectResult& InDetectResult, const TArray<FR4SkillBuffInfo>& InSkillBuffInfos ) const
 {
+	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server")))
+		return;
+	
 	for(const FR4SkillBuffInfo& buffInfo : InSkillBuffInfos)
 	{
 		AActor* target = nullptr;
@@ -217,8 +315,11 @@ void UR4SkillBase::_ApplyBuffs( const FDetectResult& InDetectResult, const TArra
  *  @param InDetectResult : 탐지 결과.
  *  @param InSkillDamageInfos : 입힐 데미지들.
  */
-void UR4SkillBase::_ApplyDamages(const FDetectResult& InDetectResult, const TArray<FR4SkillDamageInfo>& InSkillDamageInfos) const
+void UR4SkillBase::_Server_ApplyDamages(const FR4DetectResult& InDetectResult, const TArray<FR4SkillDamageInfo>& InSkillDamageInfos) const
 {
+	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server")))
+		return;
+	
 	for(const FR4SkillDamageInfo& damageInfo : InSkillDamageInfos)
 	{
 		AActor* target = nullptr;
@@ -237,25 +338,3 @@ void UR4SkillBase::_ApplyDamages(const FDetectResult& InDetectResult, const TArr
 		}
 	}
 }
-
-/**
- *  스킬 사용의 유효성을 검증한다.
- *  @param InActivateTime : 클라이언트가 스킬 사용 당시의 서버 시간
- */
-// bool UR4SkillBase::ServerRPC_ActivateSkill_Validate(const TSoftObjectPtr<UAnimMontage>& InSkillAnim, float InActivateTime)
-// {
-// 	// 사용한 시간이 쿨타임 + 오차허용시간 보다 짧다?
-// 	// if((InActivateTime - LastActivateTime) <  (/* 쿹타임 - */ Validation::G_AcceptMinCoolTime) )
-// 	// 	return false;
-// 	return true;
-// }
-//
-// /**
-//  *  서버로 스킬 사용을 알린다.
-//  *  @param InActivateTime : 클라이언트에서 스킬을 사용했을 때의 서버 시간
-//  */
-// void UR4SkillBase::ServerRPC_ActivateSkill_Implementation(const TSoftObjectPtr<UAnimMontage>& InSkillAnim, float InActivateTime)
-// {
-// 	// 스킬 사용시간 기록
-// 	CachedLastActivateTime = InActivateTime;
-// }

@@ -1,7 +1,8 @@
 ﻿#pragma once
 
-#include "../Damage/R4DamageStruct.h"
+#include "../Detect/R4DetectStruct.h"
 #include "../Buff/R4BuffStruct.h"
+#include "../Damage/R4DamageStruct.h"
 
 #include "R4SkillStruct.generated.h"
 
@@ -16,12 +17,25 @@ struct FR4SkillDetectInfo
 {
 	GENERATED_BODY()
 
-	// TODO : Detect Actor Class.. //
-	// 어떤 방식으로 Detect를 진행할 것인지.
-	UPROPERTY( EditAnywhere )
+	FR4SkillDetectInfo()
+	: DetectClass(nullptr)
+	, bHasVisual(false)
+	, DetectDesc(FR4DetectDesc())
+	{}
+	
+	// 어떤 클래스로 Detect를 진행할 것인지.
+	// Collision이 Disable된 상태로 설정.
+	UPROPERTY( EditAnywhere, meta = ( MustImplement = "R4DetectorInterface" ) )
 	TSubclassOf<AActor> DetectClass;
-
-	// TODO : Pos, Rot, ...
+	
+	// 해당 Detect Class가 Visual적인 요소를 포함하고 있는지?
+	// ex) 투사체
+	UPROPERTY( EditAnywhere )
+	uint8 bHasVisual:1;
+	
+	// 탐지에 관한 Parameter.
+	UPROPERTY( EditAnywhere )
+	FR4DetectDesc DetectDesc;
 };
 
 /**
@@ -32,6 +46,12 @@ struct FR4SkillBuffInfo
 {
 	GENERATED_BODY()
 
+	FR4SkillBuffInfo()
+	: Target(ETargetType::Victim)
+	, BuffClass(nullptr)
+	, BuffSetting(FR4BuffSettingDesc())
+	{}
+	
 	// 버프를 적용할 타겟. Instigator : 나. Victim : Detect 된 Actor
 	UPROPERTY( EditAnywhere )
 	ETargetType Target;
@@ -53,6 +73,11 @@ struct FR4SkillDamageInfo
 {
 	GENERATED_BODY()
 
+	FR4SkillDamageInfo()
+	: Target(ETargetType::Victim)
+	, DamageInfo(FR4DamageApplyDesc())
+	{}
+	
 	// 데미지를 적용할 타겟. Instigator : 나. Victim : Detect 된 Actor
 	UPROPERTY( EditAnywhere )
 	ETargetType Target;
@@ -71,19 +96,19 @@ struct FR4SkillEffectInfo
 	GENERATED_BODY()
 	
 	// OnDetect 시 적용할 버프
-	UPROPERTY( EditAnywhere )
+	UPROPERTY( EditAnywhere, Category = OnBegin )
 	TArray<FR4SkillBuffInfo> OnBeginDetectBuffs;
 	
 	// OnEndDetect 시 적용할 버프
-	UPROPERTY( EditAnywhere )
+	UPROPERTY( EditAnywhere, Category = OnEnd )
 	TArray<FR4SkillBuffInfo> OnEndDetectBuffs;
 
 	// OnDetect 시 적용할 데미지
-	UPROPERTY( EditAnywhere )
+	UPROPERTY( EditAnywhere, Category = OnBegin )
 	TArray<FR4SkillDamageInfo> OnBeginDetectDamages;
 	
 	// OnEndDetect 시 적용할 데미지
-	UPROPERTY( EditAnywhere )
+	UPROPERTY( EditAnywhere, Category = OnEnd )
 	TArray<FR4SkillDamageInfo> OnEndDetectDamages;
 };
 
@@ -95,6 +120,11 @@ struct FR4DetectEffectWrapper
 {
 	GENERATED_BODY()
 
+	FR4DetectEffectWrapper()
+	: DetectInfo(FR4SkillDetectInfo())
+	, EffectInfo(FR4SkillEffectInfo())
+	{}
+	
 	// 탐지할 방법
 	UPROPERTY( EditAnywhere )
 	FR4SkillDetectInfo DetectInfo;
@@ -114,7 +144,7 @@ struct FR4SkillAnimInfo
 	GENERATED_BODY()
 	
 	FR4SkillAnimInfo()
-		: SkillAnim(nullptr)
+	: SkillAnim(nullptr)
 	{}
 	
 	// 발동할 Skill Anim

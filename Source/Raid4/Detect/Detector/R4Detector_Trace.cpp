@@ -1,35 +1,36 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "R4Detector_OneFrame.h"
+#include "R4Detector_Trace.h"
 
 #include "../R4DetectStruct.h"
 #include "../../Util/UtilOverlap.h"
 
 #include <Engine/OverlapResult.h>
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(R4Detector_OneFrame)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(R4Detector_Trace)
 
-AR4Detector_OneFrame::AR4Detector_OneFrame()
+AR4Detector_Trace::AR4Detector_Trace()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bRelevantForLevelBounds = false;
 	SetCanBeDamaged(false);
 
-	// Local에서 체크할 예정
+	// 1프레임만 체크하는 해당 클래스의 경우 Visual 적인 요소가 없다고 판단
 	SetReplicates(false);
+	SetActorEnableCollision(false);
 	
 	bDrawDebug = true;
 	DebugTime = 1.f;
 	DebugColor = FColor::Green;
 }
 
-void AR4Detector_OneFrame::BeginPlay()
+void AR4Detector_Trace::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void AR4Detector_OneFrame::PreReturnPoolObject()
+void AR4Detector_Trace::PreReturnPoolObject()
 {
 	Super::PreReturnPoolObject();
 
@@ -39,17 +40,16 @@ void AR4Detector_OneFrame::PreReturnPoolObject()
 
 /**
  *	Detect 실행
- *	@param InInstigator : 탐지를 요청한 객체
+ *	@param InOrigin : 탐지의 기준이 되는 Transform
  *	@param InDetectDesc : Detect 실행에 필요한 Param
  */
-void AR4Detector_OneFrame::ExecuteDetect( const AActor* InInstigator, const FR4DetectDesc& InDetectDesc )
+void AR4Detector_Trace::ExecuteDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc )
 {
 	if (const UWorld* world = GetWorld(); IsValid(world))
 	{
 		// Relative Location을 더한 위치, 회전을 구함
-		const FTransform& originTrans = InInstigator->GetActorTransform();
-		const FVector center = originTrans.TransformPosition(InDetectDesc.RelativeLoc);
-		const FQuat quat = originTrans.GetRotation() * InDetectDesc.RelativeRot.Quaternion();
+		const FVector center = InOrigin.TransformPosition(InDetectDesc.RelativeLoc);
+		const FQuat quat = InOrigin.GetRotation() * InDetectDesc.RelativeRot.Quaternion();
 
 		FCollisionQueryParams params;
 		TArray<FOverlapResult> overlapResults;

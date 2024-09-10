@@ -16,7 +16,7 @@ struct FR4DetectDesc
 	, RelativeRot( FRotator::ZeroRotator )
 	{}
 
-	// overlap을 체크할 기준점으로부터의 (일반적으로 캐릭터 양발 중심 정도) 상대 위치.
+	// overlap을 체크할 기준점으로부터의 상대 위치.
 	UPROPERTY( EditAnywhere )
 	FVector RelativeLoc;
 	

@@ -5,9 +5,7 @@
 #include "R4DetectorInterface.h"
 #include "../../Core/ObjectPool/PoolableActor.h"
 
-#include <GameFramework/Actor.h>
-
-#include "R4Detector_OneFrame.generated.h"
+#include "R4Detector_Trace.generated.h"
 
 /**
  *  Overlap 체크시 사용할 모양
@@ -63,16 +61,17 @@ struct FR4DetectShapeInfo
 };
 
 /**
- * 1프레임만 Detect를 수행하는 클래스.
+ * Trace를 기반으로 Detect를 수행하는 클래스.
+ * 기본적으로 Not Replicate & Disable Collision.
  */
 UCLASS( Abstract, HideCategories = ( Tick, Replication, Rendering, Actor, Input, HLOD, Physics, LevelInstance, WorldPartition, DataLayers ) )
-class RAID4_API AR4Detector_OneFrame : public APoolableActor,
+class RAID4_API AR4Detector_Trace : public APoolableActor,
 										public IR4DetectorInterface
 {
 	GENERATED_BODY()
 
 public:
-	AR4Detector_OneFrame();
+	AR4Detector_Trace();
 
 protected:
 	virtual void BeginPlay() override;
@@ -86,7 +85,7 @@ public:
 	// ~ Begin IR4DetectorInterface
 	FORCEINLINE virtual FOnDetectDelegate& OnBeginDetect() override { return OnBeginDetectDelegate; }
 	FORCEINLINE virtual FOnDetectDelegate& OnEndDetect() override { return OnEndDetectDelegate; }
-	virtual void ExecuteDetect( const AActor* InInstigator, const FR4DetectDesc& InDetectDesc ) override;
+	virtual void ExecuteDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) override;
 	// ~ End IR4DetectorInterface
 private:
 	// Detect에 사용할 모양 정보

@@ -9,7 +9,7 @@
 
 #include "R4SkillBase.generated.h"
 
-struct FDetectResult;
+struct FR4DetectResult;
 class IR4NotifyDetectInterface;
 
 /**
@@ -53,20 +53,34 @@ public:
 private:
 	// DetectNotify <-> FR4DetectEffectWrapper 연결
 	void _BindDetectAndEffect( const TScriptInterface<IR4NotifyDetectInterface>& InDetectNotify, const FR4DetectEffectWrapper& InDetectEffectInfo );
-
+	
 	// 특정 SkillAnim을 Play
 	//void _PlaySkillAnim(const FR4SkillAnimInfo& InSkillAnimInfo);
 	
 	// Detect 실행
-	void _ExecuteDetect( const FR4DetectEffectWrapper& InDetectEffectInfo );
+	void _ExecuteDetect( const UObject* InRequestObj, const FR4DetectEffectWrapper& InDetectEffectInfo );
 
+	// Dummy Detector 생성
+	void _CreateDummyDetector( const UObject* InRequestObj, const FR4SkillDetectInfo& InSkillDetectInfo );
+	
+	// Authority Detector 생성
+	void _CreateAuthorityDetector( const UObject* InRequestObj, const FR4DetectEffectWrapper& InDetectEffectInfo );
+
+	// Server -> All Client로 Dummy 제거 요청.
+	UFUNCTION( Client, Unreliable )
+	void _ClientRPC_RemoveDummy( const UObject* InRequestObj );
+	
 	// Detect 시 특정한 버프들을 적용.
-	void _ApplyBuffs( const FDetectResult& InDetectResult, const TArray<FR4SkillBuffInfo>& InSkillBuffInfos ) const;
+	void _Server_ApplyBuffs( const FR4DetectResult& InDetectResult, const TArray<FR4SkillBuffInfo>& InSkillBuffInfos ) const;
 
 	// Detect 시 특정한 데미지들을 적용.
-	void _ApplyDamages( const FDetectResult& InDetectResult, const TArray<FR4SkillDamageInfo>& InSkillDamageInfos ) const;
-	
+	void _Server_ApplyDamages( const FR4DetectResult& InDetectResult, const TArray<FR4SkillDamageInfo>& InSkillDamageInfos ) const;
+
 protected:
 	// 쿹타임 체크를 위한 CoolTimeChecker
 	TUniquePtr<TTimeLimitChecker<int32>> CoolTimeChecker;
+
+	// Detector의 Dummy 체크를 위한 Array
+	// {해당 Detector를 요청한 UObject, Detector}
+	TArray<TPair<TWeakObjectPtr<const UObject>, TWeakObjectPtr<UObject>>> CachedDetectorDummy;
 };

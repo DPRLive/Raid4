@@ -10,6 +10,8 @@
 
 /**
  * Detect할 타이밍을 알리는 Anim Notify
+ * Detect 타이밍이 정확하고 보장되어야 한다면
+ * Montage Tick Type을 Branching Point로 사용.
  */
 UCLASS()
 class RAID4_API UAnimNotify_NotifyDetect : public UAnimNotify, public IR4NotifyDetectInterface
