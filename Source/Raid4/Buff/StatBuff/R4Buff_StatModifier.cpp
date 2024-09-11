@@ -2,7 +2,8 @@
 
 
 #include "R4Buff_StatModifier.h"
-#include "../../Stat/R4StatBaseComponent.h"
+#include "../../Stat/R4TagStatQueryInterface.h"
+#include "../../Stat/R4StatStruct.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4Buff_StatModifier)
 
@@ -50,13 +51,12 @@ bool UR4Buff_StatModifier::SetupBuff(AActor* InInstigator, AActor* InVictim)
 {
 	bool bReady = Super::SetupBuff(InInstigator, InVictim);
 
-	// 버프 받을 객체의 StatComp를 캐싱
-	if(CachedVictim.IsValid())
-		CachedStatComp = CachedVictim->FindComponentByClass<UR4StatBaseComponent>();
-	
-	CachedDeltaValue = ( ModifierType == EOperatorType::Add ? 0.f : 1.f );
 
-	return bReady && CachedStatComp.IsValid();
+	if(!InVictim->GetClass())
+		return false;
+	
+	// R4TagStatQueryInterface 구현이 되었는지 확인
+	return bReady && InVictim->GetClass()->ImplementsInterface(UR4TagStatQueryInterface::StaticClass());
 }
 
 /**
@@ -67,11 +67,12 @@ bool UR4Buff_StatModifier::ApplyBuff()
 	if(!Super::ApplyBuff())
 		return false;
 	
-	if(!CachedStatComp.IsValid())
+	IR4TagStatQueryInterface* target = Cast<IR4TagStatQueryInterface>(CachedVictim);
+	if(target == nullptr)
 		return false;
 
 	// 스탯을 찾아서 적용
-	if(FR4StatInfo* statData = CachedStatComp->GetStatByTag<FR4StatInfo>(TargetStatTag))
+	if(FR4StatInfo* statData = target->GetStatByTag(TargetStatTag))
 	{
 		float prevTotalValue = statData->GetTotalValue();
 
@@ -95,7 +96,7 @@ bool UR4Buff_StatModifier::ApplyBuff()
 		// Current Stat 비례하도록 변경
 		if(bApplyProportionalAdjustment && TargetStatTag.MatchesTag(TAG_STAT_CURRENT) && !FMath::IsNearlyZero(prevTotalValue))
 		{
-			if(FR4CurrentStatInfo* currStatData = CachedStatComp->GetStatByTag<FR4CurrentStatInfo>(TargetStatTag))
+			if(FR4CurrentStatInfo* currStatData = target->GetCurrentStatByTag(TargetStatTag))
 				currStatData->SetCurrentValue(currStatData->GetCurrentValue() / prevTotalValue * currStatData->GetTotalValue());
 		}
 
@@ -113,13 +114,14 @@ void UR4Buff_StatModifier::Deactivate()
 {
 	Super::Deactivate();
 	
-	if(!CachedStatComp.IsValid())
+	IR4TagStatQueryInterface* target = Cast<IR4TagStatQueryInterface>(CachedVictim);
+	if(target == nullptr)
 		return;
 	
 	float prevTotalValue = 0.f;
 	
 	// 누적 한 값 돌려주기
-	if(FR4StatInfo* statData = CachedStatComp->GetStatByTag<FR4StatInfo>(TargetStatTag))
+	if(FR4StatInfo* statData = target->GetStatByTag(TargetStatTag))
 	{
 		prevTotalValue = statData->GetTotalValue();
 		
@@ -139,7 +141,7 @@ void UR4Buff_StatModifier::Deactivate()
 	// Current Stat 비례하도록 변경
 	if(bApplyProportionalAdjustment && TargetStatTag.MatchesTag(TAG_STAT_CURRENT) && !FMath::IsNearlyZero(prevTotalValue))
 	{
-		if(FR4CurrentStatInfo* statData = CachedStatComp->GetStatByTag<FR4CurrentStatInfo>(TargetStatTag))
+		if(FR4CurrentStatInfo* statData = target->GetCurrentStatByTag(TargetStatTag))
 			statData->SetCurrentValue(statData->GetCurrentValue() / prevTotalValue * statData->GetTotalValue());
 	}
 	
@@ -153,6 +155,5 @@ void UR4Buff_StatModifier::Reset()
 {
 	Super::Reset();
 
-	CachedStatComp.Reset();
 	CachedDeltaValue = ( ModifierType == EOperatorType::Add ? 0.f : 1.f );
 }

@@ -7,12 +7,10 @@
 
 #include "R4Buff_StatModifier.generated.h"
 
-class UR4StatBaseComponent;
-
 /**
  * Stat Modifier를 변경할 수 있는 버프.
  * Value를 Modifier Stat와의 피연산자로 사용.
- * Stat Comp에 의존.
+ * IR4TagStatQueryInterface에 의존.
  * Deactivate 시 변경했던 Modifier의 Delta만큼 원래대로 복구
  */
 UCLASS( HideDropdown, NotBlueprintType, Blueprintable, ClassGroup=(Buff) )
@@ -60,9 +58,6 @@ private:
 	// ex) 최대 체력이 100에서 150으로 50% 증가 시 현재 체력도 50% 증가. 예를 들어, 기존 체력이 50이면 새로운 체력은 75.
 	UPROPERTY( EditDefaultsOnly, Category = "CurrentStat", meta= (AllowPrivateAccess = true))
 	uint8 bApplyProportionalAdjustment:1;
-	
-	// Base Stat Comp 캐싱
-	TWeakObjectPtr<UR4StatBaseComponent> CachedStatComp;
 	
 	// Modifier에 적용한 delta 값
 	float CachedDeltaValue;

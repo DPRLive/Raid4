@@ -2,7 +2,8 @@
 
 
 #include "R4Buff_StatCurrModifier.h"
-#include "../../Stat/R4StatBaseComponent.h"
+#include "../../Stat/R4TagStatQueryInterface.h"
+#include "../../Stat/R4StatStruct.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4Buff_StatCurrModifier)
 
@@ -26,11 +27,11 @@ bool UR4Buff_StatCurrModifier::SetupBuff(AActor* InInstigator, AActor* InVictim)
 {
 	bool bReady = Super::SetupBuff(InInstigator, InVictim);
 
-	// 버프 받을 객체의 StatComp를 캐싱
-	if(CachedVictim.IsValid())
-		CachedStatComp = CachedVictim->FindComponentByClass<UR4StatBaseComponent>();
+	if(!InVictim->GetClass())
+		return false;
 	
-	return bReady && CachedStatComp.IsValid();
+	// R4TagStatQueryInterface 구현이 되었는지 확인
+	return bReady && InVictim->GetClass()->ImplementsInterface(UR4TagStatQueryInterface::StaticClass());
 }
 
 /**
@@ -40,12 +41,13 @@ bool UR4Buff_StatCurrModifier::ApplyBuff()
 {
 	if(!Super::ApplyBuff())
 		return false;
-	
-	if(!CachedStatComp.IsValid())
+
+	IR4TagStatQueryInterface* target = Cast<IR4TagStatQueryInterface>(CachedVictim);
+	if(target == nullptr)
 		return false;
 	
 	// 스탯을 찾아서 적용
-	if(FR4CurrentStatInfo* statData = CachedStatComp->GetStatByTag<FR4CurrentStatInfo>(TargetStatTag))
+	if(FR4CurrentStatInfo* statData = target->GetCurrentStatByTag(TargetStatTag))
 	{
 		// Operator에 따라 연산 처리
 		float newValue = 0.f;
@@ -78,15 +80,4 @@ bool UR4Buff_StatCurrModifier::ApplyBuff()
 	}
 
 	return false;
-}
-
-
-/**
- *  해당 버프 클래스를 초기 상태로 Reset
- */
-void UR4Buff_StatCurrModifier::Reset()
-{
-	Super::Reset();
-
-	CachedStatComp.Reset();
 }

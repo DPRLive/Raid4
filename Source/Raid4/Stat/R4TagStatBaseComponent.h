@@ -4,20 +4,19 @@
 
 #include <Components/ActorComponent.h>
 #include "R4StatStruct.h"
-#include "R4StatBaseComponent.generated.h"
+#include "R4TagStatBaseComponent.generated.h"
 
 /**
- * Stat Component의 Base가 되는 클래스
- * GameplayTag로 쿼리하는 기능을 제공.
+ * GameplayTag로 쿼리하는 기능을 제공하는 StatComp.
  * ( Stat Comp가 해당 '000' 스탯을 가지고 있을지 없을지 모를때 유용할 것이야!!)
  */
 UCLASS( Abstract )
-class RAID4_API UR4StatBaseComponent : public UActorComponent
+class RAID4_API UR4TagStatBaseComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
-	UR4StatBaseComponent();
+	UR4TagStatBaseComponent();
 
 protected:
 	virtual void BeginPlay() override;
@@ -52,7 +51,7 @@ private:
  * 해당 Stat Comp가 Tag에 맞는 스탯을 들고 있을지 없을지 명확하지 않을때, 유용하게 사용 가능
  */
 template <typename T>
-T* UR4StatBaseComponent::GetStatByTag(const FGameplayTag& InTag)
+T* UR4TagStatBaseComponent::GetStatByTag(const FGameplayTag& InTag)
 {
 	if(auto value = TagCurrentStats.Find(InTag))
 		return *value;

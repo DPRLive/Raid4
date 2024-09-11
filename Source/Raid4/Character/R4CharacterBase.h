@@ -7,6 +7,7 @@
 #include "../UI/StatusBar/R4StatusBarInterface.h"
 #include "../Buff/R4BuffReceiveInterface.h"
 #include "../Animation/R4AnimationInterface.h"
+#include "../Stat/R4TagStatQueryInterface.h"
 
 #include <GameFramework/Character.h>
 
@@ -38,6 +39,7 @@ struct FBuffTest
 UCLASS()
 class RAID4_API AR4CharacterBase : public ACharacter, public IR4DTDataPushInterface,
 									public IR4DamageReceiveInterface, public IR4BuffReceiveInterface,
+									public IR4TagStatQueryInterface,
 									public IR4StatusBarInterface, public IR4AnimationInterface
 {
 	GENERATED_BODY()
@@ -75,7 +77,11 @@ public:
 	// ~ Begin IR4BuffReceiveInterface
 	virtual void ReceiveBuff(AActor* InInstigator, const TSubclassOf<UR4BuffBase>& InBuffClass, const FR4BuffSettingDesc& InBuffSettingDesc) override;
 	// ~ End IR4BuffReceiveInterface
-	
+
+	// ~ Begin IR4TagStatQueryInterface
+	virtual FR4StatInfo* GetStatByTag( const FGameplayTag& InTag ) const override;
+	virtual FR4CurrentStatInfo* GetCurrentStatByTag( const FGameplayTag& InTag ) const override;
+	// ~ End IR4TagStatQueryInterface
 protected:
 	// StatComp와 필요한 바인딩을 진행
 	virtual void BindStatComponent();

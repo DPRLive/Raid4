@@ -7,12 +7,10 @@
 
 #include "R4Buff_StatCurrModifier.generated.h"
 
-class UR4StatBaseComponent;
-
 /**
  * 'Current' Stat을 변경할 수 있는 버프. ( Current Stat에 사용 )
  * Value를 Current Stat와의 피연산자로 사용.
- * Stat Comp에 의존.
+ * IR4TagStatQueryInterface에 의존.
  * Deactivate 불가.
  */
 UCLASS( HideDropdown, NotBlueprintType, Blueprintable, ClassGroup=(Buff),  HideCategories=(Deactivate) )
@@ -30,10 +28,6 @@ public:
 	
 	// 버프를 적용, 실제로 해당 Buff가 적용할 효과 로직을 정의. SetupBuff 후 사용.
 	virtual bool ApplyBuff() override;
-
-protected:
-	// 해당 버프 클래스를 초기 상태로 Reset
-	virtual void Reset() override;
 	
 private:
 	// 무슨 스탯을 변경할 것인지 태그로 설정
@@ -55,7 +49,4 @@ private:
 	// Current Value가 Total 스탯 값((Base + AddModify) * MultiplyModify) 을 넘어가는 것을 허용할 것인지
 	UPROPERTY( EditDefaultsOnly, Category = "Clamp",  meta = (AllowPrivateAccess = true))
 	uint8 bAllowOverTotalStat:1;
-	
-	// Base Stat Comp 캐싱
-	TWeakObjectPtr<UR4StatBaseComponent> CachedStatComp;
 };

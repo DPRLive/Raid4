@@ -5,14 +5,14 @@
 #include "../R4StatStruct.h"
 #include "../R4StatMacro.h"
 #include "../../Data/R4DTDataPushInterface.h"
-#include "../R4StatBaseComponent.h"
+#include "../R4TagStatBaseComponent.h"
 #include "R4CharacterStatComponent.generated.h"
 
 /**
  * 캐릭터에게 스탯 기능을 추가하는 컴포넌트
  */
 UCLASS( ClassGroup=(Stat), meta=(BlueprintSpawnableComponent) )
-class RAID4_API UR4CharacterStatComponent : public UR4StatBaseComponent, public IR4DTDataPushInterface
+class RAID4_API UR4CharacterStatComponent : public UR4TagStatBaseComponent, public IR4DTDataPushInterface
 {
 	GENERATED_BODY()
 	

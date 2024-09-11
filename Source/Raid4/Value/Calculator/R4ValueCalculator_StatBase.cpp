@@ -2,7 +2,8 @@
 
 
 #include "R4ValueCalculator_StatBase.h"
-#include "../../Stat/R4StatBaseComponent.h"
+#include "../../Stat/R4TagStatQueryInterface.h"
+#include "../../Stat/R4StatStruct.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4ValueCalculator_StatBase)
 
@@ -26,22 +27,22 @@ float UR4ValueCalculator_StatBase::CalculateValue(const AActor* InInstigator, co
 	if(!IsValid(target))
 		return 0.f;
 	
-	if (UR4StatBaseComponent* targetStatComp = target->FindComponentByClass<UR4StatBaseComponent>())
+	if (const IR4TagStatQueryInterface* queryTarget = Cast<IR4TagStatQueryInterface>(target))
 	{
 		switch (OperandType)
 		{
 		case EStatOperandType::Base:
-			if (FR4StatInfo* stat = targetStatComp->GetStatByTag<FR4StatInfo>(StatTag))
+			if (FR4StatInfo* stat = queryTarget->GetStatByTag(StatTag))
 				return stat->GetBaseValue() * Proportion;
 			break;
 
 		case EStatOperandType::Current:
-			if (FR4CurrentStatInfo* stat = targetStatComp->GetStatByTag<FR4CurrentStatInfo>(StatTag))
+			if (FR4CurrentStatInfo* stat = queryTarget->GetCurrentStatByTag(StatTag))
 				return stat->GetCurrentValue() * Proportion;
 			break;
 
 		default: case EStatOperandType::Total:
-			if (FR4StatInfo* stat = targetStatComp->GetStatByTag<FR4StatInfo>(StatTag))
+			if (FR4StatInfo* stat = queryTarget->GetStatByTag(StatTag))
 				return stat->GetTotalValue() * Proportion;
 			break;
 		}

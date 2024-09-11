@@ -1,6 +1,7 @@
 ﻿#include "UtilDamage.h"
 
-#include "../Stat/R4StatBaseComponent.h"
+#include "../Stat/R4TagStatQueryInterface.h"
+#include "../Stat/R4StatStruct.h"
 
 /**
 *  R4DamageApplyDesc를 기반으로 데미지를 계산하여 R4DamageReceiveInfo를 산출.
@@ -23,14 +24,14 @@ FR4DamageReceiveInfo UtilDamage::CalculateDamageReceiveInfo(const AActor* InInst
 		
 		if(IsValid(InInstigator))
 		{
-			if(UR4StatBaseComponent* instigatorStat = InInstigator->FindComponentByClass<UR4StatBaseComponent>())
+			if(const IR4TagStatQueryInterface* instigator = Cast<IR4TagStatQueryInterface>(InInstigator))
 			{
 				// 크리티컬 확률
-				if(FR4StatInfo* criticalStat = instigatorStat->GetStatByTag<FR4StatInfo>(TAG_STAT_NORMAL_CriticalChance))
+				if(FR4StatInfo* criticalStat = instigator->GetStatByTag(TAG_STAT_NORMAL_CriticalChance))
 					i_CriticalChance = criticalStat->GetTotalValue();
 
 				// 데미지 증감량
-				if(FR4StatInfo* applyDamageMultiplier = instigatorStat->GetStatByTag<FR4StatInfo>(TAG_STAT_NORMAL_ApplyDamageMultiplier))
+				if(FR4StatInfo* applyDamageMultiplier = instigator->GetStatByTag(TAG_STAT_NORMAL_ApplyDamageMultiplier))
 					i_ApplyDamageMultiplier = applyDamageMultiplier->GetTotalValue();
 			}
 		}

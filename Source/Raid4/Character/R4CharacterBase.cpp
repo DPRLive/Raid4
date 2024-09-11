@@ -237,6 +237,22 @@ void AR4CharacterBase::ReceiveBuff(AActor* InInstigator, const TSubclassOf<UR4Bu
 }
 
 /**
+ *  Tag에 맞는 FR4StatInfo 형태의 Stat을 반환.
+ */
+FR4StatInfo* AR4CharacterBase::GetStatByTag(const FGameplayTag& InTag) const
+{
+	return StatComp->GetStatByTag<FR4StatInfo>( InTag );
+}
+
+/**
+ *  Tag에 맞는 FR4CurrentStatInfo 형태의 Stat 반환.
+ */
+FR4CurrentStatInfo* AR4CharacterBase::GetCurrentStatByTag(const FGameplayTag& InTag) const
+{
+	return StatComp->GetStatByTag<FR4CurrentStatInfo>( InTag );
+}
+
+/**
  *  StatComp와 필요한 바인딩을 진행
  */
 void AR4CharacterBase::BindStatComponent()
