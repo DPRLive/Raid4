@@ -67,11 +67,11 @@ private:
 	UPROPERTY( ReplicatedUsing = _OnRep_Armor, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
 	FR4StatInfo Armor;
 
-	// 스킬 쿨타임 감소
+	// 스킬 쿨타임 감소 ( 백분율 )
 	UPROPERTY( ReplicatedUsing = _OnRep_CoolDownReduction, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
 	FR4StatInfo CoolDownReduction;
 
-	// 치명타 확률
+	// 치명타 확률 ( 백분율 )
 	UPROPERTY( ReplicatedUsing = _OnRep_CriticalChance, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
 	FR4StatInfo CriticalChance;
 
@@ -85,11 +85,11 @@ private:
 
 	// Meta Stat //
 	
-	// 주는 피해량 증감량
+	// 주는 피해량 증감량 (비율)
 	UPROPERTY( ReplicatedUsing = _OnRep_ApplyDamageMultiplier, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
 	FR4StatInfo ApplyDamageMultiplier;
 	
-	// 받는 피해량 증감량
+	// 받는 피해량 증감량 (비율)
 	UPROPERTY( ReplicatedUsing = _OnRep_ReceiveDamageMultiplier, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
 	FR4StatInfo ReceiveDamageMultiplier;
 	

@@ -8,7 +8,7 @@
  *  @return : 제한시간, -1.f = 키에 맞는 값을 찾지 못함 
  */
 template<typename Type>
-float TTimeLimitChecker<Type>::GetTimeLimit( Type InKey ) const
+float TTimeLimitChecker<Type>::GetTimeLimit(const Type& InKey) const
 {
 	if(auto it = TimeLimits.Find(InKey))
 		return it->Key;
@@ -23,7 +23,7 @@ float TTimeLimitChecker<Type>::GetTimeLimit( Type InKey ) const
  *  @return : 성공여부, false = 키에 맞는 값을 찾지 못함 
  */
 template <typename Type>
-bool TTimeLimitChecker<Type>::SetTimeLimit( Type InKey, float InTimeLimitDuration )
+bool TTimeLimitChecker<Type>::SetTimeLimit(const Type& InKey, float InTimeLimitDuration)
 {
 	if(auto it = TimeLimits.Find(InKey))
 	{
@@ -41,7 +41,7 @@ bool TTimeLimitChecker<Type>::SetTimeLimit( Type InKey, float InTimeLimitDuratio
  *  @return : 남은 제한 시간, -1.f = 키에 맞는 값을 찾지 못함 
  */
 template <typename Type>
-float TTimeLimitChecker<Type>::GetRemainingTime( Type InKey, float InServerTime ) const
+float TTimeLimitChecker<Type>::GetRemainingTime(const Type& InKey, float InServerTime) const
 {
 	// 서버시간 안줬으면 R4GetServerTimeSeconds 사용
 	InServerTime = (InServerTime < 0.f ? R4GetServerTimeSeconds() : InServerTime);
@@ -62,9 +62,9 @@ float TTimeLimitChecker<Type>::GetRemainingTime( Type InKey, float InServerTime 
  *  @return : 제한시간이 만료 되었는지 여부
  */
 template <typename Type>
-bool TTimeLimitChecker<Type>::IsTimeLimitExpired( Type InKey, float InServerTime ) const
+bool TTimeLimitChecker<Type>::IsTimeLimitExpired( const Type& InKey, float InServerTime ) const
 {
-	float remainingTime = GetRemainingTime( InServerTime );
+	float remainingTime = GetRemainingTime( InKey, InServerTime );
 
 	// 애초에 안걸려 있었거나 남은 제한 시간이 0인지 확인
 	return (remainingTime < 0.f || FMath::IsNearlyZero(remainingTime));
@@ -77,7 +77,7 @@ bool TTimeLimitChecker<Type>::IsTimeLimitExpired( Type InKey, float InServerTime
  *  @param InServerTime : 제한시간 체크의 기준이 되는 시작시간(서버).
  */
 template <typename Type>
-void TTimeLimitChecker<Type>::AddNewTimeCheck( Type InKey, float InTimeLimitDuration, float InServerTime )
+void TTimeLimitChecker<Type>::AddNewTimeCheck(const Type& InKey, float InTimeLimitDuration, float InServerTime)
 {
 	InServerTime = (InServerTime < 0.f ? R4GetServerTimeSeconds() : InServerTime);
 	TimeLimits.Emplace(InKey, {InTimeLimitDuration, InServerTime});
@@ -88,7 +88,7 @@ void TTimeLimitChecker<Type>::AddNewTimeCheck( Type InKey, float InTimeLimitDura
  *  @param InKey : 제한 시간 적용 시 사용했던 키
  */
 template <typename Type>
-void TTimeLimitChecker<Type>::RemoveTimeCheck(Type InKey)
+void TTimeLimitChecker<Type>::RemoveTimeCheck(const Type& InKey)
 {
 	TimeLimits.Remove(InKey);
 }

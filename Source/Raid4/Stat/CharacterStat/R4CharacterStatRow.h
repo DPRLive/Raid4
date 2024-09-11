@@ -37,11 +37,11 @@ struct FR4CharacterStatRow : public FR4RowBase
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
 	FR4TagValue Armor;
 	
-	// 쿨타임 감소
+	// 쿨타임 감소 ( 백분율 )
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
 	FR4TagValue CoolDownReduction;
 	
-	// 치명타 확률
+	// 치명타 확률 ( 백분율 )
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
 	FR4TagValue CriticalChance;
 

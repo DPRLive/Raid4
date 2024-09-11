@@ -21,9 +21,6 @@ namespace Validation
 
 namespace Damage
 {
-	// 방어 상수
-	constexpr static float G_DefenseConstant = 100.f;
-
 	// 치명타 시 데미지 증가량
 	constexpr static float G_CriticalFactor = 1.3f;
 
@@ -44,4 +41,13 @@ namespace Collision
 {
 	// NoCollision Profile
 	const static FName G_ProfileNoCollision = TEXT("NoCollision");
+}
+
+namespace Stat
+{
+	// 방어 상수
+	constexpr static float G_ArmorConstant = 100.f;
+
+	// 쿨타임 감소 상한값
+	constexpr static float G_CoolDownReductionUpper = 50.f;
 }

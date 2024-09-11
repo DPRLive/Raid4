@@ -13,22 +13,22 @@ public:
 	TTimeLimitChecker() = default;
 	
 	// 제한 시간을 리턴
-	float GetTimeLimit( Type InKey ) const;
+	float GetTimeLimit(const Type& InKey) const;
 	
 	// 제한 시간을 다시 설정
-	bool SetTimeLimit( Type InKey, float InTimeLimitDuration );
+	bool SetTimeLimit(const Type& InKey, float InTimeLimitDuration);
 	
 	// 남은 제한 시간을 리턴
-	float GetRemainingTime( Type InKey, float InServerTime = -1.f ) const;
+	float GetRemainingTime(const Type& InKey, float InServerTime = -1.f) const;
 	
 	// 제한시간이 지났는지 리턴
-	bool IsTimeLimitExpired( Type InKey, float InServerTime = -1.f ) const;
+	bool IsTimeLimitExpired( const Type& InKey, float InServerTime = -1.f ) const;
 	
 	// 새로운 Time 제한 Check 추가. 기존 key와 중복시 override
-	void AddNewTimeCheck( Type InKey, float InTimeLimitDuration, float InServerTime = -1.f );
+	void AddNewTimeCheck(const Type& InKey, float InTimeLimitDuration, float InServerTime = -1.f);
 
 	// 시간 Time 제한 Check 제거.
-	void RemoveTimeCheck( Type InKey );
+	void RemoveTimeCheck(const Type& InKey);
 
 	// InServerTime 기준으로 만료된 시간 제한들 삭제.
 	void ClearExpiredTimes( float InServerTime = -1.f );
@@ -37,7 +37,7 @@ public:
 	void Reset();
 private:
 	// 측정 중인 시간들 모음. TPair<제한 시간, 제한 시간 체크의 기준이 되는 시작 시간(서버)>
-	TMap<Type, TPair<float, float>> TimeLimits;
+	TMap<const Type, TPair<float, float>> TimeLimits;
 };
 
 #include "TimeLimitChecker.inl"

@@ -12,7 +12,7 @@
 #include "../UI/StatusBar/R4StatusBarWidget.h"
 #include "../Damage/R4DamageStruct.h"
 #include "../Animation/R4AnimationComponent.h"
-#include "../Util/UtilDamage.h"
+#include "../Util/UtilStat.h"
 #include "../Util/UtilAnimation.h"
 
 #include <Components/SkeletalMeshComponent.h>
@@ -174,7 +174,7 @@ void AR4CharacterBase::ReceiveDamage(AActor* InInstigator, const FR4DamageReceiv
 	float reducedDamage = InDamageInfo.IncomingDamage;
 	
 	// 방어력 적용
-	reducedDamage *= UtilDamage::CalculateReductionByArmor(StatComp->GetTotalArmor());
+	reducedDamage *= UtilStat::GetDamageReductionFactor(StatComp->GetTotalArmor());
 
 	// 받는 피해 증감량 적용
 	reducedDamage *= StatComp->GetTotalReceiveDamageMultiplier();

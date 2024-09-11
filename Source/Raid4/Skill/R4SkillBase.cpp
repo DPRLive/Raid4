@@ -7,6 +7,9 @@
 #include "../Detect/Detector/R4DetectorInterface.h"
 #include "../Detect/R4DetectStruct.h"
 #include "../Util/UtilDamage.h"
+#include "../Util/UtilStat.h"
+#include "../Stat/R4TagStatQueryInterface.h"
+#include "../Stat/R4StatStruct.h"
 
 #include <Animation/AnimMontage.h>
 #include <Animation/AnimNotifies/AnimNotify.h>
@@ -18,6 +21,7 @@ UR4SkillBase::UR4SkillBase()
 {
 	// 필요 시에만 Ticking
     PrimaryComponentTick.bCanEverTick = false;
+	BaseCoolDownTime = 0.f;
 	
     SetIsReplicatedByDefault(true);
 }
@@ -26,7 +30,7 @@ void UR4SkillBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CoolTimeChecker = MakeUnique<TTimeLimitChecker<int32>>();
+	CoolDownChecker = MakeUnique<TTimeLimitChecker<FName>>();
 
 	// bind DetectNotify <-> FR4SkillDetectEffectInfo
 	// Detect는 Local에서 직접 진행.
@@ -109,27 +113,50 @@ void UR4SkillBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
  *  스킬 사용이 가능한지 판단
  *  TODO : 현재 스킬 사용중인지 판단 추가
  */
-bool UR4SkillBase::CanActivateSkill()
+bool UR4SkillBase::CanActivateSkill() const
 {
 	bool bReady = true;
 
 	// 스킬 자체에 대한 쿨타임 체크
-	// if(CoolTimeChecker.IsValid())
-	// {
-	// 	AActor* owner = GetOwner();
-	// 	
-	// 	// 서버에서 Remote를 체크하는 경우 약간의 오차 허용
-	// 	if(	IsValid(owner)
-	// 		&& owner->GetLocalRole() == ROLE_Authority
-	// 		&& owner->GetRemoteRole() == ROLE_AutonomousProxy )
-	// 	{
-	// 		bReady &= CoolTimeChecker->IsTimeLimitExpired(static_cast<int32>(ER4SkillTimeType::Skill), R4GetServerTimeSeconds(GetWorld()) + Validation::G_AcceptMinTime);
-	// 	}			
-	// 	else
-	// 		bReady &= CoolTimeChecker->IsTimeLimitExpired(static_cast<int32>(ER4SkillTimeType::Skill), R4GetServerTimeSeconds(GetWorld()));
-	// }
+	if(CoolDownChecker.IsValid())
+	{
+		AActor* owner = GetOwner();
+		
+		// 서버에서 Remote를 체크하는 경우 약간의 오차 허용
+		if(	IsValid(owner)
+			&& owner->GetLocalRole() == ROLE_Authority
+			&& owner->GetRemoteRole() == ROLE_AutonomousProxy )
+		{
+			bReady &= CoolDownChecker->IsTimeLimitExpired(GetFName(), R4GetServerTimeSeconds(GetWorld()) + Validation::G_AcceptMinTime);
+		}			
+		else
+			bReady &= CoolDownChecker->IsTimeLimitExpired(GetFName(), R4GetServerTimeSeconds(GetWorld()));
+	}
 
 	return bReady;
+}
+
+/**
+ *  CoolDown Time을 적용.
+ *  @param InIsIgnoreReduction : 캐릭터의 CoolDownReduction을 무시하는지?
+ */
+float UR4SkillBase::SetSkillCoolDownTime( bool InIsIgnoreReduction )
+{
+	float cooldownTime = BaseCoolDownTime;
+
+	if(!InIsIgnoreReduction)
+	{
+		if(IR4TagStatQueryInterface* owner = Cast<IR4TagStatQueryInterface>(GetOwner()) )
+		{
+			if(FR4StatInfo* coolDownReduction = owner->GetStatByTag(TAG_STAT_NORMAL_CoolDownReduction))
+				cooldownTime *= UtilStat::GetCoolDownReductionFactor(coolDownReduction->GetTotalValue());
+		}
+	}
+	
+	// 쿨타임 적용
+	CoolDownChecker->AddNewTimeCheck( GetFName(), cooldownTime, R4GetServerTimeSeconds(GetWorld()) );
+	
+	return cooldownTime;
 }
 
 /**

@@ -74,15 +74,6 @@ FR4DamageReceiveInfo UtilDamage::CalculateDamageReceiveInfo(const AActor* InInst
 }
 
 /**
-*  방어력을 기준으로 방어 감소율을 계산.
-*/
-float UtilDamage::CalculateReductionByArmor(float InArmor)
-{
-	float damageReduction = InArmor / (InArmor + Damage::G_DefenseConstant);
-	return (1.0f - damageReduction);
-}
-
-/**
 *  랜덤 데미지 변동율 리턴.
 */
 float UtilDamage::GetRandomFactor()
