@@ -51,3 +51,12 @@ namespace Stat
 	// 쿨타임 감소 상한값
 	constexpr static float G_CoolDownReductionUpper = 50.f;
 }
+
+namespace Skill
+{
+	// Detector 구분 시 사용하는 Key의 Invalid한 값.
+	constexpr static uint32 G_InvalidDetectorKey = 0;
+	
+	// skill anim 구분 시 사용하는 Key의 Invalid한 값.
+	constexpr static uint32 G_InvalidSkillAnimKey = 0;
+}

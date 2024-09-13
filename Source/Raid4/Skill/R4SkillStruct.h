@@ -18,24 +18,29 @@ struct FR4SkillDetectInfo
 	GENERATED_BODY()
 
 	FR4SkillDetectInfo()
-	: DetectClass(nullptr)
-	, bHasVisual(false)
-	, DetectDesc(FR4DetectDesc())
+	: DetectClass( nullptr )
+	, bHasVisual( false )
+	, DetectDesc( FR4DetectDesc() )
+	, DetectorServerKey( Skill::G_InvalidDetectorKey )
 	{}
 	
 	// 어떤 클래스로 Detect를 진행할 것인지.
 	// Collision이 Disable된 상태로 설정.
-	UPROPERTY( EditAnywhere, meta = ( MustImplement = "R4DetectorInterface" ) )
+	UPROPERTY( NotReplicated, EditAnywhere, meta = ( MustImplement = "R4DetectorInterface" ) )
 	TSubclassOf<AActor> DetectClass;
 	
 	// 해당 Detect Class가 Visual적인 요소를 포함하고 있는지?
 	// ex) 투사체
-	UPROPERTY( EditAnywhere )
+	UPROPERTY( NotReplicated, EditAnywhere )
 	uint8 bHasVisual:1;
 	
 	// 탐지에 관한 Parameter.
-	UPROPERTY( EditAnywhere )
+	UPROPERTY( NotReplicated, EditAnywhere )
 	FR4DetectDesc DetectDesc;
+
+	// Server와 Client 사이 Detector를 구분하기 위한 Key값.
+	UPROPERTY( Transient, VisibleInstanceOnly )
+	uint32 DetectorServerKey;
 };
 
 /**
@@ -47,9 +52,9 @@ struct FR4SkillBuffInfo
 	GENERATED_BODY()
 
 	FR4SkillBuffInfo()
-	: Target(ETargetType::Victim)
-	, BuffClass(nullptr)
-	, BuffSetting(FR4BuffSettingDesc())
+	: Target( ETargetType::Victim )
+	, BuffClass( nullptr )
+	, BuffSetting( FR4BuffSettingDesc() )
 	{}
 	
 	// 버프를 적용할 타겟. Instigator : 나. Victim : Detect 된 Actor
@@ -74,8 +79,8 @@ struct FR4SkillDamageInfo
 	GENERATED_BODY()
 
 	FR4SkillDamageInfo()
-	: Target(ETargetType::Victim)
-	, DamageInfo(FR4DamageApplyDesc())
+	: Target( ETargetType::Victim )
+	, DamageInfo( FR4DamageApplyDesc() )
 	{}
 	
 	// 데미지를 적용할 타겟. Instigator : 나. Victim : Detect 된 Actor
@@ -121,8 +126,8 @@ struct FR4DetectEffectWrapper
 	GENERATED_BODY()
 
 	FR4DetectEffectWrapper()
-	: DetectInfo(FR4SkillDetectInfo())
-	, EffectInfo(FR4SkillEffectInfo())
+	: DetectInfo( FR4SkillDetectInfo() )
+	, EffectInfo( FR4SkillEffectInfo() )
 	{}
 	
 	// 탐지할 방법
@@ -136,7 +141,8 @@ struct FR4DetectEffectWrapper
 
 /**
  * Skill을 위한 Animation의 정보.
- * Animation과 Animation 작동 시 필요한 히트 체크 정보를 제공
+ * Animation과 Animation 작동 시 필요한 히트 체크 정보를 제공.
+ * Skill Anim key를 서버에서 받기 위해 Replicate로 설정.
  */
 USTRUCT()
 struct FR4SkillAnimInfo
@@ -144,15 +150,20 @@ struct FR4SkillAnimInfo
 	GENERATED_BODY()
 	
 	FR4SkillAnimInfo()
-	: SkillAnim(nullptr)
+	: SkillAnim( nullptr )
+	, SkillAnimServerKey( Skill::G_InvalidSkillAnimKey )
 	{}
 	
 	// 발동할 Skill Anim
-	UPROPERTY( EditAnywhere )
+	UPROPERTY( NotReplicated, EditAnywhere )
 	TObjectPtr<UAnimMontage> SkillAnim;
 
 	// Anim의 각 Notify와, Notify 번호에 맞는 무언가 탐지하고 줄 영향 지정
 	// {Notify index ( AnimMontage에서 몇번째 Notify인지 ), 탐지 및 효과 정보} 
-	UPROPERTY( EditAnywhere )
+	UPROPERTY( NotReplicated, EditAnywhere )
 	TMap<int32, FR4DetectEffectWrapper> DetectNotify;
+
+	// Server와 Client 사이 Skill Anim을 구분하기 위한 Key값.
+	UPROPERTY( Transient, VisibleInstanceOnly )
+	uint32 SkillAnimServerKey;
 };
