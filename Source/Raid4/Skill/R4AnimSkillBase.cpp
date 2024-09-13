@@ -100,6 +100,10 @@ bool UR4AnimSkillBase::PlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
 	// Authority가 아닌 경우 로컬에서 플레이 후 Server RPC 전송
 	if( GetOwnerRole() != ROLE_Authority )
 	{
+		// Anim Play에 Lock이 설정되어 있는지 확인
+		if ( IsLockPlaySkillAnim( InSkillAnimInfo.SkillAnimServerKey ) )
+			return false;
+			
 		IR4AnimationInterface* owner = Cast<IR4AnimationInterface>(GetOwner());
 
 		if ( owner == nullptr )

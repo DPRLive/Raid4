@@ -42,7 +42,8 @@ protected:
 	virtual void OnBeginSkillAnim( uint32 InSkillAnimKey ) {}
 	
 	// Skill Anim Key 값에 맞는 Skill Anim 을 현재 Play할 수 없는지 확인.
-	// 기본적으로 PlayAnim Server RPC에서 Validation Check에 사용
+	// Client에서 PlaySkillAnim시에 확인 및
+	// PlayAnim Server RPC에서 Validation Check에 사용
 	virtual bool IsLockPlaySkillAnim( uint32 InSkillAnimKey ) const { return false; }
 
 private:
