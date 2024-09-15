@@ -81,7 +81,11 @@ private:
 	// Key를 부여하며 찾은 현재 클래스 멤버에 있는 FR4SkillDetectInfo의 개수, Detector Key 부여용으로도 사용
 	uint32 CachedSkillDetectInfoCount;
 	
-	// Detector의 Dummy 체크를 위한 Array
+	// Detector의 Dummy 체크를 위한 TMap ( Client )
 	// { Detector Key, Detector Ptr }
-	TArray<TPair<uint32, TWeakObjectPtr<UObject>>> CachedDetectorDummy;
+	TMap<uint32, TWeakObjectPtr<UObject>> Client_CachedDetectorDummy;
+
+	// Detector의 Server Detector 생성 체크를 위한 TMap ( Client )
+	// { Detector Key }
+	TSet<uint32> Client_CachedServerDetector;
 };

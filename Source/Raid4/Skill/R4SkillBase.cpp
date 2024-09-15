@@ -48,7 +48,7 @@ void UR4SkillBase::BeginPlay()
 bool UR4SkillBase::CanActivateSkill() const
 {
 	// CoolDown Time 체크
-	return (FMath::IsNearlyZero(GetSkillCooldownRemaining()));
+	return ( FMath::IsNearlyZero( GetSkillCooldownRemaining() ) );
 }
 
 /**
@@ -57,7 +57,7 @@ bool UR4SkillBase::CanActivateSkill() const
 float UR4SkillBase::GetSkillCooldownRemaining() const
 {
 	float remainTime = CachedNextActivationServerTime - R4GetServerTimeSeconds( GetWorld() );
-	return FMath::Max(0.f, remainTime);
+	return FMath::Max( 0.f, remainTime );
 }
 
 /**
@@ -154,7 +154,7 @@ void UR4SkillBase::Server_ApplyDamages( AActor* InVictim, const TArray<FR4SkillD
  */
 void UR4SkillBase::ExecuteDetect( const FR4DetectEffectWrapper& InDetectEffectInfo )
 {
-	if( !IsValid(InDetectEffectInfo.DetectInfo.DetectClass) )
+	if ( !ensureMsgf( IsValid( InDetectEffectInfo.DetectInfo.DetectClass ), TEXT("DetectClass is nullptr.") ) )
 		return;
 
 	if( InDetectEffectInfo.DetectInfo.DetectorServerKey == Skill::G_InvalidDetectorKey )
@@ -212,6 +212,13 @@ void UR4SkillBase::_CreateDummyDetector( const FR4SkillDetectInfo& InSkillDetect
 		LOG_WARN( R4Skill, TEXT("Detector Key Is Invalid. Check Replicate State."));
 		return;
 	}
+
+	// 이미 Server Side에서 생성이 된 Detector이면 Dummy를 생성하지 않음
+	if(int32 removeCnt = Client_CachedServerDetector.Remove( InSkillDetectInfo.DetectorServerKey );
+		removeCnt > 0)
+	{
+		return;
+	}
 	
 	// Dummy용 Detector 생성
 	TScriptInterface<IR4DetectorInterface> detector(OBJECT_POOL->GetObject(InSkillDetectInfo.DetectClass));
@@ -229,7 +236,7 @@ void UR4SkillBase::_CreateDummyDetector( const FR4SkillDetectInfo& InSkillDetect
 	detector->ExecuteDetect( origin, InSkillDetectInfo.DetectDesc );
 
 	// Dummy에 Push
-	CachedDetectorDummy.Emplace( InSkillDetectInfo.DetectorServerKey, detector.GetObject() );
+	Client_CachedDetectorDummy.Emplace( InSkillDetectInfo.DetectorServerKey, detector.GetObject() );
 }
 
 /**
@@ -284,8 +291,9 @@ void UR4SkillBase::_Server_CreateAuthorityDetector( const FR4DetectEffectWrapper
 	// 탐지 실행
 	detector.GetInterface()->ExecuteDetect(origin, InDetectEffectInfo.DetectInfo.DetectDesc);
 
-	// Owner Client에게 Dummy 제거 명령 전송
-	_ClientRPC_RemoveDummy( InDetectEffectInfo.DetectInfo.DetectorServerKey );
+	// Dummy가 필요한 Detector였다면, Owner Client에게 Dummy 제거 명령 전송
+	if(InDetectEffectInfo.DetectInfo.bHasVisual)
+		_ClientRPC_RemoveDummy( InDetectEffectInfo.DetectInfo.DetectorServerKey );
 }
 
 /**
@@ -296,24 +304,17 @@ void UR4SkillBase::_ClientRPC_RemoveDummy_Implementation( uint32 InDetectorKey )
 {
 	if(GetOwnerRole() != ROLE_AutonomousProxy)
 		return;
-	
-	// InRequestObj가 요청했던 Detector는 생성했으니 이만 제거
-	for(auto it = CachedDetectorDummy.CreateIterator(); it; ++it)
+
+	// InDetectorKey에 맞는 Server Detector는 생성했으니 이만 제거
+	if(auto it = Client_CachedDetectorDummy.Find( InDetectorKey ))
 	{
-		// Key 또는 Value가 Invalid한 객체에 대한 element는 삭제
-		if(it->Key == Skill::G_InvalidDetectorKey || !(it->Value.IsValid()))
-		{
-			it.RemoveCurrentSwap();
-			continue;
-		}
-
-		// match 되는 key를 찾으면 dummy 제거.
-		if(it->Key == InDetectorKey)
-		{
-			OBJECT_POOL->ReturnPoolObject(it->Value.Get());
-			it.RemoveCurrentSwap();
-
-			return;
-		}
+		if(it->IsValid())
+			OBJECT_POOL->ReturnPoolObject(it->Get());
+		
+		Client_CachedDetectorDummy.Remove( InDetectorKey );
+		return;
 	}
+
+	// 아직 Dummy 생성이 안된 상태이면 Dummy를 생성하지 않도록 캐싱
+	Client_CachedServerDetector.Emplace( InDetectorKey );
 }

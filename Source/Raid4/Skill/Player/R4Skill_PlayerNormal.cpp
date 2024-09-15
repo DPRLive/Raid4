@@ -47,8 +47,8 @@ void UR4Skill_PlayerNormal::OnBeginSkillAnim( uint32 InSkillAnimKey )
 {
 	// Normal Skill의 경우 Anim Play 시점을 Skill 사용으로 판정
 	// Anim Play = 스킬 사용으로 판단.
-	if(InSkillAnimKey == NormalSkillAnimInfo.SkillAnimServerKey)
-		SetSkillCoolDownTime( GetSkillCoolDownTime( true ) );
+	if ( InSkillAnimKey == NormalSkillAnimInfo.SkillAnimServerKey )
+		SetSkillCoolDownTime( GetSkillCoolDownTime( false ) );
 }
 
 /**
@@ -57,10 +57,10 @@ void UR4Skill_PlayerNormal::OnBeginSkillAnim( uint32 InSkillAnimKey )
  *  PlayAnim Server RPC에서 Validation Check에 사용
  *  @param InSkillAnimKey : Server에서 부여받은 Skill Anim의 Key.
  */
-bool UR4Skill_PlayerNormal::IsLockPlaySkillAnim(uint32 InSkillAnimKey) const
+bool UR4Skill_PlayerNormal::IsLockPlaySkillAnim( uint32 InSkillAnimKey ) const
 {
 	// Normal Skill Anim의 Server Play는 Skill 사용이 가능할 때만 서버에서 허용
-	if(InSkillAnimKey == NormalSkillAnimInfo.SkillAnimServerKey)
+	if ( InSkillAnimKey == NormalSkillAnimInfo.SkillAnimServerKey )
 		return !CanActivateSkill();
 
 	return true;
