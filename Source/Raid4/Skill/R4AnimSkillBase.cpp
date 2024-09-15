@@ -133,12 +133,12 @@ bool UR4AnimSkillBase::PlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
 			[this, &InSkillAnimInfo, instanceId = montageInstance->GetInstanceID()]
 			(UAnimMontage* InMontage, bool InIsInterrupted)
 			{
-				_UnbindDetectNotifyAndEffect( instanceId, InSkillAnimInfo );
+				_UnbindNotifiesAndDetect( instanceId, InSkillAnimInfo );
 				OnEndSkillAnim( InSkillAnimInfo.SkillAnimServerKey, InIsInterrupted );
 			} );
 		
 		// DetectNotify <-> Effect Bind
-		_BindDetectNotifyAndEffect( montageInstance->GetInstanceID(), InSkillAnimInfo );
+		_BindNotifiesAndDetect( montageInstance->GetInstanceID(), InSkillAnimInfo );
 		OnBeginSkillAnim( InSkillAnimInfo.SkillAnimServerKey );
 	}
 
@@ -184,12 +184,12 @@ void UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Implementation( uint32 InSkillAn
 		[this, &InSkillAnimInfo = **it, instanceId = montageInstance->GetInstanceID()]
 		(UAnimMontage* InMontage, bool InIsInterrupted)
 		{
-			_UnbindDetectNotifyAndEffect( instanceId, InSkillAnimInfo );
+			_UnbindNotifiesAndDetect( instanceId, InSkillAnimInfo );
 			OnEndSkillAnim( InSkillAnimInfo.SkillAnimServerKey, InIsInterrupted );
 		} );
 		
 	// DetectNotify <-> Effect Bind
-	_BindDetectNotifyAndEffect( montageInstance->GetInstanceID(), **it );
+	_BindNotifiesAndDetect( montageInstance->GetInstanceID(), **it );
 	OnBeginSkillAnim( InSkillAnimKey );
 }
 
@@ -230,11 +230,11 @@ void UR4AnimSkillBase::_Server_ParseSkillAnimInfo()
 }
 
 /**
- *  InMontageInstanceId를 Key로 DetectNotify <-> FR4DetectEffectWrapper 연결
+ *  InMontageInstanceId를 Key로 DetectNotify <-> ExecuteDetect() 연결
  *  @param InMontageInstanceId : Notify delegate bind 시 구별할 MontageInstance ID
  *  @param InSkillAnimInfo : Anim, Notify와 그에 맞는 Detect, Effect 정보를 담는 FR4SkillAnimInfo
  */
-void UR4AnimSkillBase::_BindDetectNotifyAndEffect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo )
+void UR4AnimSkillBase::_BindNotifiesAndDetect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo )
 {
 	if( !ensureMsgf( InSkillAnimInfo.SkillAnim , TEXT("Skill Anim is Invalid.")))
 		return;
@@ -259,11 +259,11 @@ void UR4AnimSkillBase::_BindDetectNotifyAndEffect( int32 InMontageInstanceId, co
 }
 
 /**
- *  InMontageInstanceId를 Key로 Bind해 두었던 DetectNotify <-> FR4DetectEffectWrapper unbind
+ *  InMontageInstanceId를 Key로 Bind해 두었던 DetectNotify <-> ExecuteDetect() unbind
  *  @param InMontageInstanceId : Notify delegate bind 시 구별할 MontageInstance ID
  *  @param InSkillAnimInfo : Anim, Notify와 그에 맞는 Detect, Effect 정보를 담는 FR4SkillAnimInfo
  */
-void UR4AnimSkillBase::_UnbindDetectNotifyAndEffect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo )
+void UR4AnimSkillBase::_UnbindNotifiesAndDetect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo )
 {
 	if( !ensureMsgf( InSkillAnimInfo.SkillAnim , TEXT("Skill Anim is Invalid.")))
 		return;

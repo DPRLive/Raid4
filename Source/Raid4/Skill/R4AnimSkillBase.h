@@ -57,11 +57,11 @@ private:
 	// Server에서 Skill Anim 멤버를 찾아서 Skill Anim 키 부여
 	void _Server_ParseSkillAnimInfo();
 
-	// InMontageInstanceId를 Key로 DetectNotify <-> FR4DetectEffectWrapper 연결
-	void _BindDetectNotifyAndEffect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo );
+	// InMontageInstanceId를 Key로 DetectNotify <-> ExecuteDetect() 연결
+	void _BindNotifiesAndDetect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo );
 
-	// InMontageInstanceId를 Key로 Bind해 두었던 DetectNotify <-> FR4DetectEffectWrapper unbind
-	void _UnbindDetectNotifyAndEffect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo );
+	// InMontageInstanceId를 Key로 Bind해 두었던 DetectNotify <-> ExecuteDetect() unbind
+	void _UnbindNotifiesAndDetect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo );
 	
 private:
 	// SkillAnimInfo를 Bind하며 찾은 현재 클래스 멤버에 있는 SkillAnimInfo의 개수, Skill Anim Key 부여용으로도 사용
