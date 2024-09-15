@@ -6,6 +6,7 @@
 #include "R4AnimationInterface.generated.h"
 
 class UAnimMontage;
+struct FAnimMontageInstance;
 
 // This class does not need to be modified.
 UINTERFACE()
@@ -34,4 +35,10 @@ public:
 	
 	// Server에서, Autonomous Proxy를 제외하고 AnimStop을 명령.
 	virtual void Server_StopAnim_WithoutAutonomous(bool InIsWithServer) = 0;
+
+	// 주어진 Montage의 FAnimMontageInstance를 반환, 현재 해당 Montage가 Play되고 있지 않다면 nullptr return
+	// ( 주의 )
+	// GetInstanceForMontage( InMontage ) -> Blend Out 상태도 return함
+	// GetActiveInstanceForMontage( InMontage ) -> 실제 Active된 경우만 return..
+	virtual FAnimMontageInstance* GetActiveInstanceForMontage( const UAnimMontage* InMontage ) const = 0;
 };

@@ -118,6 +118,20 @@ void AR4CharacterBase::Server_StopAnim_WithoutAutonomous(bool InIsWithServer)
 }
 
 /**
+ * 주어진 Montage의 FAnimMontageInstance를 반환
+ * @param InMontage : 확인할 Montage
+ * @return : 현재 해당 Montage가 Play되고 있지 않다면 nullptr
+ */
+FAnimMontageInstance* AR4CharacterBase::GetActiveInstanceForMontage( const UAnimMontage* InMontage ) const
+{
+	UAnimInstance* animInstance = IsValid( GetMesh() ) ? GetMesh()->GetAnimInstance() : nullptr;
+	if ( IsValid( animInstance ) )
+		return animInstance->GetActiveInstanceForMontage( InMontage );
+
+	return nullptr;
+}
+
+/**
  *  주어진 Character Data PK로 데이터를 읽어 초기화한다.
  *  @param InPk : Character DT의 primary key
  */

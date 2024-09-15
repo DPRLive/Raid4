@@ -70,3 +70,15 @@ enum class EGameplayTagQueryType : uint8
 	Match			UMETA( DisplayName = "부모로 사용되어도 일치" ),
 	MatchExact		UMETA( DisplayName = "완전히 일치" ),
 };
+
+/**
+ * Notify의 Type들을 지정.
+ */
+UENUM()
+enum class ER4AnimNotifyType : uint8
+{
+	None			UMETA( DisplayName = "None" ),
+	Detect			UMETA( DisplayName = "탐지" ),
+	ResetCombo	    UMETA( DisplayName = "콤보 리셋" ),
+	MAX				UMETA( Hidden )
+};
