@@ -149,8 +149,18 @@ struct FR4NotifyDetectWrapper
 {
 	GENERATED_BODY()
 
+	FR4NotifyDetectWrapper()
+	: NotifyNumber( INDEX_NONE )
+	, DetectEffect( FR4DetectEffectWrapper() )
+	{}
+
+	FR4NotifyDetectWrapper(int32 InNotifyNumber)
+	: NotifyNumber( InNotifyNumber )
+	, DetectEffect( FR4DetectEffectWrapper() )
+	{}
+	
 	// Notify Number
-	UPROPERTY( NotReplicated, EditAnywhere )
+	UPROPERTY( NotReplicated, VisibleAnywhere )
 	int32 NotifyNumber;
 
 	// 해당 Notify가 할 Detect와 Effect
@@ -179,7 +189,7 @@ struct FR4SkillAnimInfo
 
 	// Anim의 각 Notify와, Notify 번호에 맞는 무언가 탐지하고 줄 영향 지정
 	// {Notify index ( AnimMontage에서 몇번째 Notify인지 ), 탐지 및 효과 정보} 
-	UPROPERTY( EditAnywhere )
+	UPROPERTY( EditAnywhere, meta = ( EditFixedOrder ) )
 	TArray<FR4NotifyDetectWrapper> DetectNotifies;
 
 	// Server와 Client 사이 Skill Anim을 구분하기 위한 Key값.
