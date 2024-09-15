@@ -3,7 +3,7 @@
 
 #include "R4AnimSkillBase.h"
 
-#include "../Detect/R4NotifyDetectInterface.h"
+#include "../Animation/Notify/R4NotifyByIdInterface.h"
 #include "../Animation/R4AnimationInterface.h"
 
 #include <Animation/AnimMontage.h>
@@ -14,6 +14,8 @@
 UR4AnimSkillBase::UR4AnimSkillBase()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+
+	SetIsReplicatedByDefault( true );
 
 	CachedSkillAnimInfoCount = 0;
 }
@@ -27,47 +29,52 @@ void UR4AnimSkillBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 		return;
 	
 	// 변경된 프로퍼티가 FSkillAnimInfo 형식이면, 해당 Anim에서 Notify를 읽어와 배열을 자동으로 채움. 하하 아주 편리하지?
-	if(FStructProperty* prop = CastField<FStructProperty>(PropertyChangedEvent.MemberProperty);
+	if ( FStructProperty* prop = CastField<FStructProperty>( PropertyChangedEvent.MemberProperty );
 		prop != nullptr &&
-		prop->Struct == FR4SkillAnimInfo::StaticStruct())
+		prop->Struct == FR4SkillAnimInfo::StaticStruct() )
 	{
-		FR4SkillAnimInfo* animInfo = prop->ContainerPtrToValuePtr<FR4SkillAnimInfo>(this);
+		FR4SkillAnimInfo* animInfo = prop->ContainerPtrToValuePtr<FR4SkillAnimInfo>( this );
 		UAnimMontage* anim = animInfo->SkillAnim;
-		
-		if(!IsValid(anim))
+
+		if ( !IsValid( anim ) )
 			return;
 
 		// Detect Notify의 index들을 찾아냄 
 		TSet<int32> idxs;
-		for(int32 i = 0; i < anim->Notifies.Num(); i++)
+		for ( int32 i = 0; i < anim->Notifies.Num(); i++ )
 		{
-			if(IR4NotifyDetectInterface* detectNotify = Cast<IR4NotifyDetectInterface>(anim->Notifies[i].Notify))
-				idxs.Emplace(i);
+			if ( IR4NotifyByIdInterface* detectNotify = Cast<IR4NotifyByIdInterface>( anim->Notifies[i].Notify ) )
+			{
+				if(detectNotify->GetNotifyType() != ER4AnimNotifyType::Detect)
+					continue;
+				idxs.Emplace( i );
+			}
 		}
 
 		// 필요 없는 index는 제거
-		for(auto it = animInfo->DetectNotify.CreateIterator(); it; ++it)
+		for ( auto it = animInfo->DetectNotifies.CreateIterator(); it; ++it )
 		{
-			if(idxs.Find(it->Key) == nullptr)
+			if ( idxs.Find( it->NotifyNumber ) == nullptr )
 			{
-				it.RemoveCurrent();
+				it.RemoveCurrentSwap();
 				continue;
 			}
-			idxs.Remove(it->Key);
+			idxs.Remove( it->NotifyNumber );
 		}
-
+		
 		// 기존에 없는 index는 추가
-		for(const auto& idx : idxs)
+		for ( const auto& idx : idxs )
 		{
-			if(animInfo->DetectNotify.Find(idx) == nullptr)
-				animInfo->DetectNotify.Emplace(idx);
+			if ( animInfo->DetectNotifies.FindByPredicate( [idx](const FR4NotifyDetectWrapper& InElem)
+				{ return InElem.NotifyNumber == idx; } ) == nullptr )
+				animInfo->DetectNotifies.Emplace( idx );
 		}
 
-		// 보기 편하게 sort
-		animInfo->DetectNotify.KeySort([](const int32& idx1, const int32& idx2)
+		// SORT
+		animInfo->DetectNotifies.Sort( [](const FR4NotifyDetectWrapper& InElem1, const FR4NotifyDetectWrapper& InElem2 )
 		{
-			return idx1 < idx2;
-		});
+			return InElem1.NotifyNumber < InElem2.NotifyNumber;
+		} );
 	}
 }
 #endif
@@ -76,8 +83,8 @@ void UR4AnimSkillBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//  DetectNotify <-> FR4SkillDetectEffectInfo Bind 
-	_ParseSkillAnimInfo();
+	if(GetOwnerRole() == ROLE_Authority)
+		_Server_ParseSkillAnimInfo();
 }
 
 /**
@@ -88,14 +95,14 @@ void UR4AnimSkillBase::BeginPlay()
  */
 bool UR4AnimSkillBase::PlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
 {
-	if ( !ensureMsgf( IsValid(InSkillAnimInfo.SkillAnim), TEXT("Skill Anim is nullptr.") ) )
-		return false;
-
 	if ( InSkillAnimInfo.SkillAnimServerKey == Skill::G_InvalidSkillAnimKey )
 	{
 		LOG_WARN( R4Skill, TEXT("Skill Anim Key Is Invalid. Check SkillAnim Replicate State.") );
 		return false;
 	}
+	
+	if ( !ensureMsgf( IsValid(InSkillAnimInfo.SkillAnim), TEXT("Skill Anim is nullptr.") ) )
+		return false;
 	
 	// Authority가 아닌 경우 로컬에서 플레이 후 Server RPC 전송
 	if( GetOwnerRole() != ROLE_Authority )
@@ -103,16 +110,35 @@ bool UR4AnimSkillBase::PlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
 		// Anim Play에 Lock이 설정되어 있는지 확인
 		if ( IsLockPlaySkillAnim( InSkillAnimInfo.SkillAnimServerKey ) )
 			return false;
-			
+		
 		IR4AnimationInterface* owner = Cast<IR4AnimationInterface>(GetOwner());
-
 		if ( owner == nullptr )
 		{
 			LOG_WARN( R4Skill, TEXT("Can only play Skill Animations if the IR4AnimationInterface is inherited.") )
 			return false;
 		}
 
+		// Local에서 Play
 		owner->PlayAnim_Local( InSkillAnimInfo.SkillAnim, NAME_None, 1.f );
+		FAnimMontageInstance* montageInstance = owner->GetActiveInstanceForMontage( InSkillAnimInfo.SkillAnim );
+		if(montageInstance == nullptr)
+		{
+			LOG_ERROR( R4Skill, TEXT("FAnimMontageInstance is nullptr") )
+			return false;
+		}
+
+		// Anim Play End시 로직 설정
+		// this capture, use weak lambda
+		montageInstance->OnMontageEnded.BindWeakLambda( this,
+			[this, &InSkillAnimInfo, instanceId = montageInstance->GetInstanceID()]
+			(UAnimMontage* InMontage, bool InIsInterrupted)
+			{
+				_UnbindDetectNotifyAndEffect( instanceId, InSkillAnimInfo );
+				OnEndSkillAnim( InSkillAnimInfo.SkillAnimServerKey, InIsInterrupted );
+			} );
+		
+		// DetectNotify <-> Effect Bind
+		_BindDetectNotifyAndEffect( montageInstance->GetInstanceID(), InSkillAnimInfo );
 		OnBeginSkillAnim( InSkillAnimInfo.SkillAnimServerKey );
 	}
 
@@ -126,14 +152,14 @@ bool UR4AnimSkillBase::PlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
  */
 void UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Implementation( uint32 InSkillAnimKey )
 {
-	auto it = Server_CachedSkillAnimKey.Find( InSkillAnimKey );
+	auto it = Server_CachedSkillAnimInfo.Find( InSkillAnimKey );
 	if(it == nullptr)
 	{
 		LOG_WARN( R4Skill, TEXT("InSkillKey [%d] is invalid. check replicate state."), InSkillAnimKey );
 		return;
 	}
 
-	if ( !ensureMsgf( it->IsValid(), TEXT("Skill Anim is nullptr.") ) )
+	if ( !ensureMsgf( IsValid( (*it)->SkillAnim ), TEXT("Skill Anim is nullptr.") ) )
 		return;
 
 	IR4AnimationInterface* owner = Cast<IR4AnimationInterface>( GetOwner() );
@@ -144,7 +170,26 @@ void UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Implementation( uint32 InSkillAn
 	}
 
 	// Autonomous 제외한 나머지 Animation Play.
-	owner->Server_PlayAnim_WithoutAutonomous( it->Get(), NAME_None, 1.f, true, R4GetServerTimeSeconds() );
+	owner->Server_PlayAnim_WithoutAutonomous( (*it)->SkillAnim, NAME_None, 1.f, true, R4GetServerTimeSeconds() );
+	FAnimMontageInstance* montageInstance = owner->GetActiveInstanceForMontage( (*it)->SkillAnim );
+	if(montageInstance == nullptr)
+	{
+		LOG_ERROR( R4Skill, TEXT("FAnimMontageInstance is nullptr") )
+		return;
+	}
+
+	// Anim Play End시 로직 설정
+	// this capture, use weak lambda
+	montageInstance->OnMontageEnded.BindWeakLambda( this,
+		[this, &InSkillAnimInfo = **it, instanceId = montageInstance->GetInstanceID()]
+		(UAnimMontage* InMontage, bool InIsInterrupted)
+		{
+			_UnbindDetectNotifyAndEffect( instanceId, InSkillAnimInfo );
+			OnEndSkillAnim( InSkillAnimInfo.SkillAnimServerKey, InIsInterrupted );
+		} );
+		
+	// DetectNotify <-> Effect Bind
+	_BindDetectNotifyAndEffect( montageInstance->GetInstanceID(), **it );
 	OnBeginSkillAnim( InSkillAnimKey );
 }
 
@@ -155,62 +200,81 @@ void UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Implementation( uint32 InSkillAn
  */
 bool UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Validate( uint32 InSkillAnimKey )
 {
-	return ( InSkillAnimKey != Skill::G_InvalidSkillAnimKey )
-			&& !IsLockPlaySkillAnim( InSkillAnimKey );
+	return ( InSkillAnimKey != Skill::G_InvalidSkillAnimKey ) && !IsLockPlaySkillAnim( InSkillAnimKey );
 }
 
 /**
- *  Skill Anim 멤버를 찾아서 DetectNotify <-> FR4SkillDetectEffectInfo를 Bind. 및 Skill Anim 키 부여
+ *  Server에서 Skill Anim 멤버를 찾아서 Skill Anim 키 부여
  */
-void UR4AnimSkillBase::_ParseSkillAnimInfo()
+void UR4AnimSkillBase::_Server_ParseSkillAnimInfo()
 {
-	// bind DetectNotify <-> FR4SkillDetectEffectInfo
+	if ( !ensureMsgf( GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server") ) )
+		return;
+	
 	for ( const auto& [prop, value] : TPropertyValueRange<FStructProperty>( GetClass(), this ) )
 	{
-		// FSkillAnimInfo 타입의 struct를 찾아서 bind
 		if ( prop->Struct != FR4SkillAnimInfo::StaticStruct() )
 			continue;
 		
 		const FR4SkillAnimInfo* c_animInfoPtr = static_cast<const FR4SkillAnimInfo*>(value);
-		UAnimMontage* anim = c_animInfoPtr->SkillAnim;
-		if ( !ensureMsgf( IsValid(anim), TEXT("Skill Anim is invalid.") ) )
+		if ( !ensureMsgf( IsValid(c_animInfoPtr->SkillAnim), TEXT("Skill Anim is invalid.") ) )
 			return;
 
-		// Server의 경우 Skill Anim Info에 Key 값을 부여.
-		if ( GetOwnerRole() == ROLE_Authority )
+		// 키값 부여 & 캐싱
+		if ( FR4SkillAnimInfo* animInfoPtr = const_cast<FR4SkillAnimInfo*>(c_animInfoPtr) )
 		{
-			if ( FR4SkillAnimInfo* animInfoPtr = const_cast<FR4SkillAnimInfo*>(c_animInfoPtr) )
-			{
-				animInfoPtr->SkillAnimServerKey = ++CachedSkillAnimInfoCount;
-				Server_CachedSkillAnimKey.Emplace( animInfoPtr->SkillAnimServerKey, anim );
-			}
-		}
-
-		for ( const auto& [notifyIdx, detectEffectInfo] : c_animInfoPtr->DetectNotify )
-		{
-			if ( !anim->Notifies.IsValidIndex( notifyIdx ) )
-				continue;
-
-			_BindDetectNotifyAndEffect( anim->Notifies[notifyIdx].Notify, detectEffectInfo );
+			animInfoPtr->SkillAnimServerKey = ++CachedSkillAnimInfoCount;
+			Server_CachedSkillAnimInfo.Emplace( animInfoPtr->SkillAnimServerKey, c_animInfoPtr );
 		}
 	}
 }
 
 /**
- *  DetectNotify <-> FR4DetectEffectWrapper 연결
- *  @param InDetectNotify : 탐지 타이밍 알림을 전달할 객체
- *  @param InDetectEffectInfo : Skill에서 무언가 탐지하고 줄 영향
+ *  InMontageInstanceId를 Key로 DetectNotify <-> FR4DetectEffectWrapper 연결
+ *  @param InMontageInstanceId : Notify delegate bind 시 구별할 MontageInstance ID
+ *  @param InSkillAnimInfo : Anim, Notify와 그에 맞는 Detect, Effect 정보를 담는 FR4SkillAnimInfo
  */
-void UR4AnimSkillBase::_BindDetectNotifyAndEffect(const TScriptInterface<IR4NotifyDetectInterface>& InDetectNotify, const FR4DetectEffectWrapper& InDetectEffectInfo)
+void UR4AnimSkillBase::_BindDetectNotifyAndEffect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo )
 {
-	if( IR4NotifyDetectInterface* detectNotifyObj = InDetectNotify.GetInterface() )
+	if( !ensureMsgf( InSkillAnimInfo.SkillAnim , TEXT("Skill Anim is Invalid.")))
+		return;
+	
+	for ( const auto& [notifyIndex, detectEffect] : InSkillAnimInfo.DetectNotifies )
 	{
-		// this 캡처, WeakLambda 사용
-		detectNotifyObj->OnNotifyDetect( GetOwner() ).BindWeakLambda(this,
-			[this, &InDetectEffectInfo]()
-			{
-				// 탐지 실행
-				ExecuteDetect( InDetectEffectInfo );
-			});
+		if( !ensureMsgf( InSkillAnimInfo.SkillAnim->Notifies.IsValidIndex( notifyIndex ),
+			TEXT("Notify index is Invalid.")))
+			return;
+
+		if( IR4NotifyByIdInterface* detectNotifyObj = Cast<IR4NotifyByIdInterface>(InSkillAnimInfo.SkillAnim->Notifies[notifyIndex].Notify ) )
+		{
+			// this 캡처, WeakLambda 사용
+			detectNotifyObj->OnNotify( InMontageInstanceId ).BindWeakLambda(this,
+				[this, &detectEffect]()
+				{
+					// 탐지 실행
+					ExecuteDetect( detectEffect );
+				});
+		}
+	}
+}
+
+/**
+ *  InMontageInstanceId를 Key로 Bind해 두었던 DetectNotify <-> FR4DetectEffectWrapper unbind
+ *  @param InMontageInstanceId : Notify delegate bind 시 구별할 MontageInstance ID
+ *  @param InSkillAnimInfo : Anim, Notify와 그에 맞는 Detect, Effect 정보를 담는 FR4SkillAnimInfo
+ */
+void UR4AnimSkillBase::_UnbindDetectNotifyAndEffect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo )
+{
+	if( !ensureMsgf( InSkillAnimInfo.SkillAnim , TEXT("Skill Anim is Invalid.")))
+		return;
+	
+	for ( const auto& [notifyIndex, detectEffect] : InSkillAnimInfo.DetectNotifies )
+	{
+		if( !ensureMsgf( InSkillAnimInfo.SkillAnim->Notifies.IsValidIndex( notifyIndex ),
+			TEXT("Notify index is Invalid.")))
+			return;
+
+		if( IR4NotifyByIdInterface* detectNotifyObj = Cast<IR4NotifyByIdInterface>(InSkillAnimInfo.SkillAnim->Notifies[notifyIndex].Notify ) )
+			detectNotifyObj->UnbindNotify( InMontageInstanceId );
 	}
 }

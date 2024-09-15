@@ -10,7 +10,8 @@ class UR4BuffBase;
 class UAnimMontage;
 
 /**
- * Skill에서 진행할 탐지에 관한 정보
+ * Skill에서 진행할 탐지에 관한 정보.
+ * 사용 시 Replicate가 닿을 수 있도록 설정
  */
 USTRUCT()
 struct FR4SkillDetectInfo
@@ -30,6 +31,7 @@ struct FR4SkillDetectInfo
 	TSubclassOf<AActor> DetectClass;
 	
 	// 해당 Detect Class가 Visual적인 요소를 포함하고 있는지?
+	// TODO : client side Collision이 필요한지 여부로 바꿔볼까해.
 	// ex) 투사체
 	UPROPERTY( NotReplicated, EditAnywhere )
 	uint8 bHasVisual:1;
@@ -101,19 +103,19 @@ struct FR4SkillEffectInfo
 	GENERATED_BODY()
 	
 	// OnDetect 시 적용할 버프
-	UPROPERTY( EditAnywhere, Category = OnBegin )
+	UPROPERTY( EditAnywhere )
 	TArray<FR4SkillBuffInfo> OnBeginDetectBuffs;
 	
 	// OnEndDetect 시 적용할 버프
-	UPROPERTY( EditAnywhere, Category = OnEnd )
+	UPROPERTY( EditAnywhere )
 	TArray<FR4SkillBuffInfo> OnEndDetectBuffs;
 
 	// OnDetect 시 적용할 데미지
-	UPROPERTY( EditAnywhere, Category = OnBegin )
+	UPROPERTY( EditAnywhere )
 	TArray<FR4SkillDamageInfo> OnBeginDetectDamages;
 	
 	// OnEndDetect 시 적용할 데미지
-	UPROPERTY( EditAnywhere, Category = OnEnd )
+	UPROPERTY( EditAnywhere )
 	TArray<FR4SkillDamageInfo> OnEndDetectDamages;
 };
 
@@ -135,14 +137,31 @@ struct FR4DetectEffectWrapper
 	FR4SkillDetectInfo DetectInfo;
 
 	// 탐지 시 줄 영향
-	UPROPERTY( EditAnywhere )
+	UPROPERTY( NotReplicated, EditAnywhere )
 	FR4SkillEffectInfo EffectInfo;
+};
+
+/**
+ * Notify Number와, Detect, Effect Wrapper
+ */
+USTRUCT()
+struct FR4NotifyDetectWrapper
+{
+	GENERATED_BODY()
+
+	// Notify Number
+	UPROPERTY( NotReplicated, EditAnywhere )
+	int32 NotifyNumber;
+
+	// 해당 Notify가 할 Detect와 Effect
+	UPROPERTY( EditAnywhere )
+	FR4DetectEffectWrapper DetectEffect;
 };
 
 /**
  * Skill을 위한 Animation의 정보.
  * Animation과 Animation 작동 시 필요한 히트 체크 정보를 제공.
- * Skill Anim key를 서버에서 받기 위해 Replicate로 설정.
+ * Skill Anim key를 서버에서 받기 위해 Replicate로 설정, Replicate가 닿을 수 있도록 설정
  */
 USTRUCT()
 struct FR4SkillAnimInfo
@@ -160,8 +179,8 @@ struct FR4SkillAnimInfo
 
 	// Anim의 각 Notify와, Notify 번호에 맞는 무언가 탐지하고 줄 영향 지정
 	// {Notify index ( AnimMontage에서 몇번째 Notify인지 ), 탐지 및 효과 정보} 
-	UPROPERTY( NotReplicated, EditAnywhere )
-	TMap<int32, FR4DetectEffectWrapper> DetectNotify;
+	UPROPERTY( EditAnywhere )
+	TArray<FR4NotifyDetectWrapper> DetectNotifies;
 
 	// Server와 Client 사이 Skill Anim을 구분하기 위한 Key값.
 	UPROPERTY( Transient, VisibleInstanceOnly )
