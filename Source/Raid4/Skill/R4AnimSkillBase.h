@@ -37,17 +37,17 @@ protected:
 protected:
 	// Skill Animation을 Play. 멤버로 등록된 Skill Anim만 Server에서 Play 가능.
 	bool PlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo );
-
-	// Anim을 Play시작 시 호출. Key에 맞춰 할 로직 설정. Server와 Owner Client 에서 호출.
-	virtual void OnBeginSkillAnim( uint32 InSkillAnimKey ) {}
-
-	// Anim 종료 시 호출. Key에 맞춰 할 로직 설정. Server와 Owner Client 에서 호출
-	virtual void OnEndSkillAnim( uint32 InSkillAnimKey, bool InIsInterrupted ) {}
 	
-	// Skill Anim Key 값에 맞는 Skill Anim 을 현재 Play할 수 없는지 확인.
+	// Anim을 Play시작 시 호출. Server와 Owner Client 에서 호출.
+	virtual void OnBeginSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo );
+
+	// Anim 종료 시 호출. Server와 Owner Client 에서 호출
+	virtual void OnEndSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted );
+	
+	// Skill Anim 을 현재 Play할 수 없는지 확인.
 	// Client에서 PlaySkillAnim시에 확인 및
 	// PlayAnim Server RPC에서 Validation Check에 사용
-	virtual bool IsLockPlaySkillAnim( uint32 InSkillAnimKey ) const { return false; }
+	virtual bool IsLockPlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo ) const { return false; }
 
 private:
 	// Server로 Skill Anim Play를 전송.

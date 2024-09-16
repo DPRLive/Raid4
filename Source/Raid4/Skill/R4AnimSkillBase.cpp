@@ -108,7 +108,7 @@ bool UR4AnimSkillBase::PlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
 	if( GetOwnerRole() != ROLE_Authority )
 	{
 		// Anim Play에 Lock이 설정되어 있는지 확인
-		if ( IsLockPlaySkillAnim( InSkillAnimInfo.SkillAnimServerKey ) )
+		if ( IsLockPlaySkillAnim( InSkillAnimInfo ) )
 			return false;
 		
 		IR4AnimationInterface* owner = Cast<IR4AnimationInterface>(GetOwner());
@@ -133,17 +133,36 @@ bool UR4AnimSkillBase::PlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
 			[this, &InSkillAnimInfo, instanceId = montageInstance->GetInstanceID()]
 			(UAnimMontage* InMontage, bool InIsInterrupted)
 			{
-				_UnbindNotifiesAndDetect( instanceId, InSkillAnimInfo );
-				OnEndSkillAnim( InSkillAnimInfo.SkillAnimServerKey, InIsInterrupted );
+				OnEndSkillAnim( instanceId, InSkillAnimInfo, InIsInterrupted );
 			} );
 		
-		// DetectNotify <-> Effect Bind
-		_BindNotifiesAndDetect( montageInstance->GetInstanceID(), InSkillAnimInfo );
-		OnBeginSkillAnim( InSkillAnimInfo.SkillAnimServerKey );
+		OnBeginSkillAnim( montageInstance->GetInstanceID(), InSkillAnimInfo );
 	}
 
 	_ServerRPC_PlaySkillAnim( InSkillAnimInfo.SkillAnimServerKey );
 	return true;
+}
+
+/**
+ * Anim을 Play시작 시 호출. Server와 Owner Client 에서 호출.
+ * @param InInstanceID : 부여된 MontageInstanceID
+ * @param InSkillAnimInfo : Play될 Skill Anim 정보
+ */
+void UR4AnimSkillBase::OnBeginSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo )
+{
+	// DetectNotify <-> Effect Bind
+	_BindNotifiesAndDetect( InInstanceID, InSkillAnimInfo );
+}
+
+/**
+ *  Anim 종료 시 호출. Server와 Owner Client 에서 호출
+ * @param InInstanceID : Play시 부여된 MontageInstanceID
+ * @param InSkillAnimInfo : End될 Skill Anim 정보
+ */
+void UR4AnimSkillBase::OnEndSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted )
+{
+	// DetectNotify <-> Effect Unbind
+	_UnbindNotifiesAndDetect( InInstanceID, InSkillAnimInfo );
 }
 
 /**
@@ -184,13 +203,10 @@ void UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Implementation( uint32 InSkillAn
 		[this, &InSkillAnimInfo = **it, instanceId = montageInstance->GetInstanceID()]
 		(UAnimMontage* InMontage, bool InIsInterrupted)
 		{
-			_UnbindNotifiesAndDetect( instanceId, InSkillAnimInfo );
-			OnEndSkillAnim( InSkillAnimInfo.SkillAnimServerKey, InIsInterrupted );
+			OnEndSkillAnim( instanceId, InSkillAnimInfo, InIsInterrupted );
 		} );
 		
-	// DetectNotify <-> Effect Bind
-	_BindNotifiesAndDetect( montageInstance->GetInstanceID(), **it );
-	OnBeginSkillAnim( InSkillAnimKey );
+	OnBeginSkillAnim( montageInstance->GetInstanceID(), **it );
 }
 
 /**
@@ -200,7 +216,14 @@ void UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Implementation( uint32 InSkillAn
  */
 bool UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Validate( uint32 InSkillAnimKey )
 {
-	return ( InSkillAnimKey != Skill::G_InvalidSkillAnimKey ) && !IsLockPlaySkillAnim( InSkillAnimKey );
+	auto it = Server_CachedSkillAnimInfo.Find( InSkillAnimKey );
+	if(it == nullptr)
+	{
+		LOG_WARN( R4Skill, TEXT("InSkillKey [%d] is invalid. check replicate state."), InSkillAnimKey );
+		return false;
+	}
+	
+	return !IsLockPlaySkillAnim( **it );
 }
 
 /**
@@ -236,7 +259,7 @@ void UR4AnimSkillBase::_Server_ParseSkillAnimInfo()
  */
 void UR4AnimSkillBase::_BindNotifiesAndDetect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo )
 {
-	if( !ensureMsgf( InSkillAnimInfo.SkillAnim , TEXT("Skill Anim is Invalid.")))
+	if( !ensureMsgf( IsValid( InSkillAnimInfo.SkillAnim ) , TEXT("Skill Anim is Invalid.")))
 		return;
 	
 	for ( const auto& [notifyIndex, detectEffect] : InSkillAnimInfo.DetectNotifies )
@@ -265,7 +288,7 @@ void UR4AnimSkillBase::_BindNotifiesAndDetect( int32 InMontageInstanceId, const 
  */
 void UR4AnimSkillBase::_UnbindNotifiesAndDetect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo )
 {
-	if( !ensureMsgf( InSkillAnimInfo.SkillAnim , TEXT("Skill Anim is Invalid.")))
+	if( !ensureMsgf( IsValid( InSkillAnimInfo.SkillAnim ), TEXT("Skill Anim is Invalid.")))
 		return;
 	
 	for ( const auto& [notifyIndex, detectEffect] : InSkillAnimInfo.DetectNotifies )
