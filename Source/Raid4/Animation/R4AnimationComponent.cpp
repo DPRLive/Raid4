@@ -27,19 +27,19 @@ UR4AnimationComponent::UR4AnimationComponent()
 void UR4AnimationComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
-	DOREPLIFETIME_CONDITION(UR4AnimationComponent, RepAnimInfo, COND_SimulatedOnly);
+
+	DOREPLIFETIME_CONDITION( UR4AnimationComponent, RepAnimInfo, COND_SimulatedOnly );
 }
 
 void UR4AnimationComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	GetWorld()->GetTimerManager().SetTimerForNextTick([thisPtr = TWeakObjectPtr<UR4AnimationComponent>(this)]()
+
+	GetWorld()->GetTimerManager().SetTimerForNextTick( [thisPtr = TWeakObjectPtr<UR4AnimationComponent>( this )]()
 	{
-		if(thisPtr.IsValid())
+		if ( thisPtr.IsValid() )
 			thisPtr->AfterBeginPlay();
-	});
+	} );
 }
 
 /**
@@ -48,8 +48,8 @@ void UR4AnimationComponent::BeginPlay()
 void UR4AnimationComponent::AfterBeginPlay()
 {
 	// Server Time second가 AGameState의 BeginPlay 시점이 되어야 적용 되어서 여기서 실행
-	if(RepAnimInfo.AnimMontage.IsValid())
-		_OnRep_AnimInfo(FPlayAnimInfo());
+	if ( RepAnimInfo.AnimMontage.IsValid() )
+		_OnRep_AnimInfo( FPlayAnimInfo() );
 }
 
 /**
@@ -63,82 +63,138 @@ void UR4AnimationComponent::AfterBeginPlay()
  */
 float UR4AnimationComponent::Server_PlayAnim_WithoutAutonomous(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, bool InIsWithServer, float InServerTime)
 {
-	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")) ||
-		!IsValid(InAnimMontage))
+	if ( !ensureMsgf( GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.") ) ||
+		!IsValid( InAnimMontage ) )
 		return 0.f;
 
+	FPlayAnimInfo prevRepAnimInfo = RepAnimInfo;
+	
 	// COND_SimulatedOnly Property Replication으로 동기화.
 	RepAnimInfo.AnimMontage = InAnimMontage;
 	RepAnimInfo.PlayRate = InPlayRate;
-	RepAnimInfo.SectionIndex = InAnimMontage->GetSectionIndex(InStartSectionName);
+	RepAnimInfo.SectionIndex = InAnimMontage->GetSectionIndex( InStartSectionName );
 
-	if(RepAnimInfo.SectionIndex == INDEX_NONE) // INDEX가 NONE이면 시작 Section Index를 설정
-		RepAnimInfo.SectionIndex = InAnimMontage->GetSectionIndexFromPosition(0);
+	if ( RepAnimInfo.SectionIndex == INDEX_NONE ) // INDEX가 NONE이면 시작 Section Index를 설정
+		RepAnimInfo.SectionIndex = InAnimMontage->GetSectionIndexFromPosition( 0 );
+
+	if ( FMath::IsNearlyEqual( InServerTime, -1.f ) )
+		RepAnimInfo.StartServerTime = R4GetServerTimeSeconds( GetWorld() );
+	else
+		RepAnimInfo.StartServerTime = InServerTime;
+
+	// 필요 시 Server에서도 플레이
+	if ( InIsWithServer )
+		_PlayAnimSync( prevRepAnimInfo, RepAnimInfo );
+
+	return UtilAnimation::GetCompositeAnimLength( InAnimMontage, RepAnimInfo.SectionIndex );
+}
+
+/**
+ *  Server에서, Authority와 Autonomous Proxy를 제외하고 Section Jump 명령. ServerTime 조정으로 동기화 지원
+ *  @param InSectionName : Jump할 Anim Section의 Name
+ *  @param InIsWithServer : Server도 같이 Jump가 필요한지?
+ *  @param InServerTime : 이 Animation을 Play한 서버 시작 시간 
+ *  @return : AnimMontage의 링크를 포함한 Jump한 Section에 대한 시간, 루프시 -1 반환
+ */
+float UR4AnimationComponent::Server_JumpToSection_WithoutAutonomous( const FName& InSectionName, bool InIsWithServer, float InServerTime )
+{
+	if ( !ensureMsgf( GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.") ) ||
+		!IsValid( RepAnimInfo.AnimMontage.Get() ) )
+		return 0.f;
+
+	int32 nextSectionIndex = RepAnimInfo.AnimMontage->GetSectionIndex( InSectionName );
+	if ( RepAnimInfo.SectionIndex == INDEX_NONE ) // INDEX가 NONE이면 Jump하지 않음
+	{
+		LOG_WARN( R4Data, TEXT("InSectionName is invalid. : [%s]"), *InSectionName.ToString() )
+		return 0.f;
+	}
+
+	FPlayAnimInfo prevRepAnimInfo = RepAnimInfo;
+
+	// COND_SimulatedOnly Property Replication으로 동기화. (Anim Montage는 변경하지 않음)
+	RepAnimInfo.SectionIndex = nextSectionIndex;
 
 	if(FMath::IsNearlyEqual(InServerTime, -1.f))
 		RepAnimInfo.StartServerTime = R4GetServerTimeSeconds(GetWorld());
 	else
 		RepAnimInfo.StartServerTime = InServerTime;
 
-	// 필요 시 Server에서도 플레이
-	if(InIsWithServer)
-		_PlayAnimSync(RepAnimInfo);
-	
-	return UtilAnimation::GetCompositeAnimLength(InAnimMontage, RepAnimInfo.SectionIndex);
+	// 필요 시 Server에서도 Jump할 수 있도록 
+	if ( InIsWithServer )
+		_PlayAnimSync( prevRepAnimInfo, RepAnimInfo );
+
+	return UtilAnimation::GetCompositeAnimLength( RepAnimInfo.AnimMontage.Get(), RepAnimInfo.SectionIndex );
 }
 
 /**
  *  Server에서, Authority와 Autonomous Proxy를 제외하고 AnimStop을 명령.
  *  @param InIsWithServer : Server도 같이 Stop해야 하는지?
  */
-void UR4AnimationComponent::Server_StopAnim_WithoutAutonomous(bool InIsWithServer)
+void UR4AnimationComponent::Server_StopAnim_WithoutAutonomous( bool InIsWithServer )
 {
-	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
+	if ( !ensureMsgf( GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.") ) )
 		return;
-	
+
 	// nullptr을 지정하여 stop
+	FPlayAnimInfo prevRepAnimInfo = RepAnimInfo;
 	RepAnimInfo = nullptr;
 
 	// 필요시 서버도 같이 Stop
-	if(InIsWithServer)
-		_PlayAnimSync(RepAnimInfo);
+	if ( InIsWithServer )
+		_PlayAnimSync( prevRepAnimInfo, RepAnimInfo );
 }
 
 /**
  *  delay를 적용하여 동기화 된 Animation Play.
- *  @param InRepAnimInfo : Replicate 된 Anim 정보
+ *  @param InPrevRepAnimInfo : 이전 Replicate 된 Anim 정보
+ *  @param InNowRepAnimInfo : 현재 Replicate 된 Anim 정보
  */
-void UR4AnimationComponent::_PlayAnimSync(const FPlayAnimInfo& InRepAnimInfo) const
+void UR4AnimationComponent::_PlayAnimSync( const FPlayAnimInfo& InPrevRepAnimInfo, const FPlayAnimInfo& InNowRepAnimInfo ) const
 {
-	ACharacter* owner = Cast<ACharacter>(GetOwner());
-	if(!IsValid(owner))
+	ACharacter* owner = Cast<ACharacter>( GetOwner() );
+	if ( !IsValid( owner ) )
 		return;
-	
-	UAnimInstance* anim = IsValid(owner->GetMesh()) ? owner->GetMesh()->GetAnimInstance() : nullptr;
-	if(!IsValid(anim))
+
+	UAnimInstance* anim = IsValid( owner->GetMesh() ) ? owner->GetMesh()->GetAnimInstance() : nullptr;
+	if ( !IsValid( anim ) )
 		return;
-		
-	// nullptr이면, 정지
-	if(!InRepAnimInfo.AnimMontage.IsValid())
+
+	// nullptr이면 정지, 아니면 플레이
+	if ( !InNowRepAnimInfo.AnimMontage.IsValid() )
 	{
-		anim->StopAllMontages(anim->Montage_GetBlendTime(nullptr));
+		anim->StopAllMontages( anim->Montage_GetBlendTime( nullptr ) );
 		return;
 	}
 
-	// 아니면 플레이
-	float serverTime = R4GetServerTimeSeconds(GetWorld());
-	if(FMath::IsNearlyEqual(serverTime, -1.f))
-		return;
-	
-	// 딜레이를 적용
 	// TODO : Server -> Client 상 pkt lag이 있다면, 보정이 힘들 수 있음. ( ServerWorldTimeSecond도 Replicate 되기 때문 )
-	float delayTime = serverTime - InRepAnimInfo.StartServerTime;
-	delayTime = FMath::Clamp(delayTime, 0.f, delayTime);
-	
-	float startPos = UtilAnimation::GetDelayedStartAnimPos(InRepAnimInfo.AnimMontage.Get(), InRepAnimInfo.SectionIndex, delayTime); 
-	
-	if(!FMath::IsNearlyEqual(startPos, -1))
-		anim->Montage_Play(InRepAnimInfo.AnimMontage.Get(), InRepAnimInfo.PlayRate, EMontagePlayReturnType::MontageLength, startPos);
+	float serverTime = R4GetServerTimeSeconds( GetWorld() );
+	float delayTime = FMath::Max( 0.f, serverTime - InNowRepAnimInfo.StartServerTime );
+	float startPos = UtilAnimation::GetDelayedStartAnimPos( InNowRepAnimInfo.AnimMontage.Get(), InNowRepAnimInfo.SectionIndex, delayTime );
+	if ( FMath::IsNearlyEqual( serverTime, -1.f ) || FMath::IsNearlyEqual( startPos, -1 ) )
+		return;
+
+	// Play인지 Jump인지 확인.
+	// 현재 InNowRepAnimInfo Montage가 Play 중이면서 &&
+	// Montage Section Index가 변경된 경우
+	bool bJump = anim->Montage_IsActive( InNowRepAnimInfo.AnimMontage.Get() ) && ( InPrevRepAnimInfo.SectionIndex != InNowRepAnimInfo.SectionIndex );
+	if ( bJump )
+	{
+		// Jump Section (Montage Instance)가 유지됨!
+		anim->Montage_SetPosition( InNowRepAnimInfo.AnimMontage.Get(), startPos );
+	}
+	else
+	{
+		// 새로 Anim을 Play (Montage Instance가 새로 생성됨)
+		anim->Montage_Play( InNowRepAnimInfo.AnimMontage.Get(), InNowRepAnimInfo.PlayRate, EMontagePlayReturnType::MontageLength, startPos );
+	}
+
+	// TODO : Delay상 Play가 안된 Anim 강제로 호출
+	// TArray<FAnimNotifyEventReference> notifyEvents;
+	// InRepAnimInfo.AnimMontage->GetAnimNotifies(startPos, delayTime, true, notifyEvents);
+	// for(const auto& notifyEvent : notifyEvents)
+	// {
+	// 	notifyEvent.GetNotify()->Notify->OnD
+	// }
 }
 
 /**
@@ -146,5 +202,5 @@ void UR4AnimationComponent::_PlayAnimSync(const FPlayAnimInfo& InRepAnimInfo) co
  */
 void UR4AnimationComponent::_OnRep_AnimInfo(const FPlayAnimInfo& InPrevAnimInfo)
 {
-	_PlayAnimSync(RepAnimInfo);
+	_PlayAnimSync( InPrevAnimInfo, RepAnimInfo );
 }

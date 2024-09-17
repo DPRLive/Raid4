@@ -60,18 +60,21 @@ private:
 	
 public:
 	// Server에서, Autonomous Proxy를 제외하고 AnimPlay를 명령. ServerTime 조정으로 동기화 가능.
-	float Server_PlayAnim_WithoutAutonomous(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, bool InIsWithServer, float InServerTime = -1);
+	float Server_PlayAnim_WithoutAutonomous( UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, bool InIsWithServer, float InServerTime = -1 );
+
+	// Server에서, Autonomous Proxy를 제외하고 Section Jump를 명령. ServerTime 조정으로 동기화 가능.
+	float Server_JumpToSection_WithoutAutonomous( const FName& InSectionName, bool InIsWithServer, float InServerTime = -1 );
 	
 	// Server에서, Autonomous Proxy를 제외하고 AnimStop을 명령.
-	void Server_StopAnim_WithoutAutonomous(bool InIsWithServer);
+	void Server_StopAnim_WithoutAutonomous( bool InIsWithServer );
 	
 private:
 	// delay를 적용하여 동기화 된 Animation Play.
-	void _PlayAnimSync(const FPlayAnimInfo& InRepAnimInfo) const;
-	
+	void _PlayAnimSync( const FPlayAnimInfo& InPrevRepAnimInfo, const FPlayAnimInfo& InNowRepAnimInfo ) const;
+
 	// Replicate 된 Anim Info를 처리
 	UFUNCTION()
-	void _OnRep_AnimInfo(const FPlayAnimInfo& InPrevAnimInfo);
+	void _OnRep_AnimInfo( const FPlayAnimInfo& InPrevAnimInfo );
 
 private:
 	// 전달 받은 Animation의 정보 (Simulated Proxy만 받음)
