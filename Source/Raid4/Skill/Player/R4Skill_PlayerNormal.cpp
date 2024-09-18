@@ -43,21 +43,20 @@ void UR4Skill_PlayerNormal::OnBeginSkillAnim( int32 InInstanceID, const FR4Skill
 	Super::OnBeginSkillAnim( InInstanceID , InSkillAnimInfo );
 	
 	// Normal Skill의 경우 Anim Play 시점을 Skill 사용으로 판정
-	// Anim Play = 스킬 사용으로 판단.
+	// Anim Play 성공 = 스킬 사용으로 판단 및 쿨타임 적용
 	if ( InSkillAnimInfo.SkillAnimServerKey == NormalSkillAnimInfo.SkillAnimServerKey )
 		SetSkillCoolDownTime( GetSkillCoolDownTime( false ) );
 }
 
 /**
- * Skill Anim 을 현재 Play할 수 없는지 확인.
- * Client에서 PlaySkillAnim시에 확인 및 PlayAnim Server RPC에서 Validation Check에 사용
- * @param InSkillAnimInfo : Play할 Skill Anim
+ *  Server RPC의 Play Skill Anim 시 요청 무시 check에 사용.
+ * (Validate Check 후 Server RPC 내에서 체크함으로 Index가 유효함이 보장)
  */
-bool UR4Skill_PlayerNormal::IsLockPlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo ) const
+bool UR4Skill_PlayerNormal::PlaySkillAnim_Ignore( uint32 InSkillAnimKey ) const
 {
-	// Normal Skill Anim의 Server Play는 Skill 사용이 가능할 때만 서버에서 허용
-	if ( InSkillAnimInfo.SkillAnimServerKey == NormalSkillAnimInfo.SkillAnimServerKey )
-		return !CanActivateSkill();
+	// Skill을 사용할 수 없는 상태인데 요청이 오는 경우 무시
+	if(InSkillAnimKey == NormalSkillAnimInfo.SkillAnimServerKey)
+		return Super::PlaySkillAnim_Ignore( InSkillAnimKey ) || !CanActivateSkill();
 
 	return true;
 }

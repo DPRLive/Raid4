@@ -32,11 +32,8 @@ protected:
 	// Anim을 Play시작 시 호출. Server와 Owner Client 에서 호출.
 	virtual void OnBeginSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo ) override;
 
-	// Skill Anim 을 현재 Play할 수 없는지 확인.
-	// Client에서 PlaySkillAnim시에 확인 및
-	// PlayAnim Server RPC에서 Validation Check에 사용
-	virtual bool IsLockPlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo ) const override;
-
+	// Server RPC의 Play Skill Anim 시 요청 무시 check에 사용
+	virtual bool PlaySkillAnim_Ignore( uint32 InSkillAnimKey ) const override;
 private:
 	// 발동할 스킬 애니메이션, 누르면 바로 작동
 	UPROPERTY( Replicated, EditAnywhere, Category = "Skill|Anim" )
