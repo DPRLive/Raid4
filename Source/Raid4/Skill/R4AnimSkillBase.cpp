@@ -197,6 +197,21 @@ bool UR4AnimSkillBase::PlaySkillAnim_Ignore( uint32 InSkillAnimKey ) const
 }
 
 /**
+ *  Key에 맞는 Skill Anim이 Server에서 Play되고 있는지 확인 
+ */
+bool UR4AnimSkillBase::IsSkillAnimPlaying( uint32 InSkillAnimKey ) const
+{
+	if(InSkillAnimKey == Skill::G_InvalidSkillAnimKey ||
+		!SkillAnimPlayState.IsValidIndex( InSkillAnimKey ))
+	{
+		LOG_WARN( R4Skill, TEXT("Skill Anim Key [%d] Is Invalid. Check SkillAnim Replicate State."), InSkillAnimKey );
+		return false;
+	}
+
+	return SkillAnimPlayState[InSkillAnimKey];
+}
+
+/**
  *  Server로 Animation Play를 요청.
  *  @param InSkillAnimKey : Server에서 부여받은 FR4SkillAnimInfo의 Key.
  *  @param InStartServerTime : Anim을 Play 시작한 ServerTime.

@@ -4,15 +4,11 @@
 #include "R4Skill_PlayerCombo.h"
 
 #include "../../Animation/Notify/R4NotifyByIdInterface.h"
+#include "../../Animation/R4AnimationInterface.h"
 
 #include <Net/UnrealNetwork.h>
 #include <Animation/AnimMontage.h>
 #include <Animation/AnimNotifies/AnimNotify.h>
-
-// TEST
-#include "Animation/AnimInstance.h"
-#include "Components/SkeletalMeshComponent.h"
-#include "GameFramework/Character.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4Skill_PlayerCombo)
 
@@ -21,6 +17,9 @@ UR4Skill_PlayerCombo::UR4Skill_PlayerCombo()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	SetIsReplicatedByDefault( true );
+
+	CachedCanComboInput = false;
+	CachedOnComboInput = false;
 }
 
 #if WITH_EDITOR
@@ -93,7 +92,7 @@ void UR4Skill_PlayerCombo::GetLifetimeReplicatedProps( TArray<class FLifetimePro
 {
 	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
 
-	DOREPLIFETIME_CONDITION( UR4Skill_PlayerCombo, Server_CachedOnComboInput, COND_OwnerOnly );
+	DOREPLIFETIME_CONDITION( UR4Skill_PlayerCombo, ComboSkillAnimInfo, COND_OwnerOnly );
 }
 
 /**
@@ -101,22 +100,22 @@ void UR4Skill_PlayerCombo::GetLifetimeReplicatedProps( TArray<class FLifetimePro
  */
 void UR4Skill_PlayerCombo::OnInputStarted()
 {
-	// Combo Skill 사용 시작인 경우
-	if ( !CachedIsComboSkillActive )
+	// 스킬이 사용 가능하고, Combo Input Check가 불가능할 때 ( Combo Anim이 활성화 되지 않았다는 뜻 )
+	// Combo Skill 시작
+	if ( CanActivateSkill() && !CachedCanComboInput )
 	{
-		// 스킬 사용 가능 상태인지 확인
-		if ( !CanActivateSkill() )
-			return;
-
 		// Anim Play.
 		PlaySkillAnim( ComboSkillAnimInfo );
+		return;
 	}
-	// Combo Skill 사용 중인 경우
-	else
+	
+	// Server에서 Combo Skill Anim 사용 중이 확인되고, Combo Input Check가 가능하며,
+	// Combo Input이 입력 된 상태가 아니면 요청
+	if ( IsSkillAnimPlaying( ComboSkillAnimInfo.SkillAnimServerKey ) && CachedCanComboInput
+		&& !CachedOnComboInput )
 	{
-		// Combo Input이 입력 된 상태가 아니면 요청
-		if ( !Server_CachedOnComboInput )
-			_ServerRPC_RequestComboInput();
+		CachedOnComboInput = true;
+		_ServerRPC_RequestComboInput();
 	}
 }
 
@@ -127,11 +126,13 @@ void UR4Skill_PlayerCombo::OnInputStarted()
  */
 void UR4Skill_PlayerCombo::OnBeginSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo )
 {
+	// Anim Play 시작 성공 시 Combo Skill 사용중으로 판단
 	if ( InSkillAnimInfo.SkillAnimServerKey == ComboSkillAnimInfo.SkillAnimServerKey )
 	{
 		// InputTest Notify <-> InputTest Bind
 		_BindNotifiesAndInputTest( InInstanceID );
-		CachedIsComboSkillActive = true;
+		CachedCanComboInput = true;
+		CachedOnComboInput = false;
 	}
 }
 
@@ -146,10 +147,8 @@ void UR4Skill_PlayerCombo::OnEndSkillAnim( int32 InInstanceID, const FR4SkillAni
 	{
 		// InputTest Notify <-> InputTest Unbind
 		_UnbindNotifiesAndInputTest( InInstanceID );
-		CachedIsComboSkillActive = false;
-	
-		if ( GetOwnerRole() == ROLE_Authority )
-			Server_CachedOnComboInput = false;
+		CachedCanComboInput = false;
+		CachedOnComboInput = false;
 
 		// Combo Skill의 경우, 종료 시점에 SetCoolTime
 		SetSkillCoolDownTime( GetSkillCoolDownTime( false ) );
@@ -157,17 +156,14 @@ void UR4Skill_PlayerCombo::OnEndSkillAnim( int32 InInstanceID, const FR4SkillAni
 }
 
 /**
- * Skill Anim 을 현재 Play할 수 없는지 확인.
- * Client에서 PlaySkillAnim시에 확인 및 PlayAnim Server RPC에서 Validation Check에 사용
- * @param InSkillAnimInfo : Play할 Skill Anim
+ *  Server RPC의 Play Skill Anim 시 요청 무시 check에 사용.
+ *  ( Validate Check 후 Server RPC 내에서 체크함으로 Index가 유효함이 보장 )
  */
-bool UR4Skill_PlayerCombo::IsLockPlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo ) const
+bool UR4Skill_PlayerCombo::PlaySkillAnim_Ignore( uint32 InSkillAnimKey ) const
 {
-	if(InSkillAnimInfo.SkillAnimServerKey == ComboSkillAnimInfo.SkillAnimServerKey)
-	{
-		// Combo Skill이 진행중이거나 Skill을 사용할 수 없을 때 Lock
-		return CachedIsComboSkillActive || !CanActivateSkill();
-	}
+	// 이미 Anim을 Play 중이거나 || 스킬을 사용할 수 없을 때.
+	if ( InSkillAnimKey == ComboSkillAnimInfo.SkillAnimServerKey )
+		return Super::PlaySkillAnim_Ignore( InSkillAnimKey ) || !CanActivateSkill();
 	
 	return true;
 }
@@ -177,16 +173,9 @@ bool UR4Skill_PlayerCombo::IsLockPlaySkillAnim( const FR4SkillAnimInfo& InSkillA
  */
 void UR4Skill_PlayerCombo::_ServerRPC_RequestComboInput_Implementation()
 {
-	Server_CachedOnComboInput = true;
-}
-
-/**
- * Server로 ComboInput을 요청 유효성 확인
- */
-bool UR4Skill_PlayerCombo::_ServerRPC_RequestComboInput_Validate()
-{
-	// Combo Skill을 사용중일때, 유효함으로 판정
-	return CachedIsComboSkillActive;
+	// 현재 Combo Input을 받을 수 있는 경우, true
+	if ( CachedCanComboInput )
+		CachedOnComboInput = true;
 }
 
 /**
@@ -196,35 +185,40 @@ bool UR4Skill_PlayerCombo::_ServerRPC_RequestComboInput_Validate()
  */
 void UR4Skill_PlayerCombo::_ComboInputTest( uint8 InNotifyNumber )
 {
-	if ( Server_CachedOnComboInput )
-	{
-		// Combo Input Notify 정보를 Notify 기준으로 Sort해 놓았으므로 binary_search
-		int32 index = Algo::LowerBound( ComboInputInfo, InNotifyNumber,
-			[](const FR4ComboInputInfo& InElem1, int32 InIndex)
-			{
-				return InElem1.NotifyNumber < InIndex; 
-			});
-		
-		// 다음 Section이 잘 존재할 때
-		if ( ( ComboInputInfo.IsValidIndex( index ) ) && ( ComboInputInfo[index].NotifyNumber == InNotifyNumber) )
-		{
-			// TODO : Find Section Name & transition
+	// Input Test가 지나고는 받을 수 없음. 성공적으로 Transition 시에는 다시 설정.
+	CachedCanComboInput = false;
+	
+	if ( !CachedOnComboInput )
+		return;
 
-			Cast<ACharacter>(GetOwner())->GetMesh()->GetAnimInstance()->Montage_JumpToSection( ComboInputInfo[index].NextSectionName );
-			
-			// Section Transition In Local
-			if ( GetOwnerRole() == ROLE_AutonomousProxy )
-			{
-				
-			}
-			// Section Transition Server
-			else if ( GetOwnerRole() == ROLE_Authority )
-			{
-				// false로 변경
-				Server_CachedOnComboInput = false;
-			}
-		}
+	// Combo Input Notify 정보를 Notify 기준으로 Sort해 놓았으므로 binary_search
+	int32 index = Algo::LowerBound( ComboInputInfo, InNotifyNumber,
+		[](const FR4ComboInputInfo& InElem1, int32 InIndex)
+		{
+			return InElem1.NotifyNumber < InIndex; 
+		});
+	
+	// 다음 Section이 잘 존재하는지 확인
+	if ( !ComboInputInfo.IsValidIndex( index ) || ComboInputInfo[index].NotifyNumber != InNotifyNumber ) 
+		return;
+
+	IR4AnimationInterface* owner = Cast<IR4AnimationInterface>(GetOwner());
+	if ( owner == nullptr )
+	{
+		LOG_WARN( R4Skill, TEXT("Can only play Skill Animations if the IR4AnimationInterface is inherited.") )
+		return;
 	}
+	
+	// Section Transition In Local
+	if ( GetOwnerRole() == ROLE_AutonomousProxy )
+		owner->JumpToSection_Local( ComboInputInfo[index].NextSectionName );
+	
+	// Section Transition Server
+	if ( GetOwnerRole() == ROLE_Authority )
+		owner->Server_JumpToSection_WithoutAutonomous( ComboInputInfo[index].NextSectionName, true );
+
+	CachedCanComboInput = true;
+	CachedOnComboInput = false;
 }
 
 /**

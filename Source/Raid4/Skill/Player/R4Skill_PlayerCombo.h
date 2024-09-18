@@ -68,17 +68,14 @@ protected:
 
 	// Anim 종료 시 호출. Server와 Owner Client 에서 호출
 	virtual void OnEndSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted ) override;
-	
-	// Skill Anim 을 현재 Play할 수 없는지 확인.
-	// Client에서 PlaySkillAnim시에 확인 및
-	// PlayAnim Server RPC에서 Validation Check에 사용
-	virtual bool IsLockPlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo ) const override;
 
+	// Server RPC의 Play Skill Anim 시 요청 무시 check에 사용
+	virtual bool PlaySkillAnim_Ignore( uint32 InSkillAnimKey ) const override;
 private:
 	// Combo Input을 서버에 요청
-	UFUNCTION( Server, Reliable, WithValidation )
+	UFUNCTION( Server, Reliable )
 	void _ServerRPC_RequestComboInput();
-
+	
 	// Combo Input Test
 	void _ComboInputTest( uint8 InNotifyNumber );
 	
@@ -99,10 +96,9 @@ private:
 
 	//// Caching ////
 	
-	// Combo Skill이 사용중인가?
-	uint8 CachedIsComboSkillActive:1;
+	// Combo Skill Input 을 받을 수 있나?
+	uint8 CachedCanComboInput:1;
 	
 	// Combo Input이 입력된 상태인지?
-	UPROPERTY( Replicated, Transient )
-	uint8 Server_CachedOnComboInput:1;
+	uint8 CachedOnComboInput:1;
 };

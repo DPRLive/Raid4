@@ -53,6 +53,9 @@ protected:
 
 	// Server RPC의 Play Skill Anim 시 요청 무시 check에 사용
 	virtual bool PlaySkillAnim_Ignore( uint32 InSkillAnimKey ) const;
+
+	// Key에 맞는 Skill Anim이 Server에서 Play되고 있는지 확인 
+	bool IsSkillAnimPlaying( uint32 InSkillAnimKey ) const;
 private:
 	// Server로 Skill Anim Play를 전송.
 	UFUNCTION( Server, Reliable, WithValidation )
