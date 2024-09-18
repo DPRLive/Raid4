@@ -13,7 +13,7 @@ class IR4NotifyByIdInterface;
  * < 상속하여 클래스를 제작 시 주의할 점 >
  * ( FR4SkillAnimInfo 사용 시 )
  * - Skill Anim Key값을 Server로 부터 할당 받을 수 있도록 Replicate 설정
- * - Skill Anim 키 값에 맞는 Valid Check 조건을 설정 (OnBeginSkillAnim(), OnEndSkillAnim(), IsLockPlaySkillAnim() 등 활용)
+ * - Skill Anim 키 값에 맞는 Valid Check 조건을 설정 (OnBeginSkillAnim(), OnEndSkillAnim(), PlaySkillAnim_Validate(), PlaySkillAnim_Ignore() 등 활용)
  * ( FR4SkillDetectInfo 사용 시 )
  * - Detector Key값을 Server로 부터 할당 받을 수 있도록 Replicate 설정
  * ( Skill 타이밍 체크 )
@@ -32,6 +32,10 @@ protected:
 	virtual void PostEditChangeProperty( FPropertyChangedEvent& PropertyChangedEvent ) override;
 #endif
 
+public:
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+protected:
 	virtual void BeginPlay() override;
 	
 protected:
@@ -43,16 +47,16 @@ protected:
 
 	// Anim 종료 시 호출. Server와 Owner Client 에서 호출
 	virtual void OnEndSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted );
-	
-	// Skill Anim 을 현재 Play할 수 없는지 확인.
-	// Client에서 PlaySkillAnim시에 확인 및
-	// PlayAnim Server RPC에서 Validation Check에 사용
-	virtual bool IsLockPlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo ) const { return false; }
 
+	// Server RPC의 Validation check 시 사용
+	virtual bool PlaySkillAnim_Validate( uint32 InSkillAnimKey ) const;
+
+	// Server RPC의 Play Skill Anim 시 요청 무시 check에 사용
+	virtual bool PlaySkillAnim_Ignore( uint32 InSkillAnimKey ) const;
 private:
 	// Server로 Skill Anim Play를 전송.
 	UFUNCTION( Server, Reliable, WithValidation )
-	void _ServerRPC_PlaySkillAnim( uint32 InSkillAnimKey );
+	void _ServerRPC_PlaySkillAnim( uint32 InSkillAnimKey, float InStartServerTime );
 	
 	// Server에서 Skill Anim 멤버를 찾아서 Skill Anim 키 부여
 	void _Server_ParseSkillAnimInfo();
@@ -64,8 +68,13 @@ private:
 	void _UnbindNotifiesAndDetect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo );
 	
 private:
+	// Skill Anim들을 Play할 수 있는지 확인에 체크
+	// Index(1 ~ CachedSkillAnimInfoCount): SkillAnimKey, Value (true : 사용 중) 
+	UPROPERTY( Replicated, Transient )
+	TArray<bool> SkillAnimPlayState;
+	
 	// SkillAnimInfo를 Bind하며 찾은 현재 클래스 멤버에 있는 SkillAnimInfo의 개수, Skill Anim Key 부여용으로도 사용
-	uint32 CachedSkillAnimInfoCount;
+	uint32 Server_CachedSkillAnimInfoCount;
 
 	// Skill Anim Key값이 어떤 SkillAnimInfo를 가리키는지 확인하기 위한 CachedMap (Server Only)
 	// { Skill Anim Key, UAnimMontage* }

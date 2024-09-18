@@ -6,6 +6,7 @@
 #include "../Animation/Notify/R4NotifyByIdInterface.h"
 #include "../Animation/R4AnimationInterface.h"
 
+#include <Net/UnrealNetwork.h>
 #include <Animation/AnimMontage.h>
 #include <Animation/AnimNotifies/AnimNotify.h>
 
@@ -17,7 +18,7 @@ UR4AnimSkillBase::UR4AnimSkillBase()
 
 	SetIsReplicatedByDefault( true );
 
-	CachedSkillAnimInfoCount = 0;
+	Server_CachedSkillAnimInfoCount = 0;
 }
 
 #if WITH_EDITOR
@@ -79,6 +80,13 @@ void UR4AnimSkillBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 }
 #endif
 
+void UR4AnimSkillBase::GetLifetimeReplicatedProps( TArray<class FLifetimeProperty>& OutLifetimeProps ) const
+{
+	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
+
+	DOREPLIFETIME_CONDITION( UR4AnimSkillBase, SkillAnimPlayState, COND_OwnerOnly )
+}
+
 void UR4AnimSkillBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -95,22 +103,23 @@ void UR4AnimSkillBase::BeginPlay()
  */
 bool UR4AnimSkillBase::PlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
 {
-	if ( InSkillAnimInfo.SkillAnimServerKey == Skill::G_InvalidSkillAnimKey )
+	if ( InSkillAnimInfo.SkillAnimServerKey == Skill::G_InvalidSkillAnimKey ||
+		!SkillAnimPlayState.IsValidIndex( InSkillAnimInfo.SkillAnimServerKey ))
 	{
-		LOG_WARN( R4Skill, TEXT("Skill Anim Key Is Invalid. Check SkillAnim Replicate State.") );
+		LOG_WARN( R4Skill, TEXT("Skill Anim Key [%d] Is Invalid. Check SkillAnim Replicate State."), InSkillAnimInfo.SkillAnimServerKey );
 		return false;
 	}
-	
+
 	if ( !ensureMsgf( IsValid(InSkillAnimInfo.SkillAnim), TEXT("Skill Anim is nullptr.") ) )
 		return false;
+
+	// Server에서 이 Anim을 이미 Play 중인지 확인
+	if ( SkillAnimPlayState[InSkillAnimInfo.SkillAnimServerKey] )
+		return false;
 	
-	// Authority가 아닌 경우 로컬에서 플레이 후 Server RPC 전송
-	if( GetOwnerRole() != ROLE_Authority )
+	// ROLE_AutonomousProxy인 경우 로컬에서 플레이 후 Server RPC 전송
+	if( GetOwnerRole() == ROLE_AutonomousProxy )
 	{
-		// Anim Play에 Lock이 설정되어 있는지 확인
-		if ( IsLockPlaySkillAnim( InSkillAnimInfo ) )
-			return false;
-		
 		IR4AnimationInterface* owner = Cast<IR4AnimationInterface>(GetOwner());
 		if ( owner == nullptr )
 		{
@@ -139,7 +148,7 @@ bool UR4AnimSkillBase::PlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
 		OnBeginSkillAnim( montageInstance->GetInstanceID(), InSkillAnimInfo );
 	}
 
-	_ServerRPC_PlaySkillAnim( InSkillAnimInfo.SkillAnimServerKey );
+	_ServerRPC_PlaySkillAnim( InSkillAnimInfo.SkillAnimServerKey, R4GetServerTimeSeconds( GetWorld() ));
 	return true;
 }
 
@@ -166,10 +175,33 @@ void UR4AnimSkillBase::OnEndSkillAnim( int32 InInstanceID, const FR4SkillAnimInf
 }
 
 /**
+ *  Server RPC의 Validation check 시 사용.
+ *  기본적으로 SkillAnimPlayState내 유효한 Index (1 ~ AnimCount 만큼의 Key인 경우) 확인
+ */
+bool UR4AnimSkillBase::PlaySkillAnim_Validate( uint32 InSkillAnimKey ) const
+{
+	// SkillAnimPlayState내 유효한 Index (1 ~ AnimCount 만큼의 Key인 경우) 요청 시 Validate 성공
+	return (InSkillAnimKey != Skill::G_InvalidSkillAnimKey)
+		&& SkillAnimPlayState.IsValidIndex( InSkillAnimKey );
+}
+
+/**
+ *  Server RPC의 Play Skill Anim 시 요청 무시 check에 사용.
+ *  기본적으로 SkillAnimPlayState[InSkillAnimKey]를 통해 Server에서 Play 중인 Skill Anim인지 확인
+ *  (Validate Check 후 Server RPC 내에서 체크함으로 Index가 유효함이 보장)
+ */
+bool UR4AnimSkillBase::PlaySkillAnim_Ignore( uint32 InSkillAnimKey ) const
+{
+	// 사용 중인데 또 요청 보낸 경우 무시
+	return SkillAnimPlayState[InSkillAnimKey];
+}
+
+/**
  *  Server로 Animation Play를 요청.
  *  @param InSkillAnimKey : Server에서 부여받은 FR4SkillAnimInfo의 Key.
+ *  @param InStartServerTime : Anim을 Play 시작한 ServerTime.
  */
-void UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Implementation( uint32 InSkillAnimKey )
+void UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Implementation( uint32 InSkillAnimKey, float InStartServerTime )
 {
 	auto it = Server_CachedSkillAnimInfo.Find( InSkillAnimKey );
 	if(it == nullptr)
@@ -181,15 +213,19 @@ void UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Implementation( uint32 InSkillAn
 	if ( !ensureMsgf( IsValid( (*it)->SkillAnim ), TEXT("Skill Anim is nullptr.") ) )
 		return;
 
+	// 특정 경우 요청을 무시.
+	if ( PlaySkillAnim_Ignore( InSkillAnimKey ) )
+		return;
+	
 	IR4AnimationInterface* owner = Cast<IR4AnimationInterface>( GetOwner() );
 	if ( owner == nullptr )
 	{
 		LOG_WARN( R4Skill, TEXT("Can only play Skill Animations if the IR4AnimationInterface is inherited.") )
 		return;
 	}
-
+	
 	// Autonomous 제외한 나머지 Animation Play.
-	owner->Server_PlayAnim_WithoutAutonomous( (*it)->SkillAnim, NAME_None, 1.f, true, R4GetServerTimeSeconds() );
+	owner->Server_PlayAnim_WithoutAutonomous( (*it)->SkillAnim, NAME_None, 1.f, true, InStartServerTime );
 	FAnimMontageInstance* montageInstance = owner->GetActiveInstanceForMontage( (*it)->SkillAnim );
 	if(montageInstance == nullptr)
 	{
@@ -203,27 +239,25 @@ void UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Implementation( uint32 InSkillAn
 		[this, &InSkillAnimInfo = **it, instanceId = montageInstance->GetInstanceID()]
 		(UAnimMontage* InMontage, bool InIsInterrupted)
 		{
+			// Skill Anim 사용 상태 해제
+			SkillAnimPlayState[InSkillAnimInfo.SkillAnimServerKey] = false;
 			OnEndSkillAnim( instanceId, InSkillAnimInfo, InIsInterrupted );
 		} );
-		
+
+	// Skill Anim 사용 상태 설정
+	SkillAnimPlayState[InSkillAnimKey] = true;
 	OnBeginSkillAnim( montageInstance->GetInstanceID(), **it );
 }
 
 /**
- *  Server Animation Play를 요청의 유효성을 IsLockPlaySkillAnim()로 확인.
- *  IsLockPlaySkillAnim() 을 Override하여 키에 따라 로직 작성
+ *  Server Animation Play를 요청의 유효성을PlaySkillAnim_Validate로 확인.
+ *  PlaySkillAnim_Validate() 을 Override하여 키에 따라 로직 작성
  *  @param InSkillAnimKey : Server에서 부여받은 FR4SkillAnimInfo의 Key.
+ *  @param InStartServerTime : Anim을 Play 시작한 ServerTime.
  */
-bool UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Validate( uint32 InSkillAnimKey )
+bool UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Validate( uint32 InSkillAnimKey, float InStartServerTime  )
 {
-	auto it = Server_CachedSkillAnimInfo.Find( InSkillAnimKey );
-	if(it == nullptr)
-	{
-		LOG_WARN( R4Skill, TEXT("InSkillKey [%d] is invalid. check replicate state."), InSkillAnimKey );
-		return false;
-	}
-	
-	return !IsLockPlaySkillAnim( **it );
+	return PlaySkillAnim_Validate( InSkillAnimKey );
 }
 
 /**
@@ -246,10 +280,13 @@ void UR4AnimSkillBase::_Server_ParseSkillAnimInfo()
 		// 키값 부여 & 캐싱
 		if ( FR4SkillAnimInfo* animInfoPtr = const_cast<FR4SkillAnimInfo*>(c_animInfoPtr) )
 		{
-			animInfoPtr->SkillAnimServerKey = ++CachedSkillAnimInfoCount;
+			animInfoPtr->SkillAnimServerKey = ++Server_CachedSkillAnimInfoCount;
 			Server_CachedSkillAnimInfo.Emplace( animInfoPtr->SkillAnimServerKey, c_animInfoPtr );
 		}
 	}
+
+	// SkillAnimPlayState를 Skill Anim만큼 초기화
+	SkillAnimPlayState.SetNum( Server_CachedSkillAnimInfoCount + 1 );
 }
 
 /**
