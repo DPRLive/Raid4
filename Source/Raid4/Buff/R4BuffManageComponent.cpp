@@ -21,8 +21,10 @@ void UR4BuffManageComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(UR4BuffManageComponent, UpdatingBuffs, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UR4BuffManageComponent, NonUpdatingBuffs, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION( UR4BuffManageComponent, UpdatingBuffs, COND_OwnerOnly );
+	DOREPLIFETIME_CONDITION( UR4BuffManageComponent, NonUpdatingBuffs, COND_OwnerOnly );
+	DOREPLIFETIME_CONDITION( UR4BuffManageComponent, BlockingBuffTags_Match, COND_OwnerOnly );
+	DOREPLIFETIME_CONDITION( UR4BuffManageComponent, BlockingBuffTags_MatchExact, COND_OwnerOnly );
 }
 
 void UR4BuffManageComponent::BeginPlay()

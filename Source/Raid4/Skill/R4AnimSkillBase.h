@@ -71,10 +71,10 @@ private:
 	void _UnbindNotifiesAndDetect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo );
 	
 private:
-	// Skill Anim들을 Play할 수 있는지 확인에 체크
+    // 서버에서 해당 Skill Key의 Skill Anim이 Play되고 있는지.
 	// Index(1 ~ CachedSkillAnimInfoCount): SkillAnimKey, Value (true : 사용 중) 
 	UPROPERTY( Replicated, Transient )
-	TArray<bool> SkillAnimPlayState;
+	TArray<bool> AnimPlayServerState;
 	
 	// SkillAnimInfo를 Bind하며 찾은 현재 클래스 멤버에 있는 SkillAnimInfo의 개수, Skill Anim Key 부여용으로도 사용
 	uint32 Server_CachedSkillAnimInfoCount;
