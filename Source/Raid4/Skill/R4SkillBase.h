@@ -65,6 +65,9 @@ private:
 	// Authority Detector 생성
 	void _Server_CreateAuthorityDetector( const FR4DetectEffectWrapper& InDetectEffectInfo );
 
+	// Detector를 Target의 Mesh에 부착
+	FTransform _AttachDetectorToTargetMesh( AActor* InDetector, USkeletalMeshComponent* InTargetMesh, const FName& InSocketName );
+	
 	// Server -> Owner Client로 Dummy 제거 요청.
 	UFUNCTION( Client, Unreliable )
 	void _ClientRPC_RemoveDummy( uint32 InDetectorKey );

@@ -21,6 +21,8 @@ struct FR4SkillDetectInfo
 	FR4SkillDetectInfo()
 	: DetectClass( nullptr )
 	, bHasVisual( false )
+	, bAttachToMesh( false )
+	, MeshSocketName( NAME_None )
 	, DetectDesc( FR4DetectDesc() )
 	, DetectorServerKey( Skill::G_InvalidDetectorKey )
 	{}
@@ -34,6 +36,15 @@ struct FR4SkillDetectInfo
 	// true 시, client에서도 Dummy가 생성됨.
 	UPROPERTY( NotReplicated, EditAnywhere )
 	uint8 bHasVisual:1;
+
+	// Detector를 Attach할 것인지?
+	// Owner가 Character이고 SkeletalMesh를 가지고 있어야 함.
+	UPROPERTY( NotReplicated, EditAnywhere )
+	uint8 bAttachToMesh:1;
+
+	// Attach시 Attack할 Owner의 Skeletal Mesh Socket Name
+	UPROPERTY( NotReplicated, EditAnywhere, meta = ( EditCondition = "bAttach", EditConditionHides ) )
+	FName MeshSocketName;
 	
 	// 탐지에 관한 Parameter.
 	UPROPERTY( NotReplicated, EditAnywhere )

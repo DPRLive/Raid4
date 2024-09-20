@@ -11,6 +11,8 @@
 #include "../Stat/R4StatStruct.h"
 
 #include <Net/UnrealNetwork.h>
+#include <GameFramework/Character.h>
+#include <Components/SkeletalMeshComponent.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4SkillBase)
 
@@ -235,10 +237,21 @@ void UR4SkillBase::_CreateDummyDetector( const FR4SkillDetectInfo& InSkillDetect
 		return;
 	}
 
-	// TODO : Origin 넘기는 방법 여러가지로 ..
+	// origin 설정
 	FTransform origin;
-	if(GetOwner())
+	if ( IsValid(GetOwner()) )
+	{
 		origin = GetOwner()->GetActorTransform();
+
+		// Attach to mesh?
+		if( InSkillDetectInfo.bAttachToMesh )
+		{
+			ACharacter* parentActor = Cast<ACharacter>( GetOwner() );
+			USkeletalMeshComponent* parentSkel = parentActor ? parentActor->GetMesh() : nullptr;
+
+			origin = _AttachDetectorToTargetMesh( Cast<AActor>( detector.GetObject() ), parentSkel, InSkillDetectInfo.MeshSocketName );
+		}
+	}
 
 	// Dummy의 경우 Setup만, Execute Detect는 실제로 실행하지 않음.
 	detector->SetupDetect( origin, InSkillDetectInfo.DetectDesc );
@@ -287,10 +300,21 @@ void UR4SkillBase::_Server_CreateAuthorityDetector( const FR4DetectEffectWrapper
 		Server_ApplyDamages( InDetectResult.DetectedActor.Get(), InDetectEffectInfo.EffectInfo.OnEndDetectDamages );
 	});
 	
-	// TODO : Origin 넘기는 방법 여러가지로 ..
+	// origin 설정
 	FTransform origin;
-	if(GetOwner())
+	if ( IsValid(GetOwner()) )
+	{
 		origin = GetOwner()->GetActorTransform();
+
+		// Attach to mesh?
+		if( InDetectEffectInfo.DetectInfo.bAttachToMesh )
+		{
+			ACharacter* parentActor = Cast<ACharacter>( GetOwner() );
+			USkeletalMeshComponent* parentSkel = parentActor ? parentActor->GetMesh() : nullptr;
+
+			origin = _AttachDetectorToTargetMesh( Cast<AActor>( detector.GetObject() ), parentSkel, InDetectEffectInfo.DetectInfo.MeshSocketName );
+		}
+	}
 	
 	// Setup & detect 실행
 	detector.GetInterface()->SetupDetect( origin, InDetectEffectInfo.DetectInfo.DetectDesc );
@@ -299,6 +323,26 @@ void UR4SkillBase::_Server_CreateAuthorityDetector( const FR4DetectEffectWrapper
 	// Dummy가 필요한 Detector였다면, Owner Client에게 Dummy 제거 명령 전송
 	if ( InDetectEffectInfo.DetectInfo.bHasVisual )
 		_ClientRPC_RemoveDummy( InDetectEffectInfo.DetectInfo.DetectorServerKey );
+}
+
+/**
+ *  Detector를 Target의 Mesh에 부착
+ *  @param InDetector : attach될 Detector
+ *  @param InTargetMesh : attach할 TargetMesh
+ *  @param InSocketName : TargetMesh의 Socket Name
+ *  @return : Attach한 Socket의 Transform
+ */
+FTransform UR4SkillBase::_AttachDetectorToTargetMesh( AActor* InDetector, USkeletalMeshComponent* InTargetMesh, const FName& InSocketName )
+{
+	if ( !IsValid( InDetector ) || !IsValid( InTargetMesh ) )
+	{
+		LOG_WARN( R4Skill, TEXT("InDetector or InTargetMesh is invalid"));
+		return FTransform::Identity;
+	}
+	
+	// parent skeleton에 부착
+	InDetector->AttachToComponent( InTargetMesh, FAttachmentTransformRules::KeepWorldTransform, InSocketName );
+	return InTargetMesh->GetSocketTransform( InSocketName );
 }
 
 /**

@@ -38,6 +38,10 @@ void AR4Detector_Trace::PreReturnPoolObject()
 {
 	Super::PreReturnPoolObject();
 
+	// Attach해서 사용되었다면 Detach
+	if ( GetAttachParentActor() )
+		DetachFromActor( FDetachmentTransformRules::KeepWorldTransform );
+	
 	OnBeginDetectDelegate.Clear();
 	OnEndDetectDelegate.Clear();
 	GetWorldTimerManager().ClearTimer( LifeTimerHandle );
