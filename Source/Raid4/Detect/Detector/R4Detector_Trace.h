@@ -5,10 +5,12 @@
 #include "R4DetectorInterface.h"
 #include "../../Core/ObjectPool/PoolableActor.h"
 
+#include <PhysicsEngine/BodyInstance.h>
+
 #include "R4Detector_Trace.generated.h"
 
 /**
- *  Overlap 체크시 사용할 모양
+ *  Trace Detect 체크시 사용할 모양
  */
 UENUM()
 enum class ER4DetectShapeType : uint8
@@ -62,9 +64,8 @@ struct FR4DetectShapeInfo
 
 /**
  * Trace를 기반으로 Detect를 수행하는 클래스.
- * 기본적으로 Not Replicate & Disable Collision.
  */
-UCLASS( Abstract, HideCategories = ( Tick, Replication, Rendering, Actor, Input, HLOD, Physics, LevelInstance, WorldPartition, DataLayers ) )
+UCLASS( Abstract, HideCategories = ( Tick, Rendering, Actor, Input, HLOD, Physics, LevelInstance, WorldPartition, DataLayers ) )
 class RAID4_API AR4Detector_Trace : public APoolableActor,
 										public IR4DetectorInterface
 {
@@ -78,27 +79,50 @@ protected:
 
 public:
 	// ~ Begin IPoolableInterface
-	virtual void PostInitPoolObject() override {}
+	virtual void PostInitPoolObject() override;
 	virtual void PreReturnPoolObject() override;
 	// ~ End IPoolableInterface
 	
 	// ~ Begin IR4DetectorInterface
 	FORCEINLINE virtual FOnDetectDelegate& OnBeginDetect() override { return OnBeginDetectDelegate; }
 	FORCEINLINE virtual FOnDetectDelegate& OnEndDetect() override { return OnEndDetectDelegate; }
-	virtual void ExecuteDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) override;
+	virtual void SetupDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) override;
+	virtual void ExecuteDetect() override;
 	// ~ End IR4DetectorInterface
+
+private:
+	// Trace 진행
+	void _Trace( ) const;
+	
 private:
 	// Detect에 사용할 모양 정보
-	UPROPERTY( EditAnywhere, Category="Collision", meta =(AllowPrivateAccess = true) )
+	UPROPERTY( EditAnywhere, Category="Collision" )
 	FR4DetectShapeInfo ShapeInfo;
 
+	// Detect에 사용할 Collision Response를 위한 BodyInstance
+	UPROPERTY( EditAnywhere, Category="Collision", meta=(ShowOnlyInnerProperties, SkipUCSModifiedProperties, AllowPrivateAccess = true) )
+	FBodyInstance BodyInstance;
+	
+	// Trace를 체크할 간격시간. ( 지속 시간 동안 반복해서 사용, <= 0 일 시 최초 1회만 사용됨. )
+	// 3초 LifeTime에 Interval 1초 일 시, 0, 1, 2 3번 사용됨. 
+	UPROPERTY( EditAnywhere, Category="Collision", meta = ( ClampMin = 0.f, UIMin = 0.f ) )
+	float DetectInterval;
+	
 	// Detect 시작 시 Broadcast
 	FOnDetectDelegate OnBeginDetectDelegate;
 
 	// Detect 종료 시 Broadcast. OneFrame Check의 경우 OnBegin과 동시에 End.
 	FOnDetectDelegate OnEndDetectDelegate;
 
+	// Detect 생명주기를 위한 Timer
+	FTimerHandle LifeTimerHandle;
+
+	// Detect 반복주기를 위한 Timer
+	FTimerHandle IntervalTimerHandle;
+	
+	// Debug //
 	// TODO : Debug 분리 ?
+	
 	// Debug 할 것인지 설정
 	UPROPERTY( EditAnywhere, Category="Debug", meta =(AllowPrivateAccess = true) )
 	uint8 bDrawDebug:1;

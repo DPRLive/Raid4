@@ -14,6 +14,7 @@ struct FR4DetectDesc
 	FR4DetectDesc()
 	: RelativeLoc( FVector::ZeroVector )
 	, RelativeRot( FRotator::ZeroRotator )
+	, LifeTime( 0.f )
 	{}
 
 	// overlap을 체크할 기준점으로부터의 상대 위치.
@@ -23,10 +24,10 @@ struct FR4DetectDesc
 	// Overlap시 기준으로부터 상대적인 Rotation. X : Roll, Y : Pitch, Z : Yaw
 	UPROPERTY( EditAnywhere )
 	FRotator RelativeRot;
-	
-	// Overlap 체크 시 사용할 Collision Response를 위한 BodyInstance
-	UPROPERTY( EditAnywhere, meta=(ShowOnlyInnerProperties, SkipUCSModifiedProperties, AllowPrivateAccess = true) )
-	FBodyInstance BodyInstance;
+
+	// Detector의 지속시간, <= 0.f 일 시 1 Tick만 작동.
+	UPROPERTY( EditAnywhere, meta = ( UIMin = 0.f, ClampMin = 0.f ) )
+	float LifeTime;
 };
 
 /**

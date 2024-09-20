@@ -38,14 +38,14 @@ public:
 	virtual FOnDetectDelegate& OnEndDetect() = 0;
 
 	/**
-	 * Detect 실행
-	 * @param InOrigin : 탐지의 기준이 되는 Transform
-	 * @param InDetectDesc : 탐지 관련 Param 
-	 */
-	virtual void ExecuteDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) = 0;
-
+ 	* Detect 준비
+ 	* @param InOrigin : 탐지의 기준이 되는 Transform
+ 	* @param InDetectDesc : 탐지 관련 Param 
+ 	*/
+	virtual void SetupDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) = 0;
+	
 	/**
-	 * Detector가 얼마나 유지되는지 설정.
+	 * Detect 실행
 	 */
-	virtual void SetActiveTime( float InActiveTime ) {}
+	virtual void ExecuteDetect( ) = 0;
 };
