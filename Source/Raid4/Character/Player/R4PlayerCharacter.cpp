@@ -122,44 +122,32 @@ void AR4PlayerCharacter::OnInputJumpCompleted()
 	StopJumping();
 }
 
-/**
- *  점프 입력 종료
- */
-void AR4PlayerCharacter::OnInputEvasionStarted()
-{
-	LOG_SCREEN(FColor::Emerald, TEXT("AR4PlayerCharacter::OnInputEvasionStarted"));
-}
 
 /**
  *  스킬 입력 시작 처리
  */
-void AR4PlayerCharacter::OnInputSkillStarted(ESkillIndex InSkillIndex)
+void AR4PlayerCharacter::OnInputSkillStarted( EPlayerSkillIndex InSkillIndex )
 {
-	if(UR4PlayerSkillComponent* skillComp = Cast<UR4PlayerSkillComponent>(SkillComp))
-	{
-		skillComp->OnInputSkillStarted(InSkillIndex);
-	}}
+	if ( UR4PlayerSkillComponent* skillComp = Cast<UR4PlayerSkillComponent>( SkillComp ) )
+		skillComp->OnInputSkillStarted( InSkillIndex );
+}
 
 /**
  *  스킬 입력 처리
  */
-void AR4PlayerCharacter::OnInputSkillTriggered(ESkillIndex InSkillIndex)
+void AR4PlayerCharacter::OnInputSkillTriggered( EPlayerSkillIndex InSkillIndex )
 {
-	if(UR4PlayerSkillComponent* skillComp = Cast<UR4PlayerSkillComponent>(SkillComp))
-	{
-		skillComp->OnInputSkillTriggered(InSkillIndex);
-	}
+	if ( UR4PlayerSkillComponent* skillComp = Cast<UR4PlayerSkillComponent>( SkillComp ) )
+		skillComp->OnInputSkillTriggered( InSkillIndex );
 }
 
 /**
  *  스킬 입력 종료 처리
  */
-void AR4PlayerCharacter::OnInputSkillCompleted(ESkillIndex InSkillIndex)
+void AR4PlayerCharacter::OnInputSkillCompleted( EPlayerSkillIndex InSkillIndex )
 {
-	if(UR4PlayerSkillComponent* skillComp = Cast<UR4PlayerSkillComponent>(SkillComp))
-	{
-		skillComp->OnInputSkillCompleted(InSkillIndex);
-	}
+	if ( UR4PlayerSkillComponent* skillComp = Cast<UR4PlayerSkillComponent>( SkillComp ) )
+		skillComp->OnInputSkillCompleted( InSkillIndex );
 }
 
 /**

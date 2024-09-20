@@ -42,11 +42,9 @@ public:
 	virtual void OnInputJumpStarted() override;
 	virtual void OnInputJumpCompleted() override;
 
-	virtual void OnInputEvasionStarted() override;
-	
-	virtual void OnInputSkillStarted(ESkillIndex InSkillIndex) override;
-	virtual void OnInputSkillTriggered(ESkillIndex InSkillIndex) override;
-	virtual void OnInputSkillCompleted(ESkillIndex InSkillIndex) override;
+	virtual void OnInputSkillStarted( EPlayerSkillIndex InSkillIndex ) override;
+	virtual void OnInputSkillTriggered( EPlayerSkillIndex InSkillIndex ) override;
+	virtual void OnInputSkillCompleted( EPlayerSkillIndex InSkillIndex ) override;
 	// ~ End IR4PlayerInputInterface
 	
 private:

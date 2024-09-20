@@ -31,25 +31,22 @@ protected:
 
 private:
 	// Input Binding
-	void _InitializePlayerInput(UInputComponent* InPlayerInputComponent);
+	void _InitializePlayerInput( UInputComponent* InPlayerInputComponent );
 
 	// Movement Input
-	void _OnInputMoveTriggered(const FInputActionValue& Value);
+	void _OnInputMoveTriggered( const FInputActionValue& Value );
 
 	// Look Input
-	void _OnInputLookTriggered(const FInputActionValue& Value);
+	void _OnInputLookTriggered( const FInputActionValue& Value );
 
 	// Jump Input
-	void _OnInputJumpStarted(const FInputActionValue& Value);
-	void _OnInputJumpCompleted(const FInputActionValue& Value);
+	void _OnInputJumpStarted( const FInputActionValue& Value );
+	void _OnInputJumpCompleted( const FInputActionValue& Value );
 	
-	// Evasion Input
-	void _OnInputEvasionStarted(const FInputActionValue& Value);
-
 	// Skill Input
-	void _OnInputSkillStarted(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
-	void _OnInputSkillTriggered(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
-	void _OnInputSkillCompleted(const FInputActionValue& InValue, ESkillIndex InSkillIndex);
+	void _OnInputSkillStarted( const FInputActionValue& InValue, EPlayerSkillIndex InSkillIndex );
+	void _OnInputSkillTriggered( const FInputActionValue& InValue, EPlayerSkillIndex InSkillIndex );
+	void _OnInputSkillCompleted( const FInputActionValue& InValue, EPlayerSkillIndex InSkillIndex );
 
 private:
 	// MappingContext
@@ -67,14 +64,10 @@ private:
 	// 점프 입력 액션
 	UPROPERTY( EditAnywhere, Category = "Data|Action", meta = (AllowPrivateAccess = true) )
 	TObjectPtr<UInputAction> JumpAction;
-
-	// 회피 입력 액션
-	UPROPERTY( EditAnywhere, Category = "Data|Action", meta = (AllowPrivateAccess = true) )
-	TObjectPtr<UInputAction> EvasionAction;
 	
-	// 스킬 입력 액션들
+	// Player 스킬 입력 액션들
 	UPROPERTY( EditAnywhere, Category = "Data|Action", meta = (AllowPrivateAccess = true) )
-	TMap<ESkillIndex, TObjectPtr<UInputAction>> SkillActions;
+	TMap<EPlayerSkillIndex, TObjectPtr<UInputAction>> SkillActions;
 
 	// Cached Owner
 	TWeakInterfacePtr<IR4PlayerInputInterface> Owner;

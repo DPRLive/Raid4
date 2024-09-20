@@ -5,19 +5,19 @@
  */
 
 /**
- *  Skill 발동 시 사용할 index가 되는 타입
+ *  Player가 Skill 발동 시 사용할 index
  */
 UENUM( BlueprintType )
-enum class ESkillIndex : uint8
+enum class EPlayerSkillIndex : uint8
 {
-    Skill1 = 0 UMETA( DisplayName = "1번 스킬" ),
-	Skill2	   UMETA( DisplayName = "2번 스킬" ),
-    Skill3	   UMETA( DisplayName = "3번 스킬" ),
-	Skill4     UMETA( DisplayName = "4번 스킬" ),
-	Skill5     UMETA( DisplayName = "5번 스킬" ),
-	None
+    Attack = 0	UMETA( DisplayName = "기본 공격" ),
+	Skill1		UMETA( DisplayName = "1번 스킬" ),
+    Skill2		UMETA( DisplayName = "2번 스킬" ),
+	Skill3		UMETA( DisplayName = "3번 스킬" ),
+	Evasion     UMETA( DisplayName = "회피 스킬" ),
+	MAX			UMETA( Hidden )
 };
-ENUM_RANGE_BY_COUNT( ESkillIndex, ESkillIndex::None );
+ENUM_RANGE_BY_COUNT( EPlayerSkillIndex, EPlayerSkillIndex::MAX );
 
 /**
  *  Overlap 시 출력할 이펙트의 타입

@@ -29,7 +29,7 @@ protected:
 
 public:
 	// 스킬을 추가한다. (서버)
-	void Server_AddSkill(ESkillIndex InSkillIndex, UR4SkillBase* InSkill);
+	void Server_AddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill );
 
 protected:
 	// 인스턴스화된 스킬 배열

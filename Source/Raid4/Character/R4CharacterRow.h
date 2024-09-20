@@ -31,7 +31,7 @@ struct FR4CharacterRow : public FR4RowBase
 
 	// 해당 캐릭터가 사용할 스킬들
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Skill" )
-	TMap<ESkillIndex, TSubclassOf<UR4SkillBase>> Skills;
+	TMap<EPlayerSkillIndex, TSubclassOf<UR4SkillBase>> Skills;
 };
 
 GENERATE_DT_PTR_H( FR4CharacterRow );

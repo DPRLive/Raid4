@@ -45,18 +45,16 @@ void UR4SkillComponent::BeginPlay()
 /**
  *  스킬을 추가한다. (서버)
  */
-void UR4SkillComponent::Server_AddSkill(ESkillIndex InSkillIndex, UR4SkillBase* InSkill)
+void UR4SkillComponent::Server_AddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill )
 {
-	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.")))
+	if ( !ensureMsgf( GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.") ) )
 		return;
-	
-	const uint8 realIdx = static_cast<uint8>(InSkillIndex);
 
 	// 음 인덱스가 부족한걸? -> resize
-	if(realIdx >= SkillInstancePtrs.Num())
+	if ( InSkillIndex >= SkillInstancePtrs.Num() )
 	{
-		SkillInstancePtrs.SetNum(realIdx + 1);
+		SkillInstancePtrs.SetNum( InSkillIndex + 1 );
 	}
 
-	SkillInstancePtrs[realIdx] = InSkill;
+	SkillInstancePtrs[InSkillIndex] = InSkill;
 }

@@ -29,20 +29,19 @@ public:
 	virtual FSetupPlayerInputDelegate& OnSetupPlayerInput() = 0;
 
 	// 이동 입력 처리
-	virtual void OnInputMoveTriggered(const FVector2D& InDirection) {}
+	virtual void OnInputMoveTriggered( const FVector2D& InDirection ) {}
 
 	// 마우스 Look 처리
-	virtual void OnInputLookTriggered(const FRotator& InDelta) {}
+	virtual void OnInputLookTriggered( const FRotator& InDelta ) {}
 
 	// 점프 입력 처리
 	virtual void OnInputJumpStarted() {}
 	virtual void OnInputJumpCompleted() {}
 
-	// 회피 입력 처리
-	virtual void OnInputEvasionStarted() {}
-	
 	// 스킬 입력 처리
-	virtual void OnInputSkillStarted(ESkillIndex InSkillIndex) {}
-	virtual void OnInputSkillTriggered(ESkillIndex InSkillIndex) {}
-	virtual void OnInputSkillCompleted(ESkillIndex InSkillIndex) {}
+	virtual void OnInputSkillStarted( EPlayerSkillIndex InSkillIndex ) { }
+
+	virtual void OnInputSkillTriggered( EPlayerSkillIndex InSkillIndex ) { }
+
+	virtual void OnInputSkillCompleted( EPlayerSkillIndex InSkillIndex ) { }
 };
