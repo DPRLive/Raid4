@@ -162,7 +162,14 @@ void UR4SkillBase::ExecuteDetect( const FR4DetectEffectWrapper& InDetectEffectIn
 		LOG_WARN( R4Skill, TEXT("Detector Key Is Invalid. Check Replicate State."));
 		return;
 	}
-	
+
+	// Visual 적인 요소가 있는 경우 반드시 Replicate하여 Dummy를 생성해야하고
+	// 아닌경우 Replicate를 금지하여 네트워크를 최적화
+	if( !ensureMsgf( InDetectEffectInfo.DetectInfo.bHasVisual ==
+		InDetectEffectInfo.DetectInfo.DetectClass.GetDefaultObject()->GetIsReplicated(),
+		TEXT("visual detectors, it should be replicated. and if it is not visual, it should be not replicate.")) )
+		return;
+
 	// Simulated Proxy인 경우, 필요 없음.
 	if( GetOwnerRole() == ROLE_SimulatedProxy )
 		return;
@@ -232,9 +239,10 @@ void UR4SkillBase::_CreateDummyDetector( const FR4SkillDetectInfo& InSkillDetect
 	FTransform origin;
 	if(GetOwner())
 		origin = GetOwner()->GetActorTransform();
-	
-	detector->ExecuteDetect( origin, InSkillDetectInfo.DetectDesc );
 
+	// Dummy의 경우 Setup만, Execute Detect는 실제로 실행하지 않음.
+	detector->SetupDetect( origin, InSkillDetectInfo.DetectDesc );
+	
 	// Dummy에 Push
 	Client_CachedDetectorDummy.Emplace( InSkillDetectInfo.DetectorServerKey, detector.GetObject() );
 }
@@ -278,21 +286,18 @@ void UR4SkillBase::_Server_CreateAuthorityDetector( const FR4DetectEffectWrapper
 		Server_ApplyBuffs( InDetectResult.DetectedActor.Get(), InDetectEffectInfo.EffectInfo.OnEndDetectBuffs );
 		Server_ApplyDamages( InDetectResult.DetectedActor.Get(), InDetectEffectInfo.EffectInfo.OnEndDetectDamages );
 	});
-
-	// enable collision
-	if(AActor* detectActor = Cast<AActor>(detector.GetObject()))
-		detectActor->SetActorEnableCollision(true);
-
+	
 	// TODO : Origin 넘기는 방법 여러가지로 ..
 	FTransform origin;
 	if(GetOwner())
 		origin = GetOwner()->GetActorTransform();
 	
-	// 탐지 실행
-	detector.GetInterface()->ExecuteDetect(origin, InDetectEffectInfo.DetectInfo.DetectDesc);
+	// Setup & detect 실행
+	detector.GetInterface()->SetupDetect( origin, InDetectEffectInfo.DetectInfo.DetectDesc );
+	detector.GetInterface()->ExecuteDetect();
 
 	// Dummy가 필요한 Detector였다면, Owner Client에게 Dummy 제거 명령 전송
-	if(InDetectEffectInfo.DetectInfo.bHasVisual)
+	if ( InDetectEffectInfo.DetectInfo.bHasVisual )
 		_ClientRPC_RemoveDummy( InDetectEffectInfo.DetectInfo.DetectorServerKey );
 }
 

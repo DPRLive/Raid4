@@ -25,14 +25,13 @@ struct FR4SkillDetectInfo
 	, DetectorServerKey( Skill::G_InvalidDetectorKey )
 	{}
 	
-	// 어떤 클래스로 Detect를 진행할 것인지.
-	// Collision이 Disable된 상태로 설정.
+	// 어떤 클래스로 Detect를 진행할 것인지?
+	// Dummy가 필요한 경우 (bHasVisual) Detect Class를 Replicate 설정해야함! 
 	UPROPERTY( NotReplicated, EditAnywhere, meta = ( MustImplement = "R4DetectorInterface" ) )
 	TSubclassOf<AActor> DetectClass;
 	
 	// 해당 Detect Class가 Visual적인 요소를 포함하고 있는지?
-	// TODO : client side Collision이 필요한지 여부로 바꿔볼까해.
-	// ex) 투사체
+	// true 시, client에서도 Dummy가 생성됨.
 	UPROPERTY( NotReplicated, EditAnywhere )
 	uint8 bHasVisual:1;
 	
