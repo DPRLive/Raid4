@@ -28,7 +28,7 @@ struct FR4CharacterRow;
 /**
  * 모든 데이터 테이블을 로드하여 관리하는 DataTable Manager (Singleton)
  */
-class FDataTableManager : public TSingletonBase<FDataTableManager>
+class FDataTableManager : public FSingletonBase
 {
 private:
 	// 데이터 테이블을 선언 //

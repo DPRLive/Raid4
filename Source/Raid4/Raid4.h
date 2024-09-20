@@ -20,12 +20,25 @@
 #include "Data/R4DataAssetHelper.h"
 #include "Tag/R4GameplayTag.h"
 #include "Core/ObjectPool/ObjectPool.h"
+#include "Core/R4GameInstance.h"
 
 // Defines
-#define OBJECT_POOL FObjectPool::Get()
+#define OBJECT_POOL \
+	R4GetGameInstance<UR4GameInstance>()->GetObjectPool()
+
+#define DTManager \
+	R4GetGameInstance<UR4GameInstance>()->GetDataTableManager()
 
 // 월드를 반환한다.
 UWorld* R4GetWorld( UObject* InObject = nullptr );
 
 // 서버 시간을 반환한다.
 double R4GetServerTimeSeconds( UWorld* InWorld = nullptr );
+
+// GameInstance 반환
+template<typename T>
+T* R4GetGameInstance( UWorld* InWorld = nullptr )
+{
+	InWorld = InWorld ? InWorld : R4GetWorld(  );
+	return InWorld->GetGameInstance<T>( );
+}

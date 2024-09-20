@@ -11,7 +11,7 @@
  * UObject 기반 시 RootSet에 등록하여 GC를 막고, Actor의 경우는 Level에서 참조되므로 GC를 신경쓰지 않음
  * Pool Size 관리 정책은 LRU를 따름. '사용되었다'의 기준은 'Pool에서 꺼내 갔을때의 시점'을 얘기함
  */
-class FObjectPool : public TSingletonBase<FObjectPool>
+class FObjectPool : public FSingletonBase
 {
 public:
 	// 싱글톤 초기화 함수

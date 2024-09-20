@@ -3,10 +3,8 @@
 
 #include "R4GameInstance.h"
 
-#include "ObjectPool/ObjectPool.h"
 #include "../Manager/DataTableManager.h"
-// TODO : delete test code
-#include "Raid4/Data/ExampleRow.h"
+#include "ObjectPool/ObjectPool.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4GameInstance)
 
@@ -15,7 +13,7 @@
  */
 UR4GameInstance::UR4GameInstance()
 {
-	_AddSingletons();
+
 }
 
 /**
@@ -25,14 +23,7 @@ void UR4GameInstance::Init()
 {
 	Super::Init();
 
-	SingletonManager.InitSingletons();
-
-	// TODO : 테스트 코드를 지워용
-	FExampleRowPtr row(1);
-	if(!row.IsValid())
-		return;
-	
-	LOG_WARN(R4Data, TEXT("%s"), *row->Good);
+	_CreateSingletons();
 }
 
 /**
@@ -40,16 +31,25 @@ void UR4GameInstance::Init()
  */
 void UR4GameInstance::Shutdown()
 {
-	SingletonManager.ClearSingletons();
+	_ClearSingletons();
 	
 	Super::Shutdown();
 }
 
 /**
- * 싱글톤들을 등록한다.
+ * singleton들을 등록
  */
-void UR4GameInstance::_AddSingletons()
+void UR4GameInstance::_CreateSingletons()
 {
-	ADD_SINGLETON( FDataTableManager );
-	ADD_SINGLETON( FObjectPool );
+	CREATE_SINGLETON( FDataTableManager, DataTableManager );
+	CREATE_SINGLETON( FObjectPool, ObjectPool )
+}
+
+/**
+ * singleton들을 정리
+ */
+void UR4GameInstance::_ClearSingletons()
+{
+	CLEAR_SINGLETON( DataTableManager )
+	CLEAR_SINGLETON( ObjectPool )
 }
