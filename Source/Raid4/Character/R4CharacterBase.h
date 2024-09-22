@@ -56,11 +56,11 @@ protected:
 
 public:
 	// ~ Begin IR4AnimationInterface
-	virtual float PlayAnim_Local(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate) override;
-	virtual float JumpToSection_Local( const FName& InStartSectionName ) override;
+	virtual void PlayAnim_Local(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate) override;
+	virtual void JumpToSection_Local( const FName& InStartSectionName ) override;
 	virtual void StopAnim_Local() override;
-	virtual float Server_PlayAnim_WithoutAutonomous(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, bool InIsWithServer, float InServerTime = -1) override;
-	virtual float Server_JumpToSection_WithoutAutonomous( const FName& InSectionName, bool InIsWithServer, float InServerTime ) override;
+	virtual void Server_PlayAnim_WithoutAutonomous(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, bool InIsWithServer, float InServerTime = -1) override;
+	virtual void Server_JumpToSection_WithoutAutonomous( const FName& InSectionName, bool InIsWithServer, float InServerTime ) override;
 	virtual void Server_StopAnim_WithoutAutonomous(bool InIsWithServer) override;
 	virtual FAnimMontageInstance* GetActiveInstanceForMontage( const UAnimMontage* InMontage ) const override;
 	// ~ End IR4AnimationInterface

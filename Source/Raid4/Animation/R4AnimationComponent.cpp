@@ -59,13 +59,12 @@ void UR4AnimationComponent::AfterBeginPlay()
  *  @param InPlayRate : PlayRate
  *  @param InIsWithServer : Server도 같이 Play가 필요한지?
  *  @param InServerTime : 이 Animation을 Play한 서버 시작 시간 
- *  @return : AnimMontage의 링크를 포함한 특정 Section에 대한 시간, 루프시 -1 반환
  */
-float UR4AnimationComponent::Server_PlayAnim_WithoutAutonomous(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, bool InIsWithServer, float InServerTime)
+void UR4AnimationComponent::Server_PlayAnim_WithoutAutonomous(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, bool InIsWithServer, float InServerTime)
 {
 	if ( !ensureMsgf( GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.") ) ||
 		!IsValid( InAnimMontage ) )
-		return 0.f;
+		return;
 
 	FPlayAnimInfo prevRepAnimInfo = RepAnimInfo;
 	
@@ -85,8 +84,6 @@ float UR4AnimationComponent::Server_PlayAnim_WithoutAutonomous(UAnimMontage* InA
 	// 필요 시 Server에서도 플레이
 	if ( InIsWithServer )
 		_PlayAnimSync( prevRepAnimInfo, RepAnimInfo );
-
-	return UtilAnimation::GetCompositeAnimLength( InAnimMontage, RepAnimInfo.SectionIndex );
 }
 
 /**
@@ -94,19 +91,18 @@ float UR4AnimationComponent::Server_PlayAnim_WithoutAutonomous(UAnimMontage* InA
  *  @param InSectionName : Jump할 Anim Section의 Name
  *  @param InIsWithServer : Server도 같이 Jump가 필요한지?
  *  @param InServerTime : 이 Animation을 Play한 서버 시작 시간 
- *  @return : AnimMontage의 링크를 포함한 Jump한 Section에 대한 시간, 루프시 -1 반환
  */
-float UR4AnimationComponent::Server_JumpToSection_WithoutAutonomous( const FName& InSectionName, bool InIsWithServer, float InServerTime )
+void UR4AnimationComponent::Server_JumpToSection_WithoutAutonomous( const FName& InSectionName, bool InIsWithServer, float InServerTime )
 {
 	if ( !ensureMsgf( GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server.") ) ||
 		!IsValid( RepAnimInfo.AnimMontage.Get() ) )
-		return 0.f;
+		return;
 
 	int32 nextSectionIndex = RepAnimInfo.AnimMontage->GetSectionIndex( InSectionName );
 	if ( RepAnimInfo.SectionIndex == INDEX_NONE ) // INDEX가 NONE이면 Jump하지 않음
 	{
 		LOG_WARN( R4Data, TEXT("InSectionName is invalid. : [%s]"), *InSectionName.ToString() )
-		return 0.f;
+		return;
 	}
 
 	FPlayAnimInfo prevRepAnimInfo = RepAnimInfo;
@@ -122,8 +118,6 @@ float UR4AnimationComponent::Server_JumpToSection_WithoutAutonomous( const FName
 	// 필요 시 Server에서도 Jump할 수 있도록 
 	if ( InIsWithServer )
 		_PlayAnimSync( prevRepAnimInfo, RepAnimInfo );
-
-	return UtilAnimation::GetCompositeAnimLength( RepAnimInfo.AnimMontage.Get(), RepAnimInfo.SectionIndex );
 }
 
 /**
@@ -146,6 +140,9 @@ void UR4AnimationComponent::Server_StopAnim_WithoutAutonomous( bool InIsWithServ
 
 /**
  *  delay를 적용하여 동기화 된 Animation Play.
+ *  <Delay의 처리 방식>
+ *  Loop Animation의 경우 : Delay 된 StartPos에서 시작
+ *  일반 Animation의 경우 : PlayRate를 보정하여 동일 시점에 끝나도록 보정, ( delay > anim length인 경우 : Skip play )
  *  @param InPrevRepAnimInfo : 이전 Replicate 된 Anim 정보
  *  @param InNowRepAnimInfo : 현재 Replicate 된 Anim 정보
  */
@@ -169,13 +166,29 @@ void UR4AnimationComponent::_PlayAnimSync( const FPlayAnimInfo& InPrevRepAnimInf
 	// TODO : Server -> Client 상 pkt lag이 있다면, 보정이 힘들 수 있음. ( ServerWorldTimeSecond도 Replicate 되기 때문 )
 	float serverTime = R4GetServerTimeSeconds( GetWorld() );
 	float delayTime = FMath::Max( 0.f, serverTime - InNowRepAnimInfo.StartServerTime );
-	float startPos = UtilAnimation::GetDelayedStartAnimPos( InNowRepAnimInfo.AnimMontage.Get(), InNowRepAnimInfo.SectionIndex, delayTime );
-	if ( FMath::IsNearlyEqual( serverTime, -1.f ) || FMath::IsNearlyEqual( startPos, -1 ) )
+	
+	// 실제 play되는 anim 시간을 구하기 위해 PlayRate 적용
+	float animTime = UtilAnimation::GetCompositeAnimLength( InNowRepAnimInfo.AnimMontage.Get(), RepAnimInfo.SectionIndex ) / InNowRepAnimInfo.PlayRate;
+	float playRate = 1.f, startPos = 0.f;
+	bool bLoop = FMath::IsNearlyEqual( animTime, -1.f );
+	
+	// Loop Animation의 경우 : Delay 된 StartPos에서 시작
+	// 일반 Animation의 경우 : 동일 시점에 끝나도록 PlayRate를 보정
+	if(bLoop)
+	{
+		startPos = UtilAnimation::GetDelayedStartAnimPos( InNowRepAnimInfo.AnimMontage.Get(), InNowRepAnimInfo.SectionIndex, delayTime );
+	}
+	else if(delayTime < animTime)
+	{
+		// playRate = 전체시간 / 남은시간
+		playRate = animTime / (animTime - delayTime);
+		startPos = InNowRepAnimInfo.AnimMontage->GetAnimCompositeSection( InNowRepAnimInfo.SectionIndex ).GetTime();
+	}
+	else // 루프가 아닌데 delay > anim length인 경우 : Skip play 
 		return;
-
-	// Play인지 Jump인지 확인.
-	// 현재 InNowRepAnimInfo Montage가 Play 중이면서 &&
-	// Montage Section Index가 변경된 경우
+	
+	// Play인지 Jump인지 Section Jump 확인하여 startPos 적용
+	// Jump = 현재 InNowRepAnimInfo Montage가 Play 중이면서 && Montage Section Index가 변경된 경우
 	bool bJump = anim->Montage_IsActive( InNowRepAnimInfo.AnimMontage.Get() ) && ( InPrevRepAnimInfo.SectionIndex != InNowRepAnimInfo.SectionIndex );
 	if ( bJump )
 	{
@@ -188,13 +201,8 @@ void UR4AnimationComponent::_PlayAnimSync( const FPlayAnimInfo& InPrevRepAnimInf
 		anim->Montage_Play( InNowRepAnimInfo.AnimMontage.Get(), InNowRepAnimInfo.PlayRate, EMontagePlayReturnType::MontageLength, startPos );
 	}
 
-	// TODO : Delay상 Play가 안된 Anim 강제로 호출
-	// TArray<FAnimNotifyEventReference> notifyEvents;
-	// InRepAnimInfo.AnimMontage->GetAnimNotifies(startPos, delayTime, true, notifyEvents);
-	// for(const auto& notifyEvent : notifyEvents)
-	// {
-	// 	notifyEvent.GetNotify()->Notify->OnD
-	// }
+	// play rate 적용
+	anim->Montage_SetPlayRate( InNowRepAnimInfo.AnimMontage.Get(), playRate );
 }
 
 /**

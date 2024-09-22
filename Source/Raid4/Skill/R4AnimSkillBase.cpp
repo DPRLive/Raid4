@@ -244,7 +244,7 @@ void UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Implementation( uint32 InSkillAn
 	FAnimMontageInstance* montageInstance = owner->GetActiveInstanceForMontage( (*it)->SkillAnim );
 	if(montageInstance == nullptr)
 	{
-		LOG_ERROR( R4Skill, TEXT("FAnimMontageInstance is nullptr") )
+		LOG_WARN( R4Skill, TEXT("FAnimMontageInstance is nullptr. Failed to play anim.") )
 		return;
 	}
 
