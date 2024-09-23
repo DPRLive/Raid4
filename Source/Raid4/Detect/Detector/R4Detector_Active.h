@@ -68,7 +68,4 @@ private:
 	
 	// Detect 생명주기를 위한 Timer
 	FTimerHandle LifeTimerHandle;
-
-	// ShapeComp들을 캐싱 {ShapeComp, Original Collision enable type}
-	TArray<TPair<TWeakObjectPtr<UShapeComponent>, ECollisionEnabled::Type>> CachedShapeComp;
 };

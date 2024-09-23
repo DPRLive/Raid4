@@ -52,6 +52,9 @@ protected:
 	UFUNCTION()
 	void OnRep_Activate();
 
+	// Actor가 Pool에 들어갔다 나올때 Collision 상태를 변경할지?
+	uint8 bControlCollisionByPool;
+	
 private:
 	// Actor가 현재 활성화 상태인지 확인
 	UPROPERTY(ReplicatedUsing = OnRep_Activate)

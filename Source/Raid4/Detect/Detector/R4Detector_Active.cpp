@@ -17,6 +17,10 @@ AR4Detector_Active::AR4Detector_Active()
 
 	// 혹시나 Replicate 시 위치를 제대로 Replicate 하기 위함
 	SetReplicatingMovement( true );
+
+	// Actor Pool에서 자동으로 Collision 변경하지 못하도록 설정
+	bControlCollisionByPool = false;
+	SetActorEnableCollision( false );
 }
 
 void AR4Detector_Active::BeginPlay()
@@ -28,9 +32,6 @@ void AR4Detector_Active::BeginPlay()
 	GetComponents<UShapeComponent>( shapeComps, true );
 	for ( auto& shapeComp : shapeComps )
 	{
-		// Caching
-		CachedShapeComp.Add( {shapeComp, shapeComp->GetCollisionEnabled()} );
-		
 		// 멤버로 추가된 Shape Component를 모두 찾아서 한개의 Delegate로 나가도록 연결
 		shapeComp->OnComponentBeginOverlap.AddDynamic( this, &AR4Detector_Active::_OnBeginShapeOverlap );
 		shapeComp->OnComponentEndOverlap.AddDynamic( this, &AR4Detector_Active::_OnEndShapeOverlap );
@@ -87,22 +88,13 @@ void AR4Detector_Active::SetupDetect( const FTransform& InOrigin, const FR4Detec
 void AR4Detector_Active::TearDownDetect()
 {
 	BP_TearDownDetect();
-	
-	// disable collision
-	for ( auto& [shapeComp, collisionType] : CachedShapeComp )
-	{
-		if(!shapeComp.IsValid())
-		{
-			LOG_ERROR(R4Log, TEXT("Member Shape Comp is invalid."));
-			continue;
-		}
-		
-		shapeComp->SetCollisionEnabled( ECollisionEnabled::NoCollision );
-	}
 
 	// Attach해서 사용되었다면 Detach
 	if ( GetAttachParentActor() )
 		DetachFromActor( FDetachmentTransformRules::KeepWorldTransform );
+
+	// disable collision
+	SetActorEnableCollision( false );
 	
 	OnBeginDetectDelegate.Clear();
 	OnEndDetectDelegate.Clear();
@@ -115,16 +107,7 @@ void AR4Detector_Active::TearDownDetect()
 void AR4Detector_Active::ExecuteDetect()
 {
 	// Collision Enable
-	for ( auto& [shapeComp, collisionType] : CachedShapeComp )
-	{
-		if(!shapeComp.IsValid())
-		{
-			LOG_ERROR(R4Log, TEXT("Member Shape Comp is invalid."));
-			continue;
-		}
-		
-		shapeComp->SetCollisionEnabled( collisionType );
-	}
+	SetActorEnableCollision( true );
 }
 
 /**

@@ -18,7 +18,11 @@ AR4Detector_Trace::AR4Detector_Trace()
 
 	// 혹시나 Replicate 시 위치를 제대로 Replicate 하기 위함
 	SetReplicatingMovement( true );
-	
+
+	// Actor Pool에서 자동으로 Collision 변경하지 못하도록 설정
+	bControlCollisionByPool = false;
+	SetActorEnableCollision( false );
+
 	bDrawDebug = true;
 	DebugTime = 1.f;
 	DebugColor = FColor::Green;
@@ -88,6 +92,9 @@ void AR4Detector_Trace::TearDownDetect()
 	// Attach해서 사용되었다면 Detach
 	if ( GetAttachParentActor() )
 		DetachFromActor( FDetachmentTransformRules::KeepWorldTransform );
+
+	// disable collision
+	SetActorEnableCollision( false );
 	
 	OnBeginDetectDelegate.Clear();
 	OnEndDetectDelegate.Clear();
@@ -100,6 +107,9 @@ void AR4Detector_Trace::TearDownDetect()
  */
 void AR4Detector_Trace::ExecuteDetect( )
 {
+	// Collision Enable
+	SetActorEnableCollision( true );
+	
 	// 1회 실행
 	_Trace( );
 

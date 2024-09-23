@@ -14,6 +14,7 @@ APoolableActor::APoolableActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	bControlCollisionByPool = true;
 	bActivate = true;
 }
 
@@ -97,7 +98,8 @@ void APoolableActor::ActivateActor()
  */
 void APoolableActor::DisableCollisionAndTick()
 {
-	SetActorEnableCollision(false); // Component 까지 알아서 꺼버림
+	if ( bControlCollisionByPool )
+		SetActorEnableCollision(false); // Component 까지 알아서 꺼버림
 
 	SetActorTickEnabled(false);
 
@@ -119,8 +121,9 @@ void APoolableActor::ResetCollisionAndTick()
 	
 	if(const AActor* cdo = uClass->GetDefaultObject<AActor>(); IsValid(cdo))
 	{
-		SetActorEnableCollision(cdo->GetActorEnableCollision());
-		SetActorTickEnabled(cdo->PrimaryActorTick.bCanEverTick);
+		if ( bControlCollisionByPool )
+			SetActorEnableCollision(cdo->GetActorEnableCollision());
+		SetActorTickEnabled(cdo->IsActorTickEnabled());
 	}
 
 	TArray<UActorComponent*> comps;
@@ -133,7 +136,7 @@ void APoolableActor::ResetCollisionAndTick()
 		
 		if(const UActorComponent* cdo = compUClass->GetDefaultObject<UActorComponent>(); IsValid(cdo))
 		{
-			comp->SetComponentTickEnabled(cdo->PrimaryComponentTick.bCanEverTick);
+			comp->SetComponentTickEnabled(cdo->IsComponentTickEnabled());
 		}
 	}
 }
