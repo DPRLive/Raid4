@@ -39,4 +39,4 @@ public:													\
 
 // DT를 쉽게 가져오기 위한 class Cpp ( FRowBase 상속받은 클래스 cpp에 작성 + DataTableManager.h 추가필요) 
 #define GENERATE_DT_PTR_CPP(Name, RowName)																\
-Name##Ptr::Name##Ptr(FPriKey InPK) : PK(InPK), Row(DTManager->Get##RowName( InPK )) {}
+Name##Ptr::Name##Ptr(FPriKey InPK) : PK(InPK), Row(DTManager(R4GetWorld())->Get##RowName( InPK )) {}

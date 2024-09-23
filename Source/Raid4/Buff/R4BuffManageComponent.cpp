@@ -53,7 +53,7 @@ void UR4BuffManageComponent::Server_AddBuff(AActor* InInstigator, const TSubclas
 		return;
 	
 	FBuffAppliedInfo buffInfo;
-	buffInfo.ServerBuffInstance = Cast<UR4BuffBase>(OBJECT_POOL->GetObject(InBuffClass));
+	buffInfo.ServerBuffInstance = Cast<UR4BuffBase>(OBJECT_POOL(GetWorld())->GetObject(InBuffClass));
 
 	// 버프 인스턴스가 유효하지 않으면 리턴
 	if(!IsValid(buffInfo.ServerBuffInstance))
@@ -74,7 +74,7 @@ void UR4BuffManageComponent::Server_AddBuff(AActor* InInstigator, const TSubclas
 	bool bSetupSuccess = buffInfo.ServerBuffInstance->SetupBuff(InInstigator, GetOwner());
 	if(!bSetupSuccess)
 	{
-		OBJECT_POOL->ReturnPoolObject(buffInfo.ServerBuffInstance);
+		OBJECT_POOL(GetWorld())->ReturnPoolObject(buffInfo.ServerBuffInstance);
 		return;
 	}
 	
@@ -319,7 +319,7 @@ void UR4BuffManageComponent::_Server_BuffArrayRemoveAllByPredicate(TArray<FBuffA
 			it->ServerBuffInstance->RemoveBuff();
 
 			// 인스턴스 Pool에 반납
-			OBJECT_POOL->ReturnPoolObject(it->ServerBuffInstance);
+			OBJECT_POOL(GetWorld())->ReturnPoolObject(it->ServerBuffInstance);
 
 			// 관리 목록에서 제거.
 			it.RemoveCurrentSwap();

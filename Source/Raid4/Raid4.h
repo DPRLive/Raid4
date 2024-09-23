@@ -23,11 +23,11 @@
 #include "Core/R4GameInstance.h"
 
 // Defines
-#define OBJECT_POOL \
-	R4GetGameInstance<UR4GameInstance>()->GetObjectPool()
+#define OBJECT_POOL(World) \
+	R4GetGameInstance<UR4GameInstance>(World)->GetObjectPool()
 
-#define DTManager \
-	R4GetGameInstance<UR4GameInstance>()->GetDataTableManager()
+#define DTManager(World) \
+	R4GetGameInstance<UR4GameInstance>(World)->GetDataTableManager()
 
 // 월드를 반환한다.
 UWorld* R4GetWorld( UObject* InObject = nullptr );

@@ -63,7 +63,7 @@ void AR4Detector_Active::SetupDetect( const FTransform& InOrigin, const FR4Detec
 		{
 			// object pool에 자신을 반납.
 			if(thisPtr.IsValid())
-				OBJECT_POOL->ReturnPoolObject( thisPtr.Get() );
+				OBJECT_POOL(thisPtr->GetWorld())->ReturnPoolObject( thisPtr.Get() );
 		} );
 	}
 	else
@@ -74,7 +74,7 @@ void AR4Detector_Active::SetupDetect( const FTransform& InOrigin, const FR4Detec
 			{
 				// object pool에 자신을 반납.
 				if(thisPtr.IsValid())
-					OBJECT_POOL->ReturnPoolObject( thisPtr.Get() );
+					OBJECT_POOL(thisPtr->GetWorld())->ReturnPoolObject( thisPtr.Get() );
 			}, InDetectDesc.LifeTime, false );
 	}
 

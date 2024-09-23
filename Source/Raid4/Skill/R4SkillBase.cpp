@@ -235,10 +235,10 @@ void UR4SkillBase::_CreateDummyDetector( const FR4SkillDetectInfo& InSkillDetect
 	}
 	
 	// Dummy용 Detector 생성
-	TScriptInterface<IR4DetectorInterface> detector(OBJECT_POOL->GetObject(InSkillDetectInfo.DetectClass));
+	TScriptInterface<IR4DetectorInterface> detector(OBJECT_POOL(GetWorld())->GetObject(InSkillDetectInfo.DetectClass));
 	if(!IsValid(detector.GetObject()) || detector.GetInterface() == nullptr)
 	{
-		OBJECT_POOL->ReturnPoolObject(detector.GetObject());
+		OBJECT_POOL(GetWorld())->ReturnPoolObject(detector.GetObject());
 		return;
 	}
 
@@ -281,10 +281,10 @@ void UR4SkillBase::_Server_CreateAuthorityDetector( const FR4DetectEffectWrapper
 	}
 	
 	// Detector 준비
-	TScriptInterface<IR4DetectorInterface> detector(OBJECT_POOL->GetObject(InDetectEffectInfo.DetectInfo.DetectClass));
+	TScriptInterface<IR4DetectorInterface> detector(OBJECT_POOL(GetWorld())->GetObject(InDetectEffectInfo.DetectInfo.DetectClass));
 	if(!IsValid(detector.GetObject()) || detector.GetInterface() == nullptr)
 	{
-		OBJECT_POOL->ReturnPoolObject(detector.GetObject());
+		OBJECT_POOL(GetWorld())->ReturnPoolObject(detector.GetObject());
 		return;
 	}
 
@@ -363,7 +363,7 @@ void UR4SkillBase::_ClientRPC_RemoveDummy_Implementation( uint32 InDetectorKey )
 	if(auto it = Client_CachedDetectorDummy.Find( InDetectorKey ))
 	{
 		if(it->IsValid())
-			OBJECT_POOL->ReturnPoolObject(it->Get());
+			OBJECT_POOL(GetWorld())->ReturnPoolObject(it->Get());
 		
 		Client_CachedDetectorDummy.Remove( InDetectorKey );
 		return;
