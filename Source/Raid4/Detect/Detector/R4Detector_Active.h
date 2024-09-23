@@ -37,9 +37,19 @@ public:
 	FORCEINLINE virtual FOnDetectDelegate& OnBeginDetect() override { return OnBeginDetectDelegate; }
 	FORCEINLINE virtual FOnDetectDelegate& OnEndDetect() override { return OnEndDetectDelegate; }
 	virtual void SetupDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) override;
+	virtual void TearDownDetect() override;
 	virtual void ExecuteDetect() override;
 	// ~ End IR4DetectorInterface
 
+protected:
+	// BP에서 Setup시 확장을 위한 제공
+	UFUNCTION( BlueprintImplementableEvent, meta=(DisplayName = "SetupDetect") )
+	void BP_SetupDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc );
+
+	// BP에서 TearDown시 확장을 위한 제공
+	UFUNCTION( BlueprintImplementableEvent, meta=(DisplayName = "TearDownDetect") )
+	void BP_TearDownDetect();
+	
 private:
 	// 멤버로 등록된 Shape Comp Begin Overlap 시 호출
 	UFUNCTION()
@@ -48,7 +58,8 @@ private:
 	// 멤버로 등록된 Shape Comp End Overlap 시 호출
 	UFUNCTION()
 	void _OnEndShapeOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex );
-	
+
+private:
 	// Detect 시작 시 Broadcast
 	FOnDetectDelegate OnBeginDetectDelegate;
 

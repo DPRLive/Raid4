@@ -6,7 +6,7 @@
 /**
  * Detect 요청 시 사용할 정보
  */
-USTRUCT()
+USTRUCT( BlueprintType )
 struct FR4DetectDesc
 {
 	GENERATED_BODY()

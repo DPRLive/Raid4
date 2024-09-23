@@ -87,9 +87,19 @@ public:
 	FORCEINLINE virtual FOnDetectDelegate& OnBeginDetect() override { return OnBeginDetectDelegate; }
 	FORCEINLINE virtual FOnDetectDelegate& OnEndDetect() override { return OnEndDetectDelegate; }
 	virtual void SetupDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) override;
+	virtual void TearDownDetect() override;
 	virtual void ExecuteDetect() override;
 	// ~ End IR4DetectorInterface
 
+protected:
+	// BP에서 Setup시 확장을 위한 제공
+	UFUNCTION( BlueprintImplementableEvent, meta=(DisplayName = "SetupDetect") )
+	void BP_SetupDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc );
+
+	// BP에서 TearDown시 확장을 위한 제공
+	UFUNCTION( BlueprintImplementableEvent, meta=(DisplayName = "TearDownDetect") )
+	void BP_TearDownDetect();
+	
 private:
 	// Trace 진행
 	void _Trace( ) const;

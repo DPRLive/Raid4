@@ -43,6 +43,11 @@ public:
  	* @param InDetectDesc : 탐지 관련 Param 
  	*/
 	virtual void SetupDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) = 0;
+
+	/**
+ 	* Detect 정리
+ 	*/
+	virtual void TearDownDetect() = 0;
 	
 	/**
 	 * Detect 실행

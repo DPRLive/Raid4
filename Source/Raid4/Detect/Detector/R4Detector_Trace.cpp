@@ -37,15 +37,7 @@ void AR4Detector_Trace::PostInitPoolObject()
 void AR4Detector_Trace::PreReturnPoolObject()
 {
 	Super::PreReturnPoolObject();
-
-	// Attach해서 사용되었다면 Detach
-	if ( GetAttachParentActor() )
-		DetachFromActor( FDetachmentTransformRules::KeepWorldTransform );
-	
-	OnBeginDetectDelegate.Clear();
-	OnEndDetectDelegate.Clear();
-	GetWorldTimerManager().ClearTimer( LifeTimerHandle );
-	GetWorldTimerManager().ClearTimer( IntervalTimerHandle );
+	TearDownDetect();
 }
 
 /**
@@ -70,17 +62,37 @@ void AR4Detector_Trace::SetupDetect( const FTransform& InOrigin, const FR4Detect
 			if(thisPtr.IsValid())
 				OBJECT_POOL->ReturnPoolObject( thisPtr.Get() );
 		} );
-		return;
 	}
-
-	// 아닌 경우 생명주기 타이머 설정.
-	GetWorldTimerManager().SetTimer( LifeTimerHandle,
+	else
+	{
+		// 아닌 경우 생명주기 타이머 설정.
+		GetWorldTimerManager().SetTimer( LifeTimerHandle,
 		[thisPtr = TWeakObjectPtr<AR4Detector_Trace>(this)]
 		{
 			// object pool에 자신을 반납.
 			if(thisPtr.IsValid())
 				OBJECT_POOL->ReturnPoolObject( thisPtr.Get() );
 		}, InDetectDesc.LifeTime - KINDA_SMALL_NUMBER, false );
+	}
+
+	BP_SetupDetect( InOrigin, InDetectDesc );
+}
+
+/**
+ *	Detect 정리
+ */
+void AR4Detector_Trace::TearDownDetect()
+{
+	BP_TearDownDetect();
+
+	// Attach해서 사용되었다면 Detach
+	if ( GetAttachParentActor() )
+		DetachFromActor( FDetachmentTransformRules::KeepWorldTransform );
+	
+	OnBeginDetectDelegate.Clear();
+	OnEndDetectDelegate.Clear();
+	GetWorldTimerManager().ClearTimer( LifeTimerHandle );
+	GetWorldTimerManager().ClearTimer( IntervalTimerHandle );
 }
 
 /**

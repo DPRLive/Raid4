@@ -40,26 +40,7 @@ void AR4Detector_Active::BeginPlay()
 void AR4Detector_Active::PreReturnPoolObject()
 {
 	Super::PreReturnPoolObject();
-
-	// disable collision
-	for ( auto& [shapeComp, collisionType] : CachedShapeComp )
-	{
-		if(!shapeComp.IsValid())
-		{
-			LOG_ERROR(R4Log, TEXT("Member Shape Comp is invalid."));
-			continue;
-		}
-		
-		shapeComp->SetCollisionEnabled( ECollisionEnabled::NoCollision );
-	}
-
-	// Attach해서 사용되었다면 Detach
-	if ( GetAttachParentActor() )
-		DetachFromActor( FDetachmentTransformRules::KeepWorldTransform );
-	
-	OnBeginDetectDelegate.Clear();
-	OnEndDetectDelegate.Clear();
-	GetWorldTimerManager().ClearTimer( LifeTimerHandle );
+	TearDownDetect();
 }
 
 /**
@@ -84,17 +65,48 @@ void AR4Detector_Active::SetupDetect( const FTransform& InOrigin, const FR4Detec
 			if(thisPtr.IsValid())
 				OBJECT_POOL->ReturnPoolObject( thisPtr.Get() );
 		} );
-		return;
 	}
+	else
+	{
+		// 아닌 경우 생명주기 타이머 설정.
+		GetWorldTimerManager().SetTimer( LifeTimerHandle,
+			[thisPtr = TWeakObjectPtr<AR4Detector_Active>(this)]
+			{
+				// object pool에 자신을 반납.
+				if(thisPtr.IsValid())
+					OBJECT_POOL->ReturnPoolObject( thisPtr.Get() );
+			}, InDetectDesc.LifeTime, false );
+	}
+
+	BP_SetupDetect( InOrigin, InDetectDesc );
+}
+
+/**
+ *	Detect 정리
+ */
+void AR4Detector_Active::TearDownDetect()
+{
+	BP_TearDownDetect();
 	
-	// 아닌 경우 생명주기 타이머 설정.
-	GetWorldTimerManager().SetTimer( LifeTimerHandle,
-		[thisPtr = TWeakObjectPtr<AR4Detector_Active>(this)]
+	// disable collision
+	for ( auto& [shapeComp, collisionType] : CachedShapeComp )
+	{
+		if(!shapeComp.IsValid())
 		{
-			// object pool에 자신을 반납.
-			if(thisPtr.IsValid())
-				OBJECT_POOL->ReturnPoolObject( thisPtr.Get() );
-		}, InDetectDesc.LifeTime, false );
+			LOG_ERROR(R4Log, TEXT("Member Shape Comp is invalid."));
+			continue;
+		}
+		
+		shapeComp->SetCollisionEnabled( ECollisionEnabled::NoCollision );
+	}
+
+	// Attach해서 사용되었다면 Detach
+	if ( GetAttachParentActor() )
+		DetachFromActor( FDetachmentTransformRules::KeepWorldTransform );
+	
+	OnBeginDetectDelegate.Clear();
+	OnEndDetectDelegate.Clear();
+	GetWorldTimerManager().ClearTimer( LifeTimerHandle );
 }
 
 /**
