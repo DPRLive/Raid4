@@ -85,11 +85,9 @@ Plugins/Developer/*
 *__ExternalActors__
 
 
-#ignore ParagonAsset
-Content/*Paragon*
-
-#ignore KTP_Effect
-Content/KTP_Effect*
-
-#ignore Megapack
-Content/*Megapack*
+#Ignore all except Raid4 and Test
+Content/*
+!Content/Raid4/
+!Content/Raid4/**
+!Content/Test/
+!Content/Test/**
