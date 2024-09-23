@@ -47,7 +47,7 @@ void UR4Skill_PlayerCombo::PostEditChangeProperty( FPropertyChangedEvent& Proper
 		{
 			IR4NotifyByIdInterface* detectNotify = Cast<IR4NotifyByIdInterface>( anim->Notifies[i].Notify );
 			if ( detectNotify == nullptr || detectNotify->GetNotifyType() != ER4AnimNotifyType::ComboInputTest )
-				return;
+				continue;
 			
 			idxs.Emplace( i );
 		}
@@ -126,6 +126,8 @@ void UR4Skill_PlayerCombo::OnInputStarted()
  */
 void UR4Skill_PlayerCombo::OnBeginSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo )
 {
+	Super::OnBeginSkillAnim( InInstanceID, InSkillAnimInfo );
+	
 	// Anim Play 시작 성공 시 Combo Skill 사용중으로 판단
 	if ( InSkillAnimInfo.SkillAnimServerKey == ComboSkillAnimInfo.SkillAnimServerKey )
 	{
@@ -143,6 +145,8 @@ void UR4Skill_PlayerCombo::OnBeginSkillAnim( int32 InInstanceID, const FR4SkillA
  */
 void UR4Skill_PlayerCombo::OnEndSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted )
 {
+	Super::OnEndSkillAnim( InInstanceID, InSkillAnimInfo, InIsInterrupted );
+
 	if ( InSkillAnimInfo.SkillAnimServerKey == ComboSkillAnimInfo.SkillAnimServerKey )
 	{
 		// InputTest Notify <-> InputTest Unbind
