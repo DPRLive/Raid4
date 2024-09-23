@@ -43,7 +43,7 @@ struct FR4SkillDetectInfo
 	uint8 bAttachToMesh:1;
 
 	// Attach시 Attack할 Owner의 Skeletal Mesh Socket Name
-	UPROPERTY( NotReplicated, EditAnywhere, meta = ( EditCondition = "bAttach", EditConditionHides ) )
+	UPROPERTY( NotReplicated, EditAnywhere, meta = ( EditCondition = "bAttachToMesh", EditConditionHides ) )
 	FName MeshSocketName;
 	
 	// 탐지에 관한 Parameter.
