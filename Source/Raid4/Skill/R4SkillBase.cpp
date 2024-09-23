@@ -165,27 +165,32 @@ void UR4SkillBase::ExecuteDetect( const FR4DetectEffectWrapper& InDetectEffectIn
 		return;
 	}
 
-	// Visual 적인 요소가 있는 경우 반드시 Replicate하여 Dummy를 생성해야하고
-	// 아닌경우 Replicate를 금지하여 네트워크를 최적화
-	if( !ensureMsgf( InDetectEffectInfo.DetectInfo.bHasVisual ==
-		InDetectEffectInfo.DetectInfo.DetectClass.GetDefaultObject()->GetIsReplicated(),
-		TEXT("visual detectors, it should be replicated. and if it is not visual, it should be not replicate.")) )
-		return;
-
-	// Simulated Proxy인 경우, 필요 없음.
-	if( GetOwnerRole() == ROLE_SimulatedProxy )
-		return;
-
-	// Owner Client 이지만 Dummy가 필요한 경우 (Visual 적인 요소가 필요한 경우)
-	if( GetOwnerRole() == ROLE_AutonomousProxy && InDetectEffectInfo.DetectInfo.bHasVisual )
+	// Server Only인 경우, Authority에서만 생성.
+	// Do Not Replicate!
+	if ( InDetectEffectInfo.DetectInfo.DetectorSpawnType == ER4SkillDetectorSpawnType::ServerOnly
+		&& GetOwnerRole() == ROLE_Authority )
 	{
-		_CreateDummyDetector( InDetectEffectInfo.DetectInfo );
-		return;
+		if( !ensureMsgf( !InDetectEffectInfo.DetectInfo.DetectClass.GetDefaultObject()->GetIsReplicated(),
+			TEXT("Server Only should not replicated.") ) )
+			return;
+
+		_Server_CreateAuthorityDetector( InDetectEffectInfo );
 	}
 
-	// Server인 경우, 실제 Collision을 사용 & Effect 적용
-	if( GetOwnerRole() == ROLE_Authority )
-		_Server_CreateAuthorityDetector( InDetectEffectInfo );
+	// Owner Dummy & Server Authority인 경우
+	// Replicate!
+	if ( InDetectEffectInfo.DetectInfo.DetectorSpawnType == ER4SkillDetectorSpawnType::DummyAndAuthority )
+	{
+		if( !ensureMsgf( InDetectEffectInfo.DetectInfo.DetectClass.GetDefaultObject()->GetIsReplicated(),
+			TEXT("Dummy And Authority should  replicated.") ) )
+			return;
+		
+		if( GetOwnerRole() == ROLE_AutonomousProxy )
+			_CreateDummyDetector( InDetectEffectInfo.DetectInfo );
+		
+		if( GetOwnerRole() == ROLE_Authority )
+			_Server_CreateAuthorityDetector( InDetectEffectInfo );
+	}
 }
 
 /**
@@ -254,7 +259,7 @@ void UR4SkillBase::_CreateDummyDetector( const FR4SkillDetectInfo& InSkillDetect
 	}
 
 	// Dummy의 경우 Setup만, Execute Detect는 실제로 실행하지 않음.
-	detector->SetupDetect( origin, InSkillDetectInfo.DetectDesc );
+	detector.GetInterface()->SetupDetect( origin, InSkillDetectInfo.DetectDesc );
 	
 	// Dummy에 Push
 	Client_CachedDetectorDummy.Emplace( InSkillDetectInfo.DetectorServerKey, detector.GetObject() );
@@ -320,8 +325,8 @@ void UR4SkillBase::_Server_CreateAuthorityDetector( const FR4DetectEffectWrapper
 	detector.GetInterface()->SetupDetect( origin, InDetectEffectInfo.DetectInfo.DetectDesc );
 	detector.GetInterface()->ExecuteDetect();
 
-	// Dummy가 필요한 Detector였다면, Owner Client에게 Dummy 제거 명령 전송
-	if ( InDetectEffectInfo.DetectInfo.bHasVisual )
+	// Dummy가 필요한 Detector였고 현재 서버라면, Owner Client에게 Dummy 제거 명령 전송
+	if ( InDetectEffectInfo.DetectInfo.DetectorSpawnType == ER4SkillDetectorSpawnType::DummyAndAuthority )
 		_ClientRPC_RemoveDummy( InDetectEffectInfo.DetectInfo.DetectorServerKey );
 }
 

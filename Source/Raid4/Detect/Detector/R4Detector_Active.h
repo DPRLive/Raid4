@@ -28,10 +28,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	// ~ Begin IPoolableInterface
+	// ~ Begin APoolableActor
 	virtual void PostInitPoolObject() override {}
 	virtual void PreReturnPoolObject() override;
-	// ~ End IPoolableInterface
+	// ~ End APoolableActor
 	
 	// ~ Begin IR4DetectorInterface
 	FORCEINLINE virtual FOnDetectDelegate& OnBeginDetect() override { return OnBeginDetectDelegate; }

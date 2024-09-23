@@ -10,6 +10,18 @@ class UR4BuffBase;
 class UAnimMontage;
 
 /**
+ * Detector의 Spawn 정책을 설정
+ * Server Only : 서버에서만 생성
+ * DummyAndAuthority : Owner 클라이언트에서 Dummy, Server에서 Authority 생성
+ */
+UENUM( BlueprintType )
+enum class ER4SkillDetectorSpawnType : uint8
+{
+	ServerOnly			UMETA( DisplayName = "서버에서만 생성" ),
+	DummyAndAuthority	UMETA( DisplayName = "Owner Dummy, Server Authority" )
+};
+
+/**
  * Skill에서 진행할 탐지에 관한 정보.
  * 사용 시 Replicate가 닿을 수 있도록 설정
  */
@@ -20,7 +32,7 @@ struct FR4SkillDetectInfo
 
 	FR4SkillDetectInfo()
 	: DetectClass( nullptr )
-	, bHasVisual( false )
+	, DetectorSpawnType( ER4SkillDetectorSpawnType::ServerOnly )
 	, bAttachToMesh( false )
 	, MeshSocketName( NAME_None )
 	, DetectDesc( FR4DetectDesc() )
@@ -32,11 +44,10 @@ struct FR4SkillDetectInfo
 	UPROPERTY( NotReplicated, EditAnywhere, meta = ( MustImplement = "R4DetectorInterface" ) )
 	TSubclassOf<AActor> DetectClass;
 	
-	// 해당 Detect Class가 Visual적인 요소를 포함하고 있는지?
-	// true 시, client에서도 Dummy가 생성됨.
+	// Detector의 Spawn 정책을 설정
 	UPROPERTY( NotReplicated, EditAnywhere )
-	uint8 bHasVisual:1;
-
+	ER4SkillDetectorSpawnType DetectorSpawnType;
+	
 	// Detector를 Attach할 것인지?
 	// Owner가 Character이고 SkeletalMesh를 가지고 있어야 함.
 	UPROPERTY( NotReplicated, EditAnywhere )
