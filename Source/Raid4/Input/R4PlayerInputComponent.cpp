@@ -69,7 +69,7 @@ void UR4PlayerInputComponent::_InitializePlayerInput(UInputComponent* InPlayerIn
 		EnhancedInputComponent->BindAction( LookAction, ETriggerEvent::Triggered, this, &UR4PlayerInputComponent::_OnInputLookTriggered );
 
 		// 점프 입력 액션 바인딩
-		EnhancedInputComponent->BindAction( JumpAction, ETriggerEvent::Triggered, this, &UR4PlayerInputComponent::_OnInputJumpStarted );
+		EnhancedInputComponent->BindAction( JumpAction, ETriggerEvent::Started, this, &UR4PlayerInputComponent::_OnInputJumpStarted );
 		EnhancedInputComponent->BindAction( JumpAction, ETriggerEvent::Completed, this, &UR4PlayerInputComponent::_OnInputJumpCompleted );
 
 		// Player 스킬 입력 액션 바인딩
