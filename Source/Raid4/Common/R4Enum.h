@@ -83,3 +83,14 @@ enum class ER4AnimNotifyType : uint8
 	ApplyBuff		UMETA( DisplayName = "특정 버프 적용" ),
 	MAX				UMETA( Hidden )
 };
+
+/**
+ * Force Movement시 사용할 방법.
+ */
+UENUM( BlueprintType )
+enum class ER4ForceMoveType : uint8
+{
+	Linear			UMETA( DisplayName = "목적지까지 선형이동" ),
+	CurveVector		UMETA( DisplayName = "CurveVector 이용" ),
+	None			UMETA( Hidden )
+};

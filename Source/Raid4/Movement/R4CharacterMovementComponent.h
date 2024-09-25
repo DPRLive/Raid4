@@ -6,17 +6,6 @@
 #include "R4CharacterMovementComponent.generated.h"
 
 /**
- * Force Movement시 사용할 방법.
- */
-UENUM( BlueprintType )
-enum class ER4ForceMoveType : uint8
-{
-	Linear			UMETA( DisplayName = "목적지까지 선형이동" ),
-	CurveVector		UMETA( DisplayName = "CurveVector 이용" ),
-	None			UMETA( Hidden )
-};
-
-/**
  * Character가 사용할 R4Character Movement Component.
  * Curve Vector는 Target Loc까지 Duration동안 이동하며, CurveVector의 X,Y,Z를 따라 이동.
  * Curve Vector는 주어진 Duration 동안 각 X,Y,Z의 값의 Curve Y축 값을 추출해 적용하며
@@ -40,7 +29,7 @@ public:
 	void SetForceMovementByLinear_Local( const FVector& InTargetLoc, float InDuration  );
 
 	// Local에서 CurveVector값을 이용하여 Force Movement 설정
-	void SetForceMovementByCurve_Local( const FVector& InTargetLoc, float InDuration, UCurveVector* InCurveVector );
+	void SetForceMovementByCurve_Local( const FVector& InTargetLoc, float InDuration, UCurveVector* InCurveVector, bool InIsReverse );
 
 private:
 	// Force Movement 준비
@@ -69,4 +58,6 @@ private:
 	// For Curve Move//
 	// 사용할 Curve Vector.
 	TWeakObjectPtr<UCurveVector> CachedCurveVector;
+
+	bool bReverseCurve;
 };

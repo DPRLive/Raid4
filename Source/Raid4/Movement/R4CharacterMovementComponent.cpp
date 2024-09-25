@@ -17,6 +17,7 @@ UR4CharacterMovementComponent::UR4CharacterMovementComponent()
 	CachedForceMoveDuration = 0.f;
 	CachedForceMoveTargetWorldLoc = FVector::ZeroVector;
 	CachedCurveVector = nullptr;
+	bReverseCurve = false;
 }
 
 /**
@@ -38,10 +39,11 @@ void UR4CharacterMovementComponent::SetForceMovementByLinear_Local( const FVecto
  *	X,Y,Z값의 Curve Y축 값은 Curve X축(시간당 위치 (0:StartLoc ~ 1:TargetLoc 까지 사용))으로 추출.
  *	X,Y,Z값은 시작지점 <-> 목표지점에 선형의 줄을 긋고 시간 비율에 맞는 위치로부터의 Relative Location으로 적용함.
  *	@param InTargetLoc : 목표 지점
- *	@param InCurveVector : X,Y,Z의 Delta 값을 담은 Curve Vector
  *	@param InDuration : 걸리는 시간
+ *	@param InCurveVector : X,Y,Z의 Delta 값을 담은 Curve Vector
+ *	@param InIsReverse : Curve를 반대로 적용할 것인지?
  */
-void UR4CharacterMovementComponent::SetForceMovementByCurve_Local( const FVector& InTargetLoc, float InDuration, UCurveVector* InCurveVector )
+void UR4CharacterMovementComponent::SetForceMovementByCurve_Local( const FVector& InTargetLoc, float InDuration, UCurveVector* InCurveVector, bool InIsReverse )
 {
 	if ( !IsValid( InCurveVector ) )
 	{
@@ -53,6 +55,7 @@ void UR4CharacterMovementComponent::SetForceMovementByCurve_Local( const FVector
 	_SetupForceMovement( InTargetLoc, InDuration );
 	
 	CachedCurveVector = InCurveVector;
+	bReverseCurve = InIsReverse;
 }
 
 /**
@@ -106,8 +109,11 @@ void UR4CharacterMovementComponent::OnMovementUpdated( float DeltaSeconds, const
 			return;
 		}
 
+		FVector curveValue = bReverseCurve ?
+			CachedCurveVector->GetVectorValue( 1.f - ratio ) : CachedCurveVector->GetVectorValue( ratio );
+
 		// Curve 값을 Relative로 사용
-		nextLoc = nextLoc + CachedCurveVector->GetVectorValue( ratio );
+		nextLoc = nextLoc + curveValue;
 	}
 	
 	FVector delta = nextLoc - UpdatedComponent->GetComponentLocation();
