@@ -49,9 +49,6 @@ protected:
 	// 특정한 버프들을 적용.
 	void Server_ApplyBuffs( AActor* InVictim, const TArray<FR4SkillBuffInfo>& InSkillBuffInfos ) const;
 
-	// 특정한 데미지들을 적용.
-	void Server_ApplyDamages( AActor* InVictim , const TArray<FR4SkillDamageInfo>& InSkillDamageInfos ) const;
-	
 	// Detect 실행
 	void ExecuteDetect( const FR4DetectEffectWrapper& InDetectEffectInfo );
 

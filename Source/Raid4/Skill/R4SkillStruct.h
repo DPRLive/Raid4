@@ -2,7 +2,6 @@
 
 #include "../Detect/R4DetectStruct.h"
 #include "../Buff/R4BuffStruct.h"
-#include "../Damage/R4DamageStruct.h"
 
 #include "R4SkillStruct.generated.h"
 
@@ -68,6 +67,7 @@ struct FR4SkillDetectInfo
 
 /**
  * Skill이 줄 버프 대한 정보.
+ * 데미지도 버프로 적용 시키면 됨
  */
 USTRUCT()
 struct FR4SkillBuffInfo
@@ -94,28 +94,6 @@ struct FR4SkillBuffInfo
 };
 
 /**
- * Skill이 줄 데미지에 대한 정보.
- */
-USTRUCT()
-struct FR4SkillDamageInfo
-{
-	GENERATED_BODY()
-
-	FR4SkillDamageInfo()
-	: Target( ETargetType::Victim )
-	, DamageInfo( FR4DamageApplyDesc() )
-	{}
-	
-	// 데미지를 적용할 타겟. Instigator : 나. Victim : Detect 된 Actor
-	UPROPERTY( EditAnywhere )
-	ETargetType Target;
-	
-	// 적용할 데미지 정보
-	UPROPERTY( EditAnywhere )
-	FR4DamageApplyDesc DamageInfo;
-};
-
-/**
  * Skill에서 줄 영향에 대한 정보
  */
 USTRUCT()
@@ -123,21 +101,13 @@ struct FR4SkillEffectInfo
 {
 	GENERATED_BODY()
 	
-	// OnDetect 시 적용할 버프
+	// OnDetect 시 적용할 버프 (서버에서만 적용)
 	UPROPERTY( EditAnywhere )
-	TArray<FR4SkillBuffInfo> OnBeginDetectBuffs;
+	TArray<FR4SkillBuffInfo> Server_OnBeginDetectBuffs;
 	
-	// OnEndDetect 시 적용할 버프
+	// OnEndDetect 시 적용할 버프 (서버에서만 적용)
 	UPROPERTY( EditAnywhere )
-	TArray<FR4SkillBuffInfo> OnEndDetectBuffs;
-
-	// OnDetect 시 적용할 데미지
-	UPROPERTY( EditAnywhere )
-	TArray<FR4SkillDamageInfo> OnBeginDetectDamages;
-	
-	// OnEndDetect 시 적용할 데미지
-	UPROPERTY( EditAnywhere )
-	TArray<FR4SkillDamageInfo> OnEndDetectDamages;
+	TArray<FR4SkillBuffInfo> Server_OnEndDetectBuffs;
 };
 
 /**

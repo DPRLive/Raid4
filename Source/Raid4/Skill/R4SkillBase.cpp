@@ -119,35 +119,6 @@ void UR4SkillBase::Server_ApplyBuffs( AActor* InVictim, const TArray<FR4SkillBuf
 }
 
 /**
- *  특정한 데미지들을 적용.
- *  @param InVictim : Damage 적용 시 Victim 대상
- *  @param InSkillDamageInfos : 입힐 데미지들.
- */
-void UR4SkillBase::Server_ApplyDamages( AActor* InVictim, const TArray<FR4SkillDamageInfo>& InSkillDamageInfos ) const
-{
-	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server")))
-		return;
-	
-	for(const FR4SkillDamageInfo& damageInfo : InSkillDamageInfos)
-	{
-		AActor* target = nullptr;
-
-		// 데미지 입힐 대상 판정
-		if(damageInfo.Target == ETargetType::Instigator) // 나를 대상으로 하는 데미지
-			target = GetOwner();
-		else if(damageInfo.Target == ETargetType::Victim) // 탐지 대상에게 적용하는 데미지
-			target = InVictim;
-
-		// 데미지 적용
-		if( IR4DamageReceiveInterface* victim = Cast<IR4DamageReceiveInterface>(target) )
-		{
-			FR4DamageReceiveInfo damageRecvInfo = UtilDamage::CalculateDamageReceiveInfo( GetOwner(), target, damageInfo.DamageInfo );
-			victim->ReceiveDamage( GetOwner(), damageRecvInfo );
-		}
-	}
-}
-
-/**
  *  Detect 실행
  *  Owner Client(Disable Collision), Server(+ Enable Collision) 경우에만 생성
  *  Owner Client : Visual 적인 요소가 필요한 경우 Dummy 생성, 후에 서버에서 생성되면 Dummy 제거
@@ -293,16 +264,14 @@ void UR4SkillBase::_Server_CreateAuthorityDetector( const FR4DetectEffectWrapper
 	detector.GetInterface()->OnBeginDetect().AddWeakLambda(this,
 		[this, &InDetectEffectInfo](const FR4DetectResult& InDetectResult)
 	{
-		Server_ApplyBuffs( InDetectResult.DetectedActor.Get(), InDetectEffectInfo.EffectInfo.OnBeginDetectBuffs );
-		Server_ApplyDamages( InDetectResult.DetectedActor.Get(), InDetectEffectInfo.EffectInfo.OnBeginDetectDamages );
+		Server_ApplyBuffs( InDetectResult.DetectedActor.Get(), InDetectEffectInfo.EffectInfo.Server_OnBeginDetectBuffs );
 	});
 	
 	// bind OnEndDetect buff, damage
 	detector.GetInterface()->OnEndDetect().AddWeakLambda(this,
 [this, &InDetectEffectInfo](const FR4DetectResult& InDetectResult)
 	{
-		Server_ApplyBuffs( InDetectResult.DetectedActor.Get(), InDetectEffectInfo.EffectInfo.OnEndDetectBuffs );
-		Server_ApplyDamages( InDetectResult.DetectedActor.Get(), InDetectEffectInfo.EffectInfo.OnEndDetectDamages );
+		Server_ApplyBuffs( InDetectResult.DetectedActor.Get(), InDetectEffectInfo.EffectInfo.Server_OnEndDetectBuffs );
 	});
 	
 	// origin 설정
