@@ -99,6 +99,7 @@ void UR4CharacterMovementComponent::_SetupForceMovement( const FVector& InTarget
 	CachedForceMoveTargetWorldLoc = InTargetLoc;
 	CachedForceMoveElapsedTime = 0.f;
 	CachedForceMoveDuration = InDuration;
+	bIgnoreClientMovementErrorChecksAndCorrection = true;
 }
 
 /**
@@ -108,6 +109,7 @@ void UR4CharacterMovementComponent::_TearDownForceMovement()
 {
 	ForceMoveType = ER4ForceMoveType::None;
 	SetDefaultMovementMode();
+	bIgnoreClientMovementErrorChecksAndCorrection = false;
 }
 
 /**
