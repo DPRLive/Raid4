@@ -6,6 +6,30 @@
 #include "R4CharacterMovementComponent.generated.h"
 
 /**
+ * FSavedMove_Character represents a saved move on the client
+ * that has been sent to the server and might need to be played back.
+ */
+class FR4SavedMove_Character : public FSavedMove_Character
+{
+	using Super = FSavedMove_Character;
+	
+public:
+	virtual void SetInitialPosition( ACharacter* InCharacter ) override;
+};
+
+class FR4NetworkPredictionData_Client_Character : public FNetworkPredictionData_Client_Character
+{
+public:
+	FR4NetworkPredictionData_Client_Character( const UCharacterMovementComponent& ClientMovement )
+	: FNetworkPredictionData_Client_Character( ClientMovement )
+	{
+
+	}
+	
+	virtual FSavedMovePtr AllocateNewMove() override;
+};
+
+/**
  * Character가 사용할 R4Character Movement Component.
  * Curve Vector는 Target Loc까지 Duration동안 이동하며, CurveVector의 X,Y,Z를 따라 이동.
  * Curve Vector는 주어진 Duration 동안 각 X,Y,Z의 값의 Curve Y축 값을 추출해 적용하며
@@ -21,6 +45,8 @@ public:
 	UR4CharacterMovementComponent();
 
 protected:
+	virtual class FNetworkPredictionData_Client* GetPredictionData_Client() const override;
+	
 	// Movement Update
 	virtual void OnMovementUpdated( float DeltaSeconds, const FVector& OldLocation, const FVector& OldVelocity ) override;
 
@@ -31,6 +57,9 @@ public:
 	// Local에서 CurveVector값을 이용하여 Force Movement 설정
 	void SetForceMovementByCurve_Local( const FVector& InTargetLoc, float InDuration, UCurveVector* InCurveVector, bool InIsReverse );
 
+	// Force Move Type Getter
+	FORCEINLINE ER4ForceMoveType GetForceMoveType() const { return ForceMoveType; }
+	
 private:
 	// Force Movement 준비
 	void _SetupForceMovement( const FVector& InTargetLoc, float InDuration );
@@ -59,5 +88,5 @@ private:
 	// 사용할 Curve Vector.
 	TWeakObjectPtr<UCurveVector> CachedCurveVector;
 
-	bool bReverseCurve;
+	uint8 CachedIsReverseCurve:1;
 };

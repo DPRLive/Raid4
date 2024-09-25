@@ -4,8 +4,28 @@
 #include "R4CharacterMovementComponent.h"
 
 #include <Curves/CurveVector.h>
+#include <GameFramework/Character.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4CharacterMovementComponent)
+
+void FR4SavedMove_Character::SetInitialPosition( ACharacter* InCharacter )
+{
+	Super::SetInitialPosition( InCharacter );
+
+	// Force Move 시 Combine 하지 않음
+	if(UR4CharacterMovementComponent* moveComp = InCharacter->GetCharacterMovement<UR4CharacterMovementComponent>())
+	{
+		if(moveComp->GetForceMoveType() != ER4ForceMoveType::None)
+			bForceNoCombine = true;
+	}
+}
+
+
+FSavedMovePtr FR4NetworkPredictionData_Client_Character::AllocateNewMove()
+{
+	// custom 정보로 변경
+	return MakeShared<FR4SavedMove_Character>();
+}
 
 UR4CharacterMovementComponent::UR4CharacterMovementComponent()
 {
@@ -17,7 +37,18 @@ UR4CharacterMovementComponent::UR4CharacterMovementComponent()
 	CachedForceMoveDuration = 0.f;
 	CachedForceMoveTargetWorldLoc = FVector::ZeroVector;
 	CachedCurveVector = nullptr;
-	bReverseCurve = false;
+	CachedIsReverseCurve = false;
+}
+
+class FNetworkPredictionData_Client* UR4CharacterMovementComponent::GetPredictionData_Client() const
+{
+	if (ClientPredictionData == nullptr)
+	{
+		UR4CharacterMovementComponent* mutableThis = const_cast<UR4CharacterMovementComponent*>(this);
+		mutableThis->ClientPredictionData = new FR4NetworkPredictionData_Client_Character(*this);
+	}
+
+	return ClientPredictionData;
 }
 
 /**
@@ -55,7 +86,7 @@ void UR4CharacterMovementComponent::SetForceMovementByCurve_Local( const FVector
 	_SetupForceMovement( InTargetLoc, InDuration );
 	
 	CachedCurveVector = InCurveVector;
-	bReverseCurve = InIsReverse;
+	CachedIsReverseCurve = InIsReverse;
 }
 
 /**
@@ -109,7 +140,7 @@ void UR4CharacterMovementComponent::OnMovementUpdated( float DeltaSeconds, const
 			return;
 		}
 
-		FVector curveValue = bReverseCurve ?
+		FVector curveValue = CachedIsReverseCurve ?
 			CachedCurveVector->GetVectorValue( 1.f - ratio ) : CachedCurveVector->GetVectorValue( ratio );
 
 		// Curve 값을 Relative로 사용
