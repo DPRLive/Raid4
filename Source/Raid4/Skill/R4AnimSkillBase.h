@@ -61,15 +61,17 @@ private:
 	UFUNCTION( Server, Reliable, WithValidation )
 	void _ServerRPC_PlaySkillAnim( uint32 InSkillAnimKey, float InStartServerTime );
 	
+	// Notify Buff를 적용
+	void _ApplyNotifyBuffs( const FR4NotifyBuffWrapper& InNotifyBuff );
+	
+	// InMontageInstanceId를 Key로 SkillAnim에 특정한 Notify bind
+	void _BindSkillAnimNotifies( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo );
+
+	// InMontageInstanceId를 Key로 Bind해 두었던 SkillAnim에 특정한 Notify unbind
+	void _UnbindSkillAnimNotifies( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo );
+
 	// Server에서 Skill Anim 멤버를 찾아서 Skill Anim 키 부여
 	void _Server_ParseSkillAnimInfo();
-
-	// InMontageInstanceId를 Key로 DetectNotify <-> ExecuteDetect() 연결
-	void _BindNotifiesAndDetect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo );
-
-	// InMontageInstanceId를 Key로 Bind해 두었던 DetectNotify <-> ExecuteDetect() unbind
-	void _UnbindNotifiesAndDetect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo );
-	
 private:
     // 서버에서 해당 Skill Key의 Skill Anim이 Play되고 있는지.
 	// Index(1 ~ CachedSkillAnimInfoCount): SkillAnimKey, Value (true : 사용 중) 

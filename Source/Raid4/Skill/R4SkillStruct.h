@@ -145,7 +145,7 @@ struct FR4NotifyDetectWrapper
 	, DetectEffect( FR4DetectEffectWrapper() )
 	{}
 
-	FR4NotifyDetectWrapper(int32 InNotifyNumber)
+	FR4NotifyDetectWrapper( int32 InNotifyNumber )
 	: NotifyNumber( InNotifyNumber )
 	, DetectEffect( FR4DetectEffectWrapper() )
 	{}
@@ -169,6 +169,12 @@ struct FR4NotifyBuffWrapper
 
 	FR4NotifyBuffWrapper()
 	: NotifyNumber( INDEX_NONE )
+	, BuffSetting( FR4BuffSettingDesc() )
+	, bApplyOwner( false )
+	{}
+
+	FR4NotifyBuffWrapper( int32 InNotifyNumber )
+	: NotifyNumber( InNotifyNumber )
 	, BuffSetting( FR4BuffSettingDesc() )
 	, bApplyOwner( false )
 	{}

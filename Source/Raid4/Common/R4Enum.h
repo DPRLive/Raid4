@@ -80,5 +80,6 @@ enum class ER4AnimNotifyType : uint8
 	None			UMETA( DisplayName = "None" ),
 	Detect			UMETA( DisplayName = "탐지" ),
 	ComboInputTest	UMETA( DisplayName = "콤보 입력 확인" ),
+	ApplyBuff		UMETA( DisplayName = "특정 버프 적용" ),
 	MAX				UMETA( Hidden )
 };

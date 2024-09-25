@@ -5,6 +5,8 @@
 
 #include "../Animation/Notify/R4NotifyByIdInterface.h"
 #include "../Animation/R4AnimationInterface.h"
+#include "../Buff/R4BuffBase.h"
+#include "../Buff/R4BuffReceiveInterface.h"
 
 #include <Net/UnrealNetwork.h>
 #include <Animation/AnimMontage.h>
@@ -22,6 +24,7 @@ UR4AnimSkillBase::UR4AnimSkillBase()
 }
 
 #if WITH_EDITOR
+
 void UR4AnimSkillBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -40,39 +43,69 @@ void UR4AnimSkillBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 		if ( !IsValid( anim ) )
 			return;
 
-		// Detect Notify의 index들을 찾아냄 
-		TSet<int32> idxs;
+		// Detect, ApplyBuff Notify의 index들을 찾아냄 
+		TSet<int32> detectIdx, buffIdx;
 		for ( int32 i = 0; i < anim->Notifies.Num(); i++ )
 		{
-			if ( IR4NotifyByIdInterface* detectNotify = Cast<IR4NotifyByIdInterface>( anim->Notifies[i].Notify ) )
-			{
-				if(detectNotify->GetNotifyType() != ER4AnimNotifyType::Detect)
-					continue;
-				idxs.Emplace( i );
-			}
+			IR4NotifyByIdInterface* notify = Cast<IR4NotifyByIdInterface>( anim->Notifies[i].Notify );
+			if ( notify == nullptr )
+				continue;
+			
+			if ( notify->GetNotifyType() == ER4AnimNotifyType::Detect )
+				detectIdx.Emplace( i );
+
+			if ( notify->GetNotifyType() == ER4AnimNotifyType::ApplyBuff )
+				buffIdx.Emplace( i );
 		}
 
+		/**
+		*  편집 시 편하도록 Array의 원소들을 Index Set을 보고 동기화
+ 		*  Array에 없는 Set의 Idx = Array에 추가
+ 		*  Array와 Set에 있는 Set의 Idx = 무시
+ 		*  Array에 있는데 Set에 없는 Idx = Array에서 제거
+ 		*/
+		
 		// 필요 없는 index는 제거
 		for ( auto it = animInfo->DetectNotifies.CreateIterator(); it; ++it )
 		{
-			if ( idxs.Find( it->NotifyNumber ) == nullptr )
+			// detectIdx에 없는 idx는 제거
+			if ( detectIdx.Find( it->NotifyNumber ) == nullptr )
 			{
 				it.RemoveCurrentSwap();
 				continue;
 			}
-			idxs.Remove( it->NotifyNumber );
+			detectIdx.Remove( it->NotifyNumber );
+		}
+
+		for ( auto it = animInfo->BuffNotifies.CreateIterator(); it; ++it )
+		{
+			if ( buffIdx.Find( it->NotifyNumber ) == nullptr )
+			{
+				it.RemoveCurrentSwap();
+				continue;
+			}
+			buffIdx.Remove( it->NotifyNumber );
 		}
 		
 		// 기존에 없는 index는 추가
-		for ( const auto& idx : idxs )
+		for ( const auto& idx : detectIdx )
 		{
-			if ( animInfo->DetectNotifies.FindByPredicate( [idx](const FR4NotifyDetectWrapper& InElem)
-				{ return InElem.NotifyNumber == idx; } ) == nullptr )
-				animInfo->DetectNotifies.Emplace( idx );
+			animInfo->DetectNotifies.Emplace( idx );
 		}
 
-		// SORT
+		for ( const auto& idx : buffIdx )
+		{
+			animInfo->BuffNotifies.Emplace( idx );
+		}
+		
+		// Detect notifies SORT
 		animInfo->DetectNotifies.Sort( [](const FR4NotifyDetectWrapper& InElem1, const FR4NotifyDetectWrapper& InElem2 )
+		{
+			return InElem1.NotifyNumber < InElem2.NotifyNumber;
+		} );
+
+		// Buff Notifies SORT
+		animInfo->BuffNotifies.Sort( [](const FR4NotifyBuffWrapper& InElem1, const FR4NotifyBuffWrapper& InElem2 )
 		{
 			return InElem1.NotifyNumber < InElem2.NotifyNumber;
 		} );
@@ -160,7 +193,7 @@ bool UR4AnimSkillBase::PlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
 void UR4AnimSkillBase::OnBeginSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo )
 {
 	// DetectNotify <-> Effect Bind
-	_BindNotifiesAndDetect( InInstanceID, InSkillAnimInfo );
+	_BindSkillAnimNotifies( InInstanceID, InSkillAnimInfo );
 }
 
 /**
@@ -171,7 +204,7 @@ void UR4AnimSkillBase::OnBeginSkillAnim( int32 InInstanceID, const FR4SkillAnimI
 void UR4AnimSkillBase::OnEndSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted )
 {
 	// DetectNotify <-> Effect Unbind
-	_UnbindNotifiesAndDetect( InInstanceID, InSkillAnimInfo );
+	_UnbindSkillAnimNotifies( InInstanceID, InSkillAnimInfo );
 }
 
 /**
@@ -276,6 +309,110 @@ bool UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Validate( uint32 InSkillAnimKey,
 }
 
 /**
+ *  Notify Buff를 적용
+ *  @param InNotifyBuff : 적용할 Notify Buff
+ */
+void UR4AnimSkillBase::_ApplyNotifyBuffs( const FR4NotifyBuffWrapper& InNotifyBuff )
+{
+	if ( !IsValid( InNotifyBuff.BuffClass ) )
+	{
+		LOG_WARN( R4Skill, TEXT("Notify Buff is Invalid.") );
+		return;
+	}
+
+	// simulated 인 경우, Owner이지만 Owner까지 적용할 필요가 없는 경우 무시
+	if ( GetOwnerRole() == ROLE_SimulatedProxy
+		|| ( GetOwnerRole() == ROLE_AutonomousProxy && !InNotifyBuff.bApplyOwner ) )
+		return;
+	
+	// 나에게 버프 적용
+	if ( IR4BuffReceiveInterface* victim = Cast<IR4BuffReceiveInterface>( GetOwner() ) )
+		victim->ReceiveBuff( GetOwner(), InNotifyBuff.BuffClass, InNotifyBuff.BuffSetting );
+}
+
+/**
+ *  InMontageInstanceId를 Key로 SkillAnim에 특정한 Notify bind
+ *  @param InMontageInstanceId : Notify delegate bind 시 구별할 MontageInstance ID
+ *  @param InSkillAnimInfo : FR4SkillAnimInfo
+ */
+void UR4AnimSkillBase::_BindSkillAnimNotifies( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo )
+{
+	if( !ensureMsgf( IsValid( InSkillAnimInfo.SkillAnim ) , TEXT("Skill Anim is Invalid.")))
+		return;
+
+	// bind detect notify
+	for ( const auto& [notifyIndex, detectEffect] : InSkillAnimInfo.DetectNotifies )
+	{
+		if( !ensureMsgf( InSkillAnimInfo.SkillAnim->Notifies.IsValidIndex( notifyIndex ),
+			TEXT("Notify index is Invalid.")))
+			return;
+
+		if( IR4NotifyByIdInterface* detectNotifyObj = Cast<IR4NotifyByIdInterface>(InSkillAnimInfo.SkillAnim->Notifies[notifyIndex].Notify ) )
+		{
+			// this 캡처, WeakLambda 사용
+			detectNotifyObj->OnNotify( InMontageInstanceId ).BindWeakLambda(this,
+				[this, &detectEffect]()
+				{
+					// 탐지 실행
+					ExecuteDetect( detectEffect );
+				});
+		}
+	}
+
+	// bind buff notify
+	for ( auto buffIt = InSkillAnimInfo.BuffNotifies.CreateConstIterator(); buffIt; ++buffIt )
+	{
+		if( !ensureMsgf( InSkillAnimInfo.SkillAnim->Notifies.IsValidIndex( buffIt->NotifyNumber ),
+			TEXT("Notify index is Invalid.")))
+			return;
+
+		if ( IR4NotifyByIdInterface* buffNotifyObj = Cast<IR4NotifyByIdInterface>( InSkillAnimInfo.SkillAnim->Notifies[buffIt->NotifyNumber].Notify ) )
+		{
+			// this 캡처, WeakLambda 사용
+			buffNotifyObj->OnNotify( InMontageInstanceId ).BindWeakLambda(this,
+				[this, &notifyBuff = (*buffIt)]()
+				{
+					// 버프 적용
+					_ApplyNotifyBuffs( notifyBuff );
+				});
+		}
+	}
+}
+
+/**
+ *  InMontageInstanceId를 Key로 Bind해 두었던 SkillAnim에 특정한 Notify unbind
+ *  @param InMontageInstanceId : Notify delegate bind 시 구별할 MontageInstance ID
+ *  @param InSkillAnimInfo : FR4SkillAnimInfo
+ */
+void UR4AnimSkillBase::_UnbindSkillAnimNotifies( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo )
+{
+	if( !ensureMsgf( IsValid( InSkillAnimInfo.SkillAnim ), TEXT("Skill Anim is Invalid.")))
+		return;
+
+	// unbind detect notify
+	for ( const auto& [notifyIndex, detectEffect] : InSkillAnimInfo.DetectNotifies )
+	{
+		if( !ensureMsgf( InSkillAnimInfo.SkillAnim->Notifies.IsValidIndex( notifyIndex ),
+			TEXT("Notify index is Invalid.")))
+			return;
+
+		if( IR4NotifyByIdInterface* detectNotifyObj = Cast<IR4NotifyByIdInterface>(InSkillAnimInfo.SkillAnim->Notifies[notifyIndex].Notify ) )
+			detectNotifyObj->UnbindNotify( InMontageInstanceId );
+	}
+
+	// unbind buff notify
+	for ( auto buffIt = InSkillAnimInfo.BuffNotifies.CreateConstIterator(); buffIt; ++buffIt )
+	{
+		if( !ensureMsgf( InSkillAnimInfo.SkillAnim->Notifies.IsValidIndex( buffIt->NotifyNumber ),
+			TEXT("Notify index is Invalid.")))
+			return;
+
+		if ( IR4NotifyByIdInterface* buffNotifyObj = Cast<IR4NotifyByIdInterface>( InSkillAnimInfo.SkillAnim->Notifies[buffIt->NotifyNumber].Notify ) )
+			buffNotifyObj->UnbindNotify( InMontageInstanceId );
+	}
+}
+
+/**
  *  Server에서 Skill Anim 멤버를 찾아서 Skill Anim 키 부여
  */
 void UR4AnimSkillBase::_Server_ParseSkillAnimInfo()
@@ -302,54 +439,4 @@ void UR4AnimSkillBase::_Server_ParseSkillAnimInfo()
 
 	// SkillAnimPlayState를 Skill Anim만큼 초기화
 	AnimPlayServerState.SetNum( Server_CachedSkillAnimInfoCount + 1 );
-}
-
-/**
- *  InMontageInstanceId를 Key로 DetectNotify <-> ExecuteDetect() 연결
- *  @param InMontageInstanceId : Notify delegate bind 시 구별할 MontageInstance ID
- *  @param InSkillAnimInfo : Anim, Notify와 그에 맞는 Detect, Effect 정보를 담는 FR4SkillAnimInfo
- */
-void UR4AnimSkillBase::_BindNotifiesAndDetect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo )
-{
-	if( !ensureMsgf( IsValid( InSkillAnimInfo.SkillAnim ) , TEXT("Skill Anim is Invalid.")))
-		return;
-	
-	for ( const auto& [notifyIndex, detectEffect] : InSkillAnimInfo.DetectNotifies )
-	{
-		if( !ensureMsgf( InSkillAnimInfo.SkillAnim->Notifies.IsValidIndex( notifyIndex ),
-			TEXT("Notify index is Invalid.")))
-			return;
-
-		if( IR4NotifyByIdInterface* detectNotifyObj = Cast<IR4NotifyByIdInterface>(InSkillAnimInfo.SkillAnim->Notifies[notifyIndex].Notify ) )
-		{
-			// this 캡처, WeakLambda 사용
-			detectNotifyObj->OnNotify( InMontageInstanceId ).BindWeakLambda(this,
-				[this, &detectEffect]()
-				{
-					// 탐지 실행
-					ExecuteDetect( detectEffect );
-				});
-		}
-	}
-}
-
-/**
- *  InMontageInstanceId를 Key로 Bind해 두었던 DetectNotify <-> ExecuteDetect() unbind
- *  @param InMontageInstanceId : Notify delegate bind 시 구별할 MontageInstance ID
- *  @param InSkillAnimInfo : Anim, Notify와 그에 맞는 Detect, Effect 정보를 담는 FR4SkillAnimInfo
- */
-void UR4AnimSkillBase::_UnbindNotifiesAndDetect( int32 InMontageInstanceId, const FR4SkillAnimInfo& InSkillAnimInfo )
-{
-	if( !ensureMsgf( IsValid( InSkillAnimInfo.SkillAnim ), TEXT("Skill Anim is Invalid.")))
-		return;
-	
-	for ( const auto& [notifyIndex, detectEffect] : InSkillAnimInfo.DetectNotifies )
-	{
-		if( !ensureMsgf( InSkillAnimInfo.SkillAnim->Notifies.IsValidIndex( notifyIndex ),
-			TEXT("Notify index is Invalid.")))
-			return;
-
-		if( IR4NotifyByIdInterface* detectNotifyObj = Cast<IR4NotifyByIdInterface>(InSkillAnimInfo.SkillAnim->Notifies[notifyIndex].Notify ) )
-			detectNotifyObj->UnbindNotify( InMontageInstanceId );
-	}
 }
