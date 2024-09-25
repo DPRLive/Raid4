@@ -66,15 +66,15 @@ struct FR4SkillDetectInfo
 };
 
 /**
- * Skill이 줄 버프 대한 정보.
+ * Skill이 Detect시 줄 버프 대한 정보.
  * 데미지도 버프로 적용 시키면 됨
  */
 USTRUCT()
-struct FR4SkillBuffInfo
+struct FR4SkillDetectBuffInfo
 {
 	GENERATED_BODY()
 
-	FR4SkillBuffInfo()
+	FR4SkillDetectBuffInfo()
 	: Target( ETargetType::Victim )
 	, BuffClass( nullptr )
 	, BuffSetting( FR4BuffSettingDesc() )
@@ -94,20 +94,20 @@ struct FR4SkillBuffInfo
 };
 
 /**
- * Skill에서 줄 영향에 대한 정보
+ * Skill에서 Detect시 줄 영향에 대한 정보
  */
 USTRUCT()
-struct FR4SkillEffectInfo
+struct FR4SkillDetectEffectInfo
 {
 	GENERATED_BODY()
 	
 	// OnDetect 시 적용할 버프 (서버에서만 적용)
 	UPROPERTY( EditAnywhere )
-	TArray<FR4SkillBuffInfo> Server_OnBeginDetectBuffs;
+	TArray<FR4SkillDetectBuffInfo> Server_OnBeginDetectBuffs;
 	
 	// OnEndDetect 시 적용할 버프 (서버에서만 적용)
 	UPROPERTY( EditAnywhere )
-	TArray<FR4SkillBuffInfo> Server_OnEndDetectBuffs;
+	TArray<FR4SkillDetectBuffInfo> Server_OnEndDetectBuffs;
 };
 
 /**
@@ -120,7 +120,7 @@ struct FR4DetectEffectWrapper
 
 	FR4DetectEffectWrapper()
 	: DetectInfo( FR4SkillDetectInfo() )
-	, EffectInfo( FR4SkillEffectInfo() )
+	, EffectInfo( FR4SkillDetectEffectInfo() )
 	{}
 	
 	// 탐지할 방법
@@ -129,7 +129,7 @@ struct FR4DetectEffectWrapper
 
 	// 탐지 시 줄 영향
 	UPROPERTY( NotReplicated, EditAnywhere )
-	FR4SkillEffectInfo EffectInfo;
+	FR4SkillDetectEffectInfo EffectInfo;
 };
 
 /**
@@ -160,6 +160,37 @@ struct FR4NotifyDetectWrapper
 };
 
 /**
+ * Notify Number와 Buff Wrapper
+ */
+USTRUCT()
+struct FR4NotifyBuffWrapper
+{
+	GENERATED_BODY()
+
+	FR4NotifyBuffWrapper()
+	: NotifyNumber( INDEX_NONE )
+	, BuffSetting( FR4BuffSettingDesc() )
+	, bApplyOwner( false )
+	{}
+	
+	// Notify Number
+	UPROPERTY( VisibleAnywhere )
+	int32 NotifyNumber;
+
+	// 해당 Notify가 적용할 버프 클래스
+	UPROPERTY( EditAnywhere )
+	TSubclassOf<UR4BuffBase> BuffClass;
+
+	// 해당 Notify가 버프의 세팅
+	UPROPERTY( EditAnywhere )
+	FR4BuffSettingDesc BuffSetting;
+
+	// Server 뿐만 아니라 Owner Client에서도 같이 적용이 필요한지?
+	UPROPERTY( EditAnywhere )
+	uint8 bApplyOwner:1;
+};
+
+/**
  * Skill을 위한 Animation의 정보.
  * Animation과 Animation 작동 시 필요한 히트 체크 정보를 제공.
  * Skill Anim key를 서버에서 받기 위해 Replicate로 설정, Replicate가 닿을 수 있도록 설정
@@ -183,6 +214,11 @@ struct FR4SkillAnimInfo
 	UPROPERTY( EditAnywhere, meta = ( EditFixedOrder ) )
 	TArray<FR4NotifyDetectWrapper> DetectNotifies;
 
+	// Anim의 각 Notify와, Notify 번호에 맞는 버프 지정
+	// {Notify index ( AnimMontage에서 몇번째 Notify인지 ), 버프 관련 정보} 
+	UPROPERTY( NotReplicated, EditAnywhere, meta = ( EditFixedOrder ) )
+	TArray<FR4NotifyBuffWrapper> BuffNotifies;
+	
 	// Server와 Client 사이 Skill Anim을 구분하기 위한 Key값.
 	UPROPERTY( Transient, VisibleInstanceOnly )
 	uint32 SkillAnimServerKey;

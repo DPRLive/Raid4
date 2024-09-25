@@ -47,7 +47,7 @@ protected:
 	float GetSkillCoolDownTime( bool InIsIgnoreReduction ) const;
 
 	// 특정한 버프들을 적용.
-	void Server_ApplyBuffs( AActor* InVictim, const TArray<FR4SkillBuffInfo>& InSkillBuffInfos ) const;
+	void Server_ApplyBuffs( AActor* InVictim, const TArray<FR4SkillDetectBuffInfo>& InSkillBuffInfos ) const;
 
 	// Detect 실행
 	void ExecuteDetect( const FR4DetectEffectWrapper& InDetectEffectInfo );

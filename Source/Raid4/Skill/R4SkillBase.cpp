@@ -97,12 +97,12 @@ float UR4SkillBase::GetSkillCoolDownTime( bool InIsIgnoreReduction ) const
  *  @param InVictim : Buff 적용 시 Victim 대상
  *  @param InSkillBuffInfos : 입힐 SkillBuff 들
  */
-void UR4SkillBase::Server_ApplyBuffs( AActor* InVictim, const TArray<FR4SkillBuffInfo>& InSkillBuffInfos ) const
+void UR4SkillBase::Server_ApplyBuffs( AActor* InVictim, const TArray<FR4SkillDetectBuffInfo>& InSkillBuffInfos ) const
 {
 	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server")))
 		return;
 	
-	for(const FR4SkillBuffInfo& buffInfo : InSkillBuffInfos)
+	for(const FR4SkillDetectBuffInfo& buffInfo : InSkillBuffInfos)
 	{
 		AActor* target = nullptr;
 
