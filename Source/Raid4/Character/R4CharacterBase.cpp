@@ -70,7 +70,7 @@ void AR4CharacterBase::BeginPlay()
 	if(HasAuthority())
 	{
 		for(auto& [buffClass, desc] : TestingBuffs)
-			BuffManageComp->Server_AddBuff(this, buffClass, desc);
+			BuffManageComp->AddBuff(this, buffClass, desc);
 	}
 }
 
@@ -256,8 +256,7 @@ void AR4CharacterBase::SetupStatusBarWidget(UUserWidget* InWidget)
 void AR4CharacterBase::ReceiveBuff(AActor* InInstigator, const TSubclassOf<UR4BuffBase>& InBuffClass, const FR4BuffSettingDesc& InBuffSettingDesc)
 {
 	// BuffComp에게 넘겨준다.
-	if(GetLocalRole() == ROLE_Authority)
-		BuffManageComp->Server_AddBuff(InInstigator, InBuffClass, InBuffSettingDesc);
+	BuffManageComp->AddBuff(InInstigator, InBuffClass, InBuffSettingDesc);
 }
 
 /**

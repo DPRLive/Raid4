@@ -39,7 +39,7 @@ bool UR4Buff_BuffRemoverByTagContainer::ApplyBuff()
 
 	if(CachedBuffManageComp.IsValid())
 	{
-		CachedBuffManageComp->Server_RemoveBuffAllByTags(QueryTagContainer, QueryType);
+		CachedBuffManageComp->RemoveBuffAllByTags(QueryTagContainer, QueryType);
 		return true;
 	}
 		

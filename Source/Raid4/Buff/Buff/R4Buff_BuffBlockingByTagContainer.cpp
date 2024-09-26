@@ -39,7 +39,7 @@ bool UR4Buff_BuffBlockingByTagContainer::ApplyBuff()
 
 	if(CachedBuffManageComp.IsValid())
 	{
-		CachedBuffManageComp->Server_AddBlockingBuffTags(BlockingTagContainer, QueryType);
+		CachedBuffManageComp->AddBlockingBuffTags(BlockingTagContainer, QueryType);
 		return true;
 	}
 		
@@ -55,7 +55,7 @@ void UR4Buff_BuffBlockingByTagContainer::Deactivate()
 	Super::Deactivate();
 
 	if(CachedBuffManageComp.IsValid())
-		CachedBuffManageComp->Server_RemoveBlockingBuffTags(BlockingTagContainer, QueryType);
+		CachedBuffManageComp->RemoveBlockingBuffTags(BlockingTagContainer, QueryType);
 }
 
 /**
