@@ -42,15 +42,5 @@ public:
  	* @param InOrigin : 탐지의 기준이 되는 Transform
  	* @param InDetectDesc : 탐지 관련 Param 
  	*/
-	virtual void SetupDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) = 0;
-
-	/**
- 	* Detect 정리
- 	*/
-	virtual void TearDownDetect() = 0;
-	
-	/**
-	 * Detect 실행
-	 */
-	virtual void ExecuteDetect( ) = 0;
+	virtual void ExecuteDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) = 0;
 };

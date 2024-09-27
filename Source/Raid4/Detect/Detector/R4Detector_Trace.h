@@ -4,66 +4,17 @@
 
 #include "R4DetectorInterface.h"
 #include "../../Core/ObjectPool/PoolableActor.h"
+#include "../R4DetectStruct.h"
 
 #include <PhysicsEngine/BodyInstance.h>
 
 #include "R4Detector_Trace.generated.h"
 
 /**
- *  Trace Detect 체크시 사용할 모양
- */
-UENUM()
-enum class ER4DetectShapeType : uint8
-{
-	Box			UMETA( DisplayName = "박스" ),
-	Sphere		UMETA( DisplayName = "구" ),
-	Capsule		UMETA( DisplayName = "캡슐" ),
-	Sector		UMETA( DisplayName = "부채꼴" )
-};
-
-/**
- *  Detect할 모양과 관련 정보 설정
- */
-USTRUCT()
-struct FR4DetectShapeInfo
-{
-	GENERATED_BODY()
-
-	FR4DetectShapeInfo()
-	: Shape( ER4DetectShapeType::Box )
-	, BoxHalfExtent( FVector::ZeroVector )
-	, Radius( 0.f )
-	, HalfHeight( 0.f )
-	, Angle( 0.f )
-	{}
-	
-	// Overlap할 형태 결정
-	UPROPERTY( EditAnywhere, Category="Collision", meta =(AllowPrivateAccess = true) )
-	ER4DetectShapeType Shape;
-	
-	// 반지름
-	UPROPERTY( EditAnywhere, Category="Collision",
-		meta =(  EditCondition = "Shape == ER4DetectShapeType::Box", EditConditionHides, AllowPrivateAccess = true) )
-	FVector BoxHalfExtent;
-	
-	// 반지름
-	UPROPERTY( EditAnywhere, Category="Collision",
-		meta =( EditCondition = "Shape != ER4DetectShapeType::Box", EditConditionHides, AllowPrivateAccess = true) )
-	float Radius;
-
-	// HalfHeight
-	UPROPERTY( EditAnywhere, Category="Collision",
-		meta =( EditCondition = "Shape == ER4DetectShapeType::Capsule || Shape == ER4DetectShapeType::Sector", EditConditionHides, AllowPrivateAccess = true) )
-	float HalfHeight;
-
-	// angle
-	UPROPERTY( EditAnywhere, Category="Collision",
-		meta =( EditCondition = "Shape == ER4DetectShapeType::Sector", EditConditionHides, AllowPrivateAccess = true) )
-	float Angle;
-};
-
-/**
  * Trace를 기반으로 Detect를 수행하는 클래스.
+ * No Auth에서 Detect 시, Authority측과 동기화.
+ * 너무 짧은 시간이거나, 시작과 동시에 Trace를 진행하는 경우 Server->Client 통신 간 delay 된 만큼의 Trace가 무시 될 수 있음.
+ * Interval의 경우, 최초 1회 실행 후 이후 시간을 체크하는 방식.
  */
 UCLASS( Abstract, HideCategories = ( Tick, Rendering, Actor, Input, HLOD, Physics, LevelInstance, WorldPartition, DataLayers ) )
 class RAID4_API AR4Detector_Trace : public APoolableActor,
@@ -75,48 +26,82 @@ public:
 	AR4Detector_Trace();
 
 protected:
-	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 public:
 	// ~ Begin APoolableActor
-	virtual void PostInitPoolObject() override;
+	virtual void PostInitPoolObject() override {}
 	virtual void PreReturnPoolObject() override;
 	// ~ End APoolableActor
-	
+
 	// ~ Begin IR4DetectorInterface
 	FORCEINLINE virtual FOnDetectDelegate& OnBeginDetect() override { return OnBeginDetectDelegate; }
 	FORCEINLINE virtual FOnDetectDelegate& OnEndDetect() override { return OnEndDetectDelegate; }
-	virtual void SetupDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) override;
-	virtual void TearDownDetect() override;
-	virtual void ExecuteDetect() override;
+	virtual void ExecuteDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) override;
 	// ~ End IR4DetectorInterface
 
 protected:
-	// BP에서 Setup시 확장을 위한 제공
-	UFUNCTION( BlueprintImplementableEvent, meta=(DisplayName = "SetupDetect") )
-	void BP_SetupDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc );
+	// BP에서 ExecuteDetect시 확장을 위한 제공, Call only authority
+	UFUNCTION( BlueprintImplementableEvent, Category = "Detect", meta=(DisplayName = "ExecuteDetect") )
+	void BP_ExecuteDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc );
 
-	// BP에서 TearDown시 확장을 위한 제공
-	UFUNCTION( BlueprintImplementableEvent, meta=(DisplayName = "TearDownDetect") )
+	// BP에서 OnBeginDetect시 확장을 위한 제공
+	UFUNCTION( BlueprintImplementableEvent, Category = "Detect", meta=(DisplayName = "OnBeginDetect") )
+	void BP_OnBeginDetect( const FR4DetectResult& InDetectResult );
+
+	// BP에서 TearDown시 확장을 위한 제공, Call only authority
+	UFUNCTION( BlueprintImplementableEvent, Category = "Detect", meta=(DisplayName = "TearDownDetect") )
 	void BP_TearDownDetect();
 	
 private:
-	// Trace 진행
-	void _Trace( ) const;
+	// Life Time 설정
+	void _SetLifeTime( float InLifeTime );
 	
+	// Trace를 Delay에 맞춰 예약
+	void _ExecuteTrace( float InEnableDelayedTime );
+	
+	// Trace Logic
+	void _Trace( );
+
+	// Detect 정리
+	void _TearDownDetect();
+	
+	// No Auth Trace Info
+	UFUNCTION()
+	void _OnRep_NoAuthTraceInfo();
 private:
+	// Trace의 실행 타입
+	UPROPERTY( EditAnywhere, Category = "Collision" )
+	ER4TraceDetectExecutionType ExecutionType;
+
+	// Trace를 체크할 간격시간.
+	// 3초 LifeTime에 Interval 1초 일 시, 0, 1, 2 3번 사용됨. 
+	UPROPERTY( EditAnywhere, Category="Collision", meta = ( ClampMin = 0.1f, UIMin = 0.1f,
+		EditCondition = "ExecutionType == ER4TraceDetectExecutionType::Interval", EditConditionHides) )
+	float DetectInterval;
+
+	// Trace를 체크 시작까지의 Delay.
+	UPROPERTY( EditAnywhere, Category="Collision", meta = ( ClampMin = 0.f, UIMin = 0.f ) )
+	float Delay;
+	
 	// Detect에 사용할 모양 정보
 	UPROPERTY( EditAnywhere, Category="Collision" )
-	FR4DetectShapeInfo ShapeInfo;
+	FR4TraceDetectShapeInfo ShapeInfo;
 
 	// Detect에 사용할 Collision Response를 위한 BodyInstance
 	UPROPERTY( EditAnywhere, Category="Collision", meta=(ShowOnlyInnerProperties, SkipUCSModifiedProperties, AllowPrivateAccess = true) )
 	FBodyInstance BodyInstance;
-	
-	// Trace를 체크할 간격시간. ( 지속 시간 동안 반복해서 사용, <= 0 일 시 최초 1회만 사용됨. )
-	// 3초 LifeTime에 Interval 1초 일 시, 0, 1, 2 3번 사용됨. 
-	UPROPERTY( EditAnywhere, Category="Collision", meta = ( ClampMin = 0.f, UIMin = 0.f ) )
-	float DetectInterval;
+
+	// Replicate시, No - Authority (Client) 환경에서도 Trace를 진행할지 설정.
+	// Trace의 경우 1 Tick만 실행하므로, ExecutionType이 Immediately이거나,
+	// Replicate가 Pkt Lag 때문에 늦게 진행된 경우 정해진 시간의 Trace가 무시 될 수 있음. 
+	UPROPERTY( EditAnywhere, Category = "Replication|Detect" )
+	uint8 bDetectOnNoAuthority:1;
+
+	// Replicate시, No Authority에게 Trace 사용 상태 전송
+	UPROPERTY( Transient, ReplicatedUsing = _OnRep_NoAuthTraceInfo )
+	FR4NoAuthDetectEnableInfo NoAuthTraceEnableInfo;
 	
 	// Detect 시작 시 Broadcast
 	FOnDetectDelegate OnBeginDetectDelegate;
@@ -127,8 +112,8 @@ private:
 	// Detect 생명주기를 위한 Timer
 	FTimerHandle LifeTimerHandle;
 
-	// Detect 반복주기를 위한 Timer
-	FTimerHandle IntervalTimerHandle;
+	// Detect Delay, Interval을 위한 Timer
+	FTimerHandle TraceTimerHandle;
 	
 	// Debug //
 	// TODO : Debug 분리 ?

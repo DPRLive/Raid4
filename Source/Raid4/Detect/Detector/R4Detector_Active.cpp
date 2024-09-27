@@ -4,7 +4,8 @@
 #include "R4Detector_Active.h"
 #include "../R4DetectStruct.h"
 
-#include <Components/ShapeComponent.h> 
+#include <Net/UnrealNetwork.h>
+#include <Components/ShapeComponent.h>
 #include <TimerManager.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4Detector_Active)
@@ -21,6 +22,17 @@ AR4Detector_Active::AR4Detector_Active()
 	// Actor Pool에서 자동으로 Collision 변경하지 못하도록 설정
 	bControlCollisionByPool = false;
 	SetActorEnableCollision( false );
+
+	// 기본적으로 No Authority 환경에서도 같이 Detect를 진행.
+	bDetectOnNoAuthority = true;
+	NoAuthCollisionEnableInfo = FR4NoAuthDetectEnableInfo();
+}
+
+void AR4Detector_Active::GetLifetimeReplicatedProps( TArray<FLifetimeProperty>& OutLifetimeProps ) const
+{
+	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
+
+	DOREPLIFETIME( AR4Detector_Active, NoAuthCollisionEnableInfo );
 }
 
 void AR4Detector_Active::BeginPlay()
@@ -38,33 +50,66 @@ void AR4Detector_Active::BeginPlay()
 	}
 }
 
+void AR4Detector_Active::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	_TearDownDetect();
+	Super::EndPlay( EndPlayReason );
+}
+
 void AR4Detector_Active::PreReturnPoolObject()
 {
+	_TearDownDetect();
 	Super::PreReturnPoolObject();
-	TearDownDetect();
 }
 
 /**
- *	Detect 준비
+ *	Detect 실행
  *	@param InOrigin : 탐지의 기준이 되는 Transform
  *	@param InDetectDesc : Detect 실행에 필요한 Param
  */
-void AR4Detector_Active::SetupDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc )
+void AR4Detector_Active::ExecuteDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc )
 {
 	// Rotation & Position
 	// InOrigin에 Relative Location을 더한 위치, 회전을 설정.
 	SetActorRotation( InOrigin.TransformRotation( InDetectDesc.RelativeRot.Quaternion() ) );
 	SetActorLocation( InOrigin.TransformPosition( InDetectDesc.RelativeLoc ) );
+	
+	// Life Time 설정
+	_SetLifeTime( InDetectDesc.LifeTime );
 
-	// 생명 주기 설정
+	// Collision Enable
+	SetActorEnableCollision( true );
+
+	// NoAuthority 경우에도 Collision이 필요한 경우
+	if ( HasAuthority() && bDetectOnNoAuthority )
+	{
+		NoAuthCollisionEnableInfo.bEnable = true;
+		NoAuthCollisionEnableInfo.EnableServerTime = R4GetServerTimeSeconds( GetWorld() );
+		NoAuthCollisionEnableInfo.LifeTime = InDetectDesc.LifeTime;
+	}
+	
+	BP_ExecuteDetect( InOrigin, InDetectDesc );
+}
+
+/**
+ *	Life Time 설정
+ *	@param InLifeTime : 생명 주기
+ */
+void AR4Detector_Active::_SetLifeTime( float InLifeTime )
+{
 	// 아주 작으면 다음 틱에 바로 반납
-	if ( InDetectDesc.LifeTime <= KINDA_SMALL_NUMBER )
+	if ( InLifeTime <= KINDA_SMALL_NUMBER )
 	{
 		GetWorldTimerManager().SetTimerForNextTick( [thisPtr = TWeakObjectPtr<AR4Detector_Active>(this)]
 		{
 			// object pool에 자신을 반납.
 			if(thisPtr.IsValid())
-				OBJECT_POOL(thisPtr->GetWorld())->ReturnPoolObject( thisPtr.Get() );
+			{
+				if ( thisPtr->HasAuthority() )			
+					OBJECT_POOL(thisPtr->GetWorld())->ReturnPoolObject( thisPtr.Get() );
+				else
+					thisPtr->_TearDownDetect();
+			}
 		} );
 	}
 	else
@@ -73,41 +118,17 @@ void AR4Detector_Active::SetupDetect( const FTransform& InOrigin, const FR4Detec
 		GetWorldTimerManager().SetTimer( LifeTimerHandle,
 			[thisPtr = TWeakObjectPtr<AR4Detector_Active>(this)]
 			{
-				// object pool에 자신을 반납.
-				if(thisPtr.IsValid())
+				/// object pool에 자신을 반납.
+			if(thisPtr.IsValid())
+			{
+				if ( thisPtr->HasAuthority() )			
 					OBJECT_POOL(thisPtr->GetWorld())->ReturnPoolObject( thisPtr.Get() );
-			}, InDetectDesc.LifeTime, false );
+				else
+					thisPtr->_TearDownDetect();
+			}
+			}, FMath::Max( InLifeTime, KINDA_SMALL_NUMBER ), false );
+		// PlayRate 0 방지
 	}
-
-	BP_SetupDetect( InOrigin, InDetectDesc );
-}
-
-/**
- *	Detect 정리
- */
-void AR4Detector_Active::TearDownDetect()
-{
-	BP_TearDownDetect();
-
-	// Attach해서 사용되었다면 Detach
-	if ( GetAttachParentActor() )
-		DetachFromActor( FDetachmentTransformRules::KeepWorldTransform );
-
-	// disable collision
-	SetActorEnableCollision( false );
-	
-	OnBeginDetectDelegate.Clear();
-	OnEndDetectDelegate.Clear();
-	GetWorldTimerManager().ClearTimer( LifeTimerHandle );
-}
-
-/**
- *	Detect 실행
- */
-void AR4Detector_Active::ExecuteDetect()
-{
-	// Collision Enable
-	SetActorEnableCollision( true );
 }
 
 /**
@@ -123,6 +144,8 @@ void AR4Detector_Active::_OnBeginShapeOverlap( UPrimitiveComponent* OverlappedCo
 
 	if ( OnBeginDetectDelegate.IsBound() )
 		OnBeginDetectDelegate.Broadcast( result );
+
+	BP_OnBeginDetect( result );
 }
 
 /**
@@ -138,4 +161,48 @@ void AR4Detector_Active::_OnEndShapeOverlap( UPrimitiveComponent* OverlappedComp
 
 	if ( OnEndDetectDelegate.IsBound() )
 		OnEndDetectDelegate.Broadcast( result );
+
+	BP_OnEndDetect( result );
+}
+
+/**
+ *	Detect 정리
+ */
+void AR4Detector_Active::_TearDownDetect()
+{
+	if( HasAuthority() )
+	{
+		BP_TearDownDetect();
+
+		// Attach해서 사용되었다면 Detach
+		if ( GetAttachParentActor() )
+			DetachFromActor( FDetachmentTransformRules::KeepWorldTransform );
+
+		NoAuthCollisionEnableInfo.bEnable = false;
+
+		OnBeginDetectDelegate.Clear();
+		OnEndDetectDelegate.Clear();
+	}
+	
+	// disable collision
+	SetActorEnableCollision( false );
+
+	// clear
+	GetWorldTimerManager().ClearTimer( LifeTimerHandle );
+}
+
+void AR4Detector_Active::_OnRep_NoAuthCollisionInfo()
+{
+	if ( NoAuthCollisionEnableInfo.bEnable )
+	{
+		// 생명주기 설정
+		_SetLifeTime( NoAuthCollisionEnableInfo.LifeTime );
+		
+		// enable Collision
+		SetActorEnableCollision( true );
+
+		return;
+	}
+
+	_TearDownDetect();
 }
