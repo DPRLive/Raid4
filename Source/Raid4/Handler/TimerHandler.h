@@ -9,7 +9,7 @@ concept CCallableType = std::is_invocable_v<T>;
 /**
  * Timer를 좀 더 편하게 쓰기 위한 Handler.
  * 한개의 FTimerHandler로 여러개의 timer를 걸 순 없음
- * BeginDestroy시 Clear하면 좋을듯
+ * EndDestroy시 Clear하면 좋을듯 (Begin Destory에선 GetWorld() 접근이 불가함)
  * TSharedPtr과 함께 사용
  */
 class FTimerHandler : public TSharedFromThis<FTimerHandler>

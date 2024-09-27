@@ -16,9 +16,12 @@ class RAID4_API AR4ParticleActor : public APoolableActor
 public:
 	AR4ParticleActor();
 
+protected:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
 public:
 	// ~ Begin APoolableActor
-	virtual void PostInitPoolObject() override;
+	virtual void PostInitPoolObject() override {}
 	virtual void PreReturnPoolObject() override;
 	// ~ End APoolableActor
 

@@ -13,9 +13,10 @@ AR4ParticleActor::AR4ParticleActor()
 	LifeTime = 0.f;
 }
 
-void AR4ParticleActor::PostInitPoolObject()
+void AR4ParticleActor::EndPlay( const EEndPlayReason::Type EndPlayReason )
 {
-	Super::PostInitPoolObject();
+	TearDown();
+	Super::EndPlay( EndPlayReason );
 }
 
 void AR4ParticleActor::PreReturnPoolObject()
