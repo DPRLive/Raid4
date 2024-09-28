@@ -21,9 +21,8 @@ void AR4ParticleActor::EndPlay( const EEndPlayReason::Type EndPlayReason )
 
 void AR4ParticleActor::PreReturnPoolObject()
 {
-	Super::PreReturnPoolObject();
-	
 	TearDown();
+	Super::PreReturnPoolObject();
 }
 
 /**
