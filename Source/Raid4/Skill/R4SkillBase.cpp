@@ -2,10 +2,8 @@
 
 #include "R4SkillBase.h"
 #include "../Buff/R4BuffReceiveInterface.h"
-#include "../Damage/R4DamageReceiveInterface.h"
 #include "../Detect/Detector/R4DetectorInterface.h"
 #include "../Detect/R4DetectStruct.h"
-#include "../Util/UtilDamage.h"
 #include "../Util/UtilStat.h"
 #include "../Stat/R4TagStatQueryInterface.h"
 #include "../Stat/R4StatStruct.h"
@@ -25,7 +23,6 @@ UR4SkillBase::UR4SkillBase()
 
 	BaseCoolDownTime = 0.f;
 	CachedNextActivationServerTime = 0.f;
-	CachedSkillDetectInfoCount = 0;
 }
 
 void UR4SkillBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -33,14 +30,6 @@ void UR4SkillBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(UR4SkillBase, CachedNextActivationServerTime, COND_OwnerOnly);
-}
-
-void UR4SkillBase::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if(GetOwnerRole() == ROLE_Authority)
-		_Server_ParseSkillDetectInfo();
 }
 
 /**
@@ -80,12 +69,12 @@ float UR4SkillBase::GetSkillCoolDownTime( bool InIsIgnoreReduction ) const
 {
 	float cooldownTime = BaseCoolDownTime;
 
-	if(!InIsIgnoreReduction)
+	if ( !InIsIgnoreReduction )
 	{
-		if(IR4TagStatQueryInterface* owner = Cast<IR4TagStatQueryInterface>(GetOwner()) )
+		if ( IR4TagStatQueryInterface* owner = Cast<IR4TagStatQueryInterface>( GetOwner() ) )
 		{
-			if(FR4StatInfo* coolDownReduction = owner->GetStatByTag(TAG_STAT_NORMAL_CoolDownReduction))
-				cooldownTime *= UtilStat::GetCoolDownReductionFactor(coolDownReduction->GetTotalValue());
+			if ( FR4StatInfo* coolDownReduction = owner->GetStatByTag( TAG_STAT_NORMAL_CoolDownReduction ) )
+				cooldownTime *= UtilStat::GetCoolDownReductionFactor( coolDownReduction->GetTotalValue() );
 		}
 	}
 	
@@ -93,124 +82,70 @@ float UR4SkillBase::GetSkillCoolDownTime( bool InIsIgnoreReduction ) const
 }
 
 /**
- *  특정한 버프들을 적용.
- *  @param InVictim : Buff 적용 시 Victim 대상
- *  @param InSkillBuffInfos : 입힐 SkillBuff 들
+ *  Detect 실행.
+ *  DetectorNetFlag && owner role 에 맞춰서 생성.
+ *  Replicated Detector일 시 Server에서만 Spawn 해야함.
+ *  particle이 있으나 투사체 등 (시각적인 요소 + 위치 같이) 중요하지 않다면 굳이 Replicate 하지 않고 Local 생성하는걸 권장
+ *  @param InDetectBuffInfo : Detector & Buff Info.
  */
-void UR4SkillBase::Server_ApplyBuffs( AActor* InVictim, const TArray<FR4SkillDetectBuffInfo>& InSkillBuffInfos ) const
+void UR4SkillBase::ExecuteDetect( const FR4SkillDetectBuffWrapper& InDetectBuffInfo )
 {
-	if(!ensureMsgf(GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server")))
+	if ( !ensureMsgf( IsValid( InDetectBuffInfo.DetectorInfo.DetectClass ), TEXT("DetectClass is nullptr.") ) )
 		return;
+
+	// Parse Net Flag
+	bool bReplicate = InDetectBuffInfo.DetectorInfo.DetectClass.GetDefaultObject()->GetIsReplicated();
+	bool bServerSpawn = ( InDetectBuffInfo.DetectorInfo.DetectorNetFlag & static_cast<uint8>( ER4NetworkFlag::Server) );
+	bool bOwnerSpawn = ( InDetectBuffInfo.DetectorInfo.DetectorNetFlag & static_cast<uint8>( ER4NetworkFlag::Owner ) );
+	bool bSimulatedSpawn = ( InDetectBuffInfo.DetectorInfo.DetectorNetFlag & static_cast<uint8>( ER4NetworkFlag::Simulated ) );
 	
-	for(const FR4SkillDetectBuffInfo& buffInfo : InSkillBuffInfos)
-	{
-		AActor* target = nullptr;
+	// Replicated Detector일 시 Server에서만 Spawn 해야함.
+	if ( !ensureMsgf( bReplicate ? ( bServerSpawn && !bOwnerSpawn && !bSimulatedSpawn ) : true,
+			TEXT("Replicated Detector must be spawned only on Server") ) )
+		return;
 
-		// 버프 입힐 대상 판정
-		if(buffInfo.Target == ETargetType::Instigator) // 나를 대상으로 하는 버프
-			target = GetOwner();
-		else if(buffInfo.Target == ETargetType::Victim) // 탐지 대상에게 적용하는 버프
-			target = InVictim;
-
-		// 버프 적용
-		if( IR4BuffReceiveInterface* victim = Cast<IR4BuffReceiveInterface>(target) )
-			victim->ReceiveBuff(GetOwner(), buffInfo.BuffClass, buffInfo.BuffSetting);
-	}
+	// role flag && owner role이 일치하면 Spawn 
+	if ( ( GetOwnerRole() == ROLE_Authority && bServerSpawn )
+		|| ( GetOwnerRole() == ROLE_AutonomousProxy && bOwnerSpawn )
+		|| ( GetOwnerRole() == ROLE_SimulatedProxy && bSimulatedSpawn ) )
+		 _SpawnDetector( InDetectBuffInfo );
 }
 
 /**
- *  Detect 실행
- *  Owner Client(Disable Collision), Server(+ Enable Collision) 경우에만 생성
- *  Owner Client : Visual 적인 요소가 필요한 경우 Dummy 생성, 후에 서버에서 생성되면 Dummy 제거
- *  Server : Collision을 포함한 실제 Detector 생성
- *  @param InDetectEffectInfo : 탐지 클래스 및 효과.
+ *  Spawn Skill Detector
+ *  @param InDetectBuffInfo : Detect 정보
  */
-void UR4SkillBase::ExecuteDetect( const FR4DetectEffectWrapper& InDetectEffectInfo )
+void UR4SkillBase::_SpawnDetector( const FR4SkillDetectBuffWrapper& InDetectBuffInfo )
 {
-	if ( !ensureMsgf( IsValid( InDetectEffectInfo.DetectInfo.DetectClass ), TEXT("DetectClass is nullptr.") ) )
-		return;
-
-	if( InDetectEffectInfo.DetectInfo.DetectorServerKey == Skill::G_InvalidDetectorKey )
-	{
-		LOG_WARN( R4Skill, TEXT("Detector Key Is Invalid. Check Replicate State."));
-		return;
-	}
-
-	// Server Only인 경우, Authority에서만 생성.
-	// Do Not Replicate!
-	if ( InDetectEffectInfo.DetectInfo.DetectorSpawnType == ER4SkillDetectorSpawnType::ServerOnly
-		&& GetOwnerRole() == ROLE_Authority )
-	{
-		if( !ensureMsgf( !InDetectEffectInfo.DetectInfo.DetectClass.GetDefaultObject()->GetIsReplicated(),
-			TEXT("Server Only should not replicated.") ) )
-			return;
-
-		_Server_CreateAuthorityDetector( InDetectEffectInfo );
-	}
-
-	// Owner Dummy & Server Authority인 경우
-	// Replicate!
-	if ( InDetectEffectInfo.DetectInfo.DetectorSpawnType == ER4SkillDetectorSpawnType::DummyAndAuthority )
-	{
-		if( !ensureMsgf( InDetectEffectInfo.DetectInfo.DetectClass.GetDefaultObject()->GetIsReplicated(),
-			TEXT("Dummy And Authority should  replicated.") ) )
-			return;
-		
-		if( GetOwnerRole() == ROLE_AutonomousProxy )
-			_CreateDummyDetector( InDetectEffectInfo.DetectInfo );
-		
-		if( GetOwnerRole() == ROLE_Authority )
-			_Server_CreateAuthorityDetector( InDetectEffectInfo );
-	}
-}
-
-/**
- *  FR4SkillDetectInfo 멤버를 찾아서 키를 부여.
- */
-void UR4SkillBase::_Server_ParseSkillDetectInfo()
-{
-	if ( !ensureMsgf( GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server") ) )
-		return;
-
-	for ( const auto& [prop, value] : TPropertyValueRange<FStructProperty>( GetClass(), this ) )
-	{
-		// FR4SkillDetectInfo 타입의 struct를 찾아서 Key값을 부여.
-		if ( prop->Struct != FR4SkillDetectInfo::StaticStruct() )
-			continue;
-
-		const FR4SkillDetectInfo* c_skillDetectPtr = static_cast<const FR4SkillDetectInfo*>(value);
-		FR4SkillDetectInfo* skillDetectPtr = const_cast<FR4SkillDetectInfo*>(c_skillDetectPtr);
-
-		// Server의 경우 FR4SkillDetectInfo에 Key 값을 부여.
-		skillDetectPtr->DetectorServerKey = ++CachedSkillDetectInfoCount;
-	}
-}
-
-/**
- *  Collision 설정을 변경하지 않는 Dummy Detector 생성.
- *  @param InSkillDetectInfo : Detect 정보
- */
-void UR4SkillBase::_CreateDummyDetector( const FR4SkillDetectInfo& InSkillDetectInfo )
-{
-	if( InSkillDetectInfo.DetectorServerKey == Skill::G_InvalidDetectorKey )
-	{
-		LOG_WARN( R4Skill, TEXT("Detector Key Is Invalid. Check Replicate State."));
-		return;
-	}
-
-	// 이미 Server Side에서 생성이 된 Detector이면 Dummy를 생성하지 않음
-	if(int32 removeCnt = Client_CachedServerDetector.Remove( InSkillDetectInfo.DetectorServerKey );
-		removeCnt > 0)
-	{
-		return;
-	}
+	TScriptInterface<IR4DetectorInterface> detector(nullptr);
 	
-	// Dummy용 Detector 생성
-	TScriptInterface<IR4DetectorInterface> detector(OBJECT_POOL(GetWorld())->GetObject(InSkillDetectInfo.DetectClass));
-	if(!IsValid(detector.GetObject()) || detector.GetInterface() == nullptr)
+	// Detector 생성
+	detector = OBJECT_POOL( GetWorld() )->GetObject( InDetectBuffInfo.DetectorInfo.DetectClass );
+	if ( !IsValid( detector.GetObject() ) || detector.GetInterface() == nullptr )
 	{
-		OBJECT_POOL(GetWorld())->ReturnPoolObject(detector.GetObject());
+		LOG_WARN( R4Skill, TEXT("Detector Spawn Failed.") );
+		
+		OBJECT_POOL( GetWorld() )->ReturnPoolObject( detector.GetObject() );
 		return;
+	}
+
+	// Server이면, Buff Bind.
+	if ( GetOwnerRole() == ROLE_Authority )
+	{
+		// Bind buffs. this capture, weak lambda 사용
+		// bind OnBeginDetect buff
+		detector.GetInterface()->OnBeginDetect().AddWeakLambda(this,
+			[this, &buffs = InDetectBuffInfo.OnBeginDetectBuffs]( const FR4DetectResult& InDetectResult )
+		{
+			_Server_ApplyDetectBuffs( InDetectResult.DetectedActor.Get(), buffs );
+		});
+	
+		// bind OnEndDetect buff, damage
+		detector.GetInterface()->OnEndDetect().AddWeakLambda(this,
+		[this, &buffs = InDetectBuffInfo.OnEndDetectBuffs]( const FR4DetectResult& InDetectResult )
+		{
+			_Server_ApplyDetectBuffs( InDetectResult.DetectedActor.Get(), buffs );
+		});
 	}
 
 	// origin 설정
@@ -220,83 +155,17 @@ void UR4SkillBase::_CreateDummyDetector( const FR4SkillDetectInfo& InSkillDetect
 		origin = GetOwner()->GetActorTransform();
 
 		// Attach to mesh?
-		if( InSkillDetectInfo.bAttachToMesh )
+		if( InDetectBuffInfo.DetectorInfo.bAttachToMesh )
 		{
 			ACharacter* parentActor = Cast<ACharacter>( GetOwner() );
 			USkeletalMeshComponent* parentSkel = parentActor ? parentActor->GetMesh() : nullptr;
 
-			origin = _AttachDetectorToTargetMesh( Cast<AActor>( detector.GetObject() ), parentSkel, InSkillDetectInfo.MeshSocketName );
+			origin = _AttachDetectorToTargetMesh( Cast<AActor>( detector.GetObject() ), parentSkel, InDetectBuffInfo.DetectorInfo.MeshSocketName );
 		}
 	}
 
-	// Dummy의 경우 Setup만, Execute Detect는 실제로 실행하지 않음.
-	detector.GetInterface()->SetupDetect( origin, InSkillDetectInfo.DetectDesc );
-	
-	// Dummy에 Push
-	Client_CachedDetectorDummy.Emplace( InSkillDetectInfo.DetectorServerKey, detector.GetObject() );
-}
-
-/**
- *  Collision을 활성화 시킨 Detector 생성. 
- *  @param InDetectEffectInfo : 탐지 정보 및 효과
- */
-void UR4SkillBase::_Server_CreateAuthorityDetector( const FR4DetectEffectWrapper& InDetectEffectInfo )
-{
-	if ( !ensureMsgf( GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server") ) )
-		return;
-	
-	if( InDetectEffectInfo.DetectInfo.DetectorServerKey == Skill::G_InvalidDetectorKey )
-	{
-		LOG_WARN( R4Skill, TEXT("Detector Key Is Invalid. Check Replicate State."));
-		return;
-	}
-	
-	// Detector 준비
-	TScriptInterface<IR4DetectorInterface> detector(OBJECT_POOL(GetWorld())->GetObject(InDetectEffectInfo.DetectInfo.DetectClass));
-	if(!IsValid(detector.GetObject()) || detector.GetInterface() == nullptr)
-	{
-		OBJECT_POOL(GetWorld())->ReturnPoolObject(detector.GetObject());
-		return;
-	}
-
-	// this capture, weak lambda 사용
-	// bind OnBeginDetect buff, damage
-	detector.GetInterface()->OnBeginDetect().AddWeakLambda(this,
-		[this, &InDetectEffectInfo](const FR4DetectResult& InDetectResult)
-	{
-		Server_ApplyBuffs( InDetectResult.DetectedActor.Get(), InDetectEffectInfo.EffectInfo.Server_OnBeginDetectBuffs );
-	});
-	
-	// bind OnEndDetect buff, damage
-	detector.GetInterface()->OnEndDetect().AddWeakLambda(this,
-[this, &InDetectEffectInfo](const FR4DetectResult& InDetectResult)
-	{
-		Server_ApplyBuffs( InDetectResult.DetectedActor.Get(), InDetectEffectInfo.EffectInfo.Server_OnEndDetectBuffs );
-	});
-	
-	// origin 설정
-	FTransform origin;
-	if ( IsValid(GetOwner()) )
-	{
-		origin = GetOwner()->GetActorTransform();
-
-		// Attach to mesh?
-		if( InDetectEffectInfo.DetectInfo.bAttachToMesh )
-		{
-			ACharacter* parentActor = Cast<ACharacter>( GetOwner() );
-			USkeletalMeshComponent* parentSkel = parentActor ? parentActor->GetMesh() : nullptr;
-
-			origin = _AttachDetectorToTargetMesh( Cast<AActor>( detector.GetObject() ), parentSkel, InDetectEffectInfo.DetectInfo.MeshSocketName );
-		}
-	}
-	
-	// Setup & detect 실행
-	detector.GetInterface()->SetupDetect( origin, InDetectEffectInfo.DetectInfo.DetectDesc );
-	detector.GetInterface()->ExecuteDetect();
-
-	// Dummy가 필요한 Detector였고 현재 서버라면, Owner Client에게 Dummy 제거 명령 전송
-	if ( InDetectEffectInfo.DetectInfo.DetectorSpawnType == ER4SkillDetectorSpawnType::DummyAndAuthority )
-		_ClientRPC_RemoveDummy( InDetectEffectInfo.DetectInfo.DetectorServerKey );
+	// Execute Detect
+	detector.GetInterface()->ExecuteDetect( origin, InDetectBuffInfo.DetectorInfo.DetectDesc );
 }
 
 /**
@@ -310,7 +179,7 @@ FTransform UR4SkillBase::_AttachDetectorToTargetMesh( AActor* InDetector, USkele
 {
 	if ( !IsValid( InDetector ) || !IsValid( InTargetMesh ) )
 	{
-		LOG_WARN( R4Skill, TEXT("InDetector or InTargetMesh is invalid"));
+		LOG_WARN( R4Skill, TEXT("InDetector or InTargetMesh is invalid."));
 		return FTransform::Identity;
 	}
 	
@@ -320,24 +189,28 @@ FTransform UR4SkillBase::_AttachDetectorToTargetMesh( AActor* InDetector, USkele
 }
 
 /**
- *  Server -> Owner Client로 Dummy 제거 요청.
- *  @param InDetectorKey : Server에서 부여한 Detector Key
+ *  특정한 버프들을 적용. Detect Buff는 Server Only.
+ *  @param InVictim : Buff 적용 시 Victim 대상
+ *  @param InSkillBuffInfos : 입힐 SkillBuff 들
  */
-void UR4SkillBase::_ClientRPC_RemoveDummy_Implementation( uint32 InDetectorKey )
+void UR4SkillBase::_Server_ApplyDetectBuffs( AActor* InVictim, const TArray<FR4SkillDetectBuffInfo>& InSkillBuffInfos ) const
 {
-	if(GetOwnerRole() != ROLE_AutonomousProxy)
+	if ( !ensureMsgf( GetOwnerRole() == ROLE_Authority, TEXT("This func must called by server") ) )
 		return;
-
-	// InDetectorKey에 맞는 Server Detector는 생성했으니 이만 제거
-	if(auto it = Client_CachedDetectorDummy.Find( InDetectorKey ))
+	
+	for ( const FR4SkillDetectBuffInfo& buffInfo : InSkillBuffInfos )
 	{
-		if(it->IsValid())
-			OBJECT_POOL(GetWorld())->ReturnPoolObject(it->Get());
-		
-		Client_CachedDetectorDummy.Remove( InDetectorKey );
-		return;
-	}
+		// buff net flag에 맞춰서 적용
+		AActor* target = nullptr;
 
-	// 아직 Dummy 생성이 안된 상태이면 Dummy를 생성하지 않도록 캐싱
-	Client_CachedServerDetector.Emplace( InDetectorKey );
+		// 버프 입힐 대상 판정
+		if ( buffInfo.Target == ETargetType::Instigator ) // 나를 대상으로 하는 버프
+			target = GetOwner();
+		else if ( buffInfo.Target == ETargetType::Victim ) // 탐지 대상에게 적용하는 버프
+			target = InVictim;
+
+		// 버프 적용
+		if ( IR4BuffReceiveInterface* victim = Cast< IR4BuffReceiveInterface >( target ) )
+			victim->ReceiveBuff( GetOwner(), buffInfo.BuffClass, buffInfo.BuffSetting );
+	}
 }
