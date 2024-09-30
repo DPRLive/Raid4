@@ -36,8 +36,15 @@ void UR4BuffManageComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	float nowServerTime = R4GetServerTimeSeconds( GetWorld() );
+	if ( nowServerTime < 0.f )
+	{
+		LOG_WARN( R4Data, TEXT("nowServerTime is invalid.") );
+		return;
+	}
+	
 	// 버프 업데이트, 업데이트 할 버프
-	bool bNeedUpdate = _UpdateBuffs();
+	bool bNeedUpdate = _UpdateBuffs( nowServerTime );
 
 	// Update가 필요한 Buff가 더 이상 없다면 Tick Off
 	if ( !bNeedUpdate )
@@ -267,12 +274,13 @@ void UR4BuffManageComponent::_RegisterBuffBySetting( FAppliedBuffInfo&& InBuffAp
 
 /**
  *	버프를 업데이트. (Update Buff만 업데이트 함)
+ *  @param InNowServerTime : 현재 서버 시간
  *	@return : 업데이트가 필요한지 return.
  */
-bool UR4BuffManageComponent::_UpdateBuffs()
+bool UR4BuffManageComponent::_UpdateBuffs( float InNowServerTime )
 {
 	_RemoveBuffAllByPredicate(UpdatingBuffs,
-	[nowServerTime = R4GetServerTimeSeconds( GetWorld() )]( FAppliedBuffInfo& InBuffInfo )
+	[nowServerTime = InNowServerTime]( FAppliedBuffInfo& InBuffInfo )
 	{
 		// 버프 갱신 //
 		

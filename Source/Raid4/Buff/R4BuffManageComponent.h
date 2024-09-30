@@ -56,7 +56,7 @@ private:
 	void _RegisterBuffBySetting( FAppliedBuffInfo&& InBuffAppliedInfo );
 
 	// 버프를 업데이트.
-	bool _UpdateBuffs();
+	bool _UpdateBuffs( float InNowServerTime );
 
 	// Buff Array에 대한 Remove All By Predicate, 인스턴스가 유효하지 않으면 자동으로 제거
 	void _RemoveBuffAllByPredicate( TArray<FAppliedBuffInfo>& InBuffArray, const TFunction<bool( FAppliedBuffInfo& )>& InPredicate );

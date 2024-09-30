@@ -8,7 +8,7 @@
 
 class UAnimMontage;
 
-USTRUCT()
+USTRUCT( Atomic )
 struct FPlayAnimInfo
 {
 	GENERATED_BODY()

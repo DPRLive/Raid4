@@ -55,5 +55,5 @@ namespace Stat
 namespace Skill
 {
 	// skill anim 구분 시 사용하는 Key의 Invalid한 값.
-	constexpr static uint32 G_InvalidSkillAnimKey = 0;
+	constexpr static int32 G_InvalidSkillAnimKey = INDEX_NONE;
 }
