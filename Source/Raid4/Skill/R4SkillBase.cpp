@@ -135,14 +135,14 @@ void UR4SkillBase::_SpawnDetector( const FR4SkillDetectBuffWrapper& InDetectBuff
 		// Bind buffs. this capture, weak lambda 사용
 		// bind OnBeginDetect buff
 		detector.GetInterface()->OnBeginDetect().AddWeakLambda(this,
-			[this, &buffs = InDetectBuffInfo.OnBeginDetectBuffs]( const FR4DetectResult& InDetectResult )
+			[this, &buffs = InDetectBuffInfo.Server_OnBeginDetectBuffs]( const FR4DetectResult& InDetectResult )
 		{
 			_Server_ApplyDetectBuffs( InDetectResult.DetectedActor.Get(), buffs );
 		});
 	
 		// bind OnEndDetect buff, damage
 		detector.GetInterface()->OnEndDetect().AddWeakLambda(this,
-		[this, &buffs = InDetectBuffInfo.OnEndDetectBuffs]( const FR4DetectResult& InDetectResult )
+		[this, &buffs = InDetectBuffInfo.Server_OnEndDetectBuffs]( const FR4DetectResult& InDetectResult )
 		{
 			_Server_ApplyDetectBuffs( InDetectResult.DetectedActor.Get(), buffs );
 		});

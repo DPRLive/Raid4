@@ -50,28 +50,6 @@ struct FR4SkillDetectInfo
 };
 
 /**
- * Skill에서 주는 Buff에 대한 정보
- * 데미지도 버프로 적용 시키면 됨
- */
-// USTRUCT()
-// struct FR4SkillBuffInfo
-// {
-// 	GENERATED_BODY()
-//
-// 	FR4SkillBuffInfo()
-// 	: BuffNetFlag( 0 )
-// 	, BuffClass( nullptr )
-// 	, BuffSetting( FR4BuffSettingDesc() )
-// 	{}
-//
-// 	// Buff를 적용할 Network 정책을 설정
-// 	UPROPERTY( EditAnywhere, meta = ( Bitmask, BitmaskEnum = "/Script/Raid4.ER4NetworkFlag_NoSimulated" ) )
-// 	uint8 BuffNetFlag;
-// 	
-//
-// };
-
-/**
  * Skill이 Detect시 줄 버프 대한 정보. ( Server 에서만 적용 )
  * 데미지도 버프로 적용 시키면 됨
  */
@@ -113,64 +91,58 @@ struct FR4SkillDetectBuffWrapper
 	
 	// OnDetect 시 적용할 버프
 	UPROPERTY( EditAnywhere )
-	TArray<FR4SkillDetectBuffInfo> OnBeginDetectBuffs;
+	TArray<FR4SkillDetectBuffInfo> Server_OnBeginDetectBuffs;
 	
 	// OnEndDetect 시 적용할 버프
 	UPROPERTY( EditAnywhere )
-	TArray<FR4SkillDetectBuffInfo> OnEndDetectBuffs;
+	TArray<FR4SkillDetectBuffInfo> Server_OnEndDetectBuffs;
 };
 
 /**
- * Notify Number와, Detect, Buff Wrapper
+ * Skill에서 특정 시간에 Detect시 사용
  */
 USTRUCT()
-struct FR4NotifyDetectWrapper
+struct FR4SkillTimeDetectWrapper
 {
 	GENERATED_BODY()
 
-	FR4NotifyDetectWrapper()
-	: NotifyNumber( INDEX_NONE )
+	FR4SkillTimeDetectWrapper()
+	: DelayTime( 0.f )
 	, DetectEffect( FR4SkillDetectBuffWrapper() )
 	{}
 
-	FR4NotifyDetectWrapper( int32 InNotifyNumber )
-	: NotifyNumber( InNotifyNumber )
-	, DetectEffect( FR4SkillDetectBuffWrapper() )
-	{}
-	
-	// Notify Number
-	UPROPERTY( VisibleAnywhere )
-	int32 NotifyNumber;
+	// Delay Time, ( AnimMontage의 특정 Section Play된 후 시간 ) 
+	UPROPERTY( EditAnywhere )
+	float DelayTime;
 
-	// 해당 Notify가 할 Detect와 Buff
+	// 해당 시점에 할 Detect와 적용할 Buff
 	UPROPERTY( EditAnywhere )
 	FR4SkillDetectBuffWrapper DetectEffect;
 };
 
 /**
- * Notify Number와 Buff Wrapper
+ * Skill에서 특정 시간에 Apply Buff시 사용
  */
 USTRUCT()
-struct FR4NotifyBuffWrapper
+struct FR4SkillTimeBuffWrapper
 {
 	GENERATED_BODY()
 
-	FR4NotifyBuffWrapper()
-	: NotifyNumber( INDEX_NONE )
+	FR4SkillTimeBuffWrapper()
+	: DelayTime( 0.f )
+	, BuffNetFlag ( 0 )
+	, BuffClass( nullptr )
 	, BuffSetting( FR4BuffSettingDesc() )
-	, bApplyOwner( false )
-	{}
-
-	FR4NotifyBuffWrapper( int32 InNotifyNumber )
-	: NotifyNumber( InNotifyNumber )
-	, BuffSetting( FR4BuffSettingDesc() )
-	, bApplyOwner( false )
 	{}
 	
-	// Notify Number
-	UPROPERTY( VisibleAnywhere )
-	int32 NotifyNumber;
+	// Delay Time
+	UPROPERTY( EditAnywhere )
+	float DelayTime;
 
+	// Buff를 적용할 Network 정책을 설정
+	UPROPERTY( EditAnywhere, meta = ( Bitmask, BitmaskEnum = "/Script/Raid4.ER4NetworkFlag" ) )
+	uint8 BuffNetFlag;
+	
 	// 해당 Notify가 적용할 버프 클래스
 	UPROPERTY( EditAnywhere )
 	TSubclassOf<UR4BuffBase> BuffClass;
@@ -178,15 +150,31 @@ struct FR4NotifyBuffWrapper
 	// 해당 Notify가 버프의 세팅
 	UPROPERTY( EditAnywhere )
 	FR4BuffSettingDesc BuffSetting;
+};
 
-	// Server 뿐만 아니라 Owner Client에서도 같이 적용이 필요한지?
+USTRUCT()
+struct FR4SkillTimeDetectArray
+{
+	GENERATED_BODY()
+
+	// 해당 시점에 할 Detect와 적용할 Buff
 	UPROPERTY( EditAnywhere )
-	uint8 bApplyOwner:1;
+	TArray<FR4SkillTimeDetectWrapper> DetectEffects;
+};
+
+USTRUCT()
+struct FR4SkillTimeBuffArray
+{
+	GENERATED_BODY()
+
+	// 해당 시점에 할 Detect와 적용할 Buff
+	UPROPERTY( EditAnywhere )
+	TArray<FR4SkillTimeBuffWrapper> Buffs;
 };
 
 /**
  * Skill을 위한 Animation의 정보.
- * Animation과 Animation 작동 시 필요한 히트 체크 정보를 제공.
+ * Animation과 Animation 작동 시 필요한 Detect, ApplyBuff 정보를 제공.
  * Skill Anim key를 서버에서 받기 위해 Replicate로 설정, Replicate가 닿을 수 있도록 설정
  */
 USTRUCT()
@@ -203,17 +191,17 @@ struct FR4SkillAnimInfo
 	UPROPERTY( NotReplicated, EditAnywhere )
 	TObjectPtr<UAnimMontage> SkillAnim;
 
-	// Anim의 각 Notify와, Notify 번호에 맞는 무언가 탐지하고 줄 영향 지정
-	// {Notify index ( AnimMontage에서 몇번째 Notify인지 ), 탐지 및 효과 정보} 
+	// Anim의 각 Section Index와, Section Index에 맞는 무언가 탐지하고 줄 영향 지정
+	// {Section Name, (Section Play 로부터의 시간, 탐지, 효과 정보) } 
 	UPROPERTY( NotReplicated, EditAnywhere, meta = ( EditFixedOrder ) )
-	TArray<FR4NotifyDetectWrapper> DetectNotifies;
+	TMap<FName, FR4SkillTimeDetectArray> DetectExecutes;
 
-	// Anim의 각 Notify와, Notify 번호에 맞는 버프 지정
-	// {Notify index ( AnimMontage에서 몇번째 Notify인지 ), 버프 관련 정보} 
+	// Anim의 각 Section Index와, Section Index에 맞는 버프 지정
+	// {Section Name, (Section Play 로부터의 시간, 버프 관련 정보) } 
 	UPROPERTY( NotReplicated, EditAnywhere, meta = ( EditFixedOrder ) )
-	TArray<FR4NotifyBuffWrapper> BuffNotifies;
+	TMap<FName, FR4SkillTimeBuffArray> BuffExecutes;
 	
 	// Server와 Client 사이 Skill Anim을 구분하기 위한 Key값.
 	UPROPERTY( Transient, VisibleInstanceOnly )
-	uint32 SkillAnimServerKey;
+	int32 SkillAnimServerKey;
 };
