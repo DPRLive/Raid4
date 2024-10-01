@@ -40,6 +40,7 @@ struct FPlayAnimInfo
 /**
  * Animation RPC, 동기화등 Anim 관련 기능 Comp.
  * 한개의 AnimMontage에 대해 ServerTime 조정으로 동기화 가능
+ * 현재 음수의 play rate는 처리되지 않음.
  */
 UCLASS( ClassGroup=(Animation), meta=(BlueprintSpawnableComponent) )
 class RAID4_API UR4AnimationComponent : public UActorComponent
