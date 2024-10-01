@@ -16,6 +16,7 @@ void UR4Skill_PlayerNormal::GetLifetimeReplicatedProps(TArray<class FLifetimePro
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	// Anim Key를 Replicate 받을 수 있도록 설정
 	DOREPLIFETIME_CONDITION( UR4Skill_PlayerNormal, NormalSkillAnimInfo, COND_InitialOnly );
 }
 
@@ -40,6 +41,10 @@ void UR4Skill_PlayerNormal::OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAni
 {
 	Super::OnBeginSkillAnim( InSkillAnimInfo, InStartServerTime );
 
+	// server & autonomous only
+	if( GetOwnerRole() == ROLE_SimulatedProxy )
+		return;
+	
 	// Normal Skill의 경우 Anim Play 시점을 Skill 사용으로 판정
 	// Anim Play 성공 = 스킬 사용으로 판단 및 쿨타임 적용
 	if ( InSkillAnimInfo.SkillAnimServerKey == NormalSkillAnimInfo.SkillAnimServerKey )

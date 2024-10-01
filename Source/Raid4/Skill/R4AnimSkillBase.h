@@ -96,6 +96,9 @@ protected:
 	
 	// Skill Anim Key에 맞는, 특정 시간 뒤 Execute 예약 모두 제거
 	void RemoveAllExecute( int32 InSkillAnimKey );
+
+	// Time의 Length와, 시작 시간이 주어졌을때, 현재 서버 타임과 비교하여 얼마나 빠르게 실행해야 서버와 동일하게 끝낼 수 있는지 delay 계산
+	float CalculateDelayRate( float InTotalLength, float InStartTime );
 	
 	// Skill Animation을 Play. 멤버로 등록된 Skill Anim만 Server에서 Play 가능.
 	bool PlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo );
@@ -116,7 +119,7 @@ protected:
 	virtual bool PlaySkillAnim_Ignore( int32 InSkillAnimKey ) const;
 
 	// Key에 맞는 Skill Anim이 Server에서 Play되고 있는지 확인 
-	bool IsSkillAnimPlaying( int32 InSkillAnimKey ) const;
+	bool IsSkillAnimServerPlaying( int32 InSkillAnimKey ) const;
 
 	// Skill Anim Key가 Server에서 할당 받은 Valid한 Key인지 확인
 	FORCEINLINE bool IsValidSkillAnimKey( int32 InSkillAnimKey ) const { return AnimPlayServerStates.IsValidIndex( InSkillAnimKey ); }

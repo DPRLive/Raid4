@@ -28,7 +28,7 @@ void UR4AnimSkillBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 	if ( PropertyChangedEvent.MemberProperty == nullptr )
 		return;
 	
-	// 변경된 프로퍼티가 FSkillAnimInfo 형식이면, 해당 Anim에서 Notify를 읽어와 배열을 자동으로 채움. 하하 아주 편리하지?
+	// 변경된 프로퍼티가 FSkillAnimInfo 형식이면, 해당 Anim에서 Section을 읽어와 배열을 자동으로 채움. 하하 아주 편리하지?
 	if ( FStructProperty* prop = CastField<FStructProperty>( PropertyChangedEvent.MemberProperty );
 		prop != nullptr &&
 		prop->Struct == FR4SkillAnimInfo::StaticStruct() )
@@ -241,6 +241,24 @@ void UR4AnimSkillBase::RemoveAllExecute( int32 InSkillAnimKey )
 }
 
 /**
+ *  Section의 Length와, 시작 시간이 주어졌을 때, 현재 서버타임과 비교하여 얼마나 빠르게 실행해야 서버와 동일하게 끝낼 수 있는지 delay 계산
+ *  @param InTotalLength : 실행 시간 ( ex ) Anim Section의 Length
+ *  @param InStartTime : 현재 ServerTime과 비교할 시작 시간
+ *  @return : TotalLength < Delay일 시, -1.f 반환
+ */
+float UR4AnimSkillBase::CalculateDelayRate( float InTotalLength, float InStartTime )
+{
+	float delay = FMath::Max( KINDA_SMALL_NUMBER, ( R4GetServerTimeSeconds( GetWorld() ) - InStartTime ) );
+	
+	// delay가 InTotalLength보다 길면 -1.f return
+	if( delay > InTotalLength )
+		return -1.f;
+	
+	// DelayRate = 전체시간 / 남은시간
+	return ( InTotalLength / FMath::Max( ( InTotalLength - delay ), KINDA_SMALL_NUMBER ) );
+}
+
+/**
  *  Skill Animation을 Play.
  *  멤버로 등록된 Skill Anim만 Server에서 Play 가능.
  *  @param InSkillAnimInfo : 멤버로 등록된, Play할 Skill Anim Info
@@ -362,20 +380,16 @@ void UR4AnimSkillBase::OnChangeSkillAnimSection( const FR4SkillAnimInfo& InSkill
 	// 기존 execute 제거
 	RemoveAllExecute( InSkillAnimInfo.SkillAnimServerKey );
 
-	// 현재 Server 시간과 비교하여 PlayRate 설정
-	// playRate는 Anim과 동기화, executeDelayRate = 전체시간 / 남은시간
+	// Execute Delay Rate는 Anim과 동기화
 	float sectionLength = UtilAnimation::GetCompositeAnimLength( InSkillAnimInfo.SkillAnim, sectionIndex );
-	float pktDelay = FMath::Max( KINDA_SMALL_NUMBER, ( R4GetServerTimeSeconds( GetWorld() ) - InStartChangeTime ) );
-	
+	float executeDelayRate = CalculateDelayRate( sectionLength, InStartChangeTime );
+		
 	// delay가 너무 길어졌으면 Skip
-	if( pktDelay > sectionLength )
+	if( executeDelayRate < 0.f )
 	{
-		LOG_N( R4Skill, TEXT("Execute delay is too late. Anim Section Length : [%f], delay : [%f]"), sectionLength, pktDelay );
+		LOG_N( R4Skill, TEXT("Execute delay is too late. Anim Section Length : [%f], delay : [%f]"), sectionLength, R4GetServerTimeSeconds( GetWorld() ) - InStartChangeTime );
 		return;
 	}
-	
-	// executeDelayRate = 전체시간 / 남은시간
-	float executeDelayRate = sectionLength / FMath::Max(( sectionLength - pktDelay ), KINDA_SMALL_NUMBER );
 
 	// Add Execute Detect
 	if ( auto it = InSkillAnimInfo.DetectExecutes.Find( InSectionName ) )
@@ -442,7 +456,7 @@ bool UR4AnimSkillBase::PlaySkillAnim_Ignore( int32 InSkillAnimKey ) const
 /**
  *  Key에 맞는 Skill Anim이 Server에서 Play되고 있는지 확인 
  */
-bool UR4AnimSkillBase::IsSkillAnimPlaying( int32 InSkillAnimKey ) const
+bool UR4AnimSkillBase::IsSkillAnimServerPlaying( int32 InSkillAnimKey ) const
 {
 	if( !IsValidSkillAnimKey( InSkillAnimKey ) )
 	{
