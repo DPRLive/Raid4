@@ -9,16 +9,14 @@
 
 UR4Skill_PlayerNormal::UR4Skill_PlayerNormal()
 {
-    PrimaryComponentTick.bCanEverTick = false;
-
-    SetIsReplicatedByDefault(true);
+	SetIsReplicatedByDefault( true );
 }
 
 void UR4Skill_PlayerNormal::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION( UR4Skill_PlayerNormal, NormalSkillAnimInfo, COND_OwnerOnly );
+	DOREPLIFETIME_CONDITION( UR4Skill_PlayerNormal, NormalSkillAnimInfo, COND_InitialOnly );
 }
 
 /**
@@ -27,36 +25,23 @@ void UR4Skill_PlayerNormal::GetLifetimeReplicatedProps(TArray<class FLifetimePro
 void UR4Skill_PlayerNormal::OnInputStarted()
 {
 	// 스킬 사용 가능 상태인지 확인
-	if(!CanActivateSkill())
+	if ( !CanActivateSkill() )
 		return;
 
 	PlaySkillAnim( NormalSkillAnimInfo );
 }
 
 /**
- * Anim을 Play시작 시 호출. Server와 Owner Client 에서 호출.
- * @param InInstanceID : 부여된 MontageInstanceID
- * @param InSkillAnimInfo : Play될 Skill Anim 정보
+ * Anim을 Play시작 시 호출
+ * @param InSkillAnimInfo : Play된 Skill Anim 정보
+ * @param InStartServerTime : Skill Anim이 시작된 Server Time
  */
-void UR4Skill_PlayerNormal::OnBeginSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo )
+void UR4Skill_PlayerNormal::OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, float InStartServerTime )
 {
-	Super::OnBeginSkillAnim( InInstanceID , InSkillAnimInfo );
-	
+	Super::OnBeginSkillAnim( InSkillAnimInfo, InStartServerTime );
+
 	// Normal Skill의 경우 Anim Play 시점을 Skill 사용으로 판정
 	// Anim Play 성공 = 스킬 사용으로 판단 및 쿨타임 적용
 	if ( InSkillAnimInfo.SkillAnimServerKey == NormalSkillAnimInfo.SkillAnimServerKey )
 		SetSkillCoolDownTime( GetSkillCoolDownTime( false ) );
-}
-
-/**
- *  Server RPC의 Play Skill Anim 시 요청 무시 check에 사용.
- * (Validate Check 후 Server RPC 내에서 체크함으로 Index가 유효함이 보장)
- */
-bool UR4Skill_PlayerNormal::PlaySkillAnim_Ignore( uint32 InSkillAnimKey ) const
-{
-	// Skill을 사용할 수 없는 상태인데 요청이 오는 경우 무시
-	if(InSkillAnimKey == NormalSkillAnimInfo.SkillAnimServerKey)
-		return Super::PlaySkillAnim_Ignore( InSkillAnimKey ) || !CanActivateSkill();
-
-	return true;
 }

@@ -29,11 +29,9 @@ public:
 	// ~ End IR4PlayerInputableInterface
 
 protected:
-	// Anim을 Play시작 시 호출. Server와 Owner Client 에서 호출.
-	virtual void OnBeginSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo ) override;
+	// Anim을 Play시작 시 호출.
+	virtual void OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, float InStartServerTime ) override;
 
-	// Server RPC의 Play Skill Anim 시 요청 무시 check에 사용
-	virtual bool PlaySkillAnim_Ignore( uint32 InSkillAnimKey ) const override;
 private:
 	// 발동할 스킬 애니메이션, 누르면 바로 작동
 	UPROPERTY( Replicated, EditAnywhere, Category = "Skill|Anim" )
