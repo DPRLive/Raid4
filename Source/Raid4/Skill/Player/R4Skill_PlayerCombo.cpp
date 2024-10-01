@@ -3,8 +3,8 @@
 
 #include "R4Skill_PlayerCombo.h"
 
-#include "../../Animation/Notify/R4NotifyByIdInterface.h"
 #include "../../Animation/R4AnimationInterface.h"
+#include "../../Util/UtilAnimation.h"
 
 #include <Net/UnrealNetwork.h>
 #include <Animation/AnimMontage.h>
@@ -14,8 +14,6 @@
 
 UR4Skill_PlayerCombo::UR4Skill_PlayerCombo()
 {
-	PrimaryComponentTick.bCanEverTick = false;
-
 	SetIsReplicatedByDefault( true );
 
 	CachedCanComboInput = false;
@@ -30,7 +28,7 @@ void UR4Skill_PlayerCombo::PostEditChangeProperty( FPropertyChangedEvent& Proper
 	if(PropertyChangedEvent.MemberProperty == nullptr)
 		return;
 	
-	// 변경된 프로퍼티가 FSkillAnimInfo 형식이면, 해당 Anim에서 Notify를 읽어와 배열을 자동으로 채움. 하하 아주 편리하지?
+	// 변경된 프로퍼티가 FSkillAnimInfo 형식이면, 해당 Anim에서 Section을 읽어와 배열을 자동으로 채움.
 	if ( FStructProperty* prop = CastField<FStructProperty>( PropertyChangedEvent.MemberProperty );
 		prop != nullptr &&
 		prop->Struct == FR4SkillAnimInfo::StaticStruct() )
@@ -41,49 +39,38 @@ void UR4Skill_PlayerCombo::PostEditChangeProperty( FPropertyChangedEvent& Proper
 		if ( !IsValid( anim ) )
 			return;
 		
-		// ComboInputTest Notify의 index들을 찾아냄 
-		TSet<int32> idxs;
-		for ( int32 i = 0; i < anim->Notifies.Num(); i++ )
+		// Section 찾기
+		TSet<FName> nowSections;
+		for ( int32 idx = 0; idx < anim->GetNumSections(); idx++ )
 		{
-			IR4NotifyByIdInterface* detectNotify = Cast<IR4NotifyByIdInterface>( anim->Notifies[i].Notify );
-			if ( detectNotify == nullptr || detectNotify->GetNotifyType() != ER4AnimNotifyType::ComboInputTest )
-				continue;
-			
-			idxs.Emplace( i );
+			FName sectionName = anim->GetSectionName( idx );
+			nowSections.Emplace( sectionName );
 		}
-		
-		// 필요 없는 Anim Notifies index는 제거
+
+		// 필요 없는 Section 제거
 		for ( auto it = ComboInputInfo.CreateIterator(); it; ++it )
 		{
-			if ( idxs.Find( it->NotifyNumber ) == nullptr )
-			{
-				it.RemoveCurrentSwap();
-				continue;
-			}
-			idxs.Remove( it->NotifyNumber );
+			if( !nowSections.Contains( it->NowSectionName ) )
+				it.RemoveCurrent();
 		}
-		
-		// 기존에 없는 index는 추가
-		for ( const auto& idx : idxs )
-		{
-			if ( ComboInputInfo.FindByPredicate( [idx](const FR4ComboInputInfo& InElem)
-				{ return InElem.NotifyNumber == idx; } ) == nullptr )
-				ComboInputInfo.Emplace( idx, INDEX_NONE, NAME_None, NAME_None );
-		}
-	
-		// sort by notify number
-		ComboInputInfo.Sort( [](const FR4ComboInputInfo& InElem1, const FR4ComboInputInfo& InElem2 )
-		{
-			return InElem1.NotifyNumber < InElem2.NotifyNumber;
-		} );
 
-		// 해당 Notifies가 속하는 Now Section의 정보를 파싱해서 채움
-		for(auto& comboInfo : ComboInputInfo)
+		// 필요한 Section 추가
+		for( const auto& sectionName : nowSections )
 		{
-			float triggerTime = anim->Notifies[comboInfo.NotifyNumber].GetTriggerTime();
-			comboInfo.NowSectionIndex = anim->GetSectionIndexFromPosition( triggerTime );
-			comboInfo.NowSectionName = anim->GetSectionName( comboInfo.NowSectionIndex );
+			auto elem = ComboInputInfo.FindByPredicate( [&sectionName]( const FR4ComboInputInfo& InComboInput )
+			{
+				return InComboInput.NowSectionName == sectionName;
+			} );
+			
+			if( elem == nullptr )
+				ComboInputInfo.Emplace( FR4ComboInputInfo( anim->GetSectionIndex( sectionName ), sectionName ) );
 		}
+
+		// SORT
+		ComboInputInfo.Sort( []( const FR4ComboInputInfo& InElem1, const FR4ComboInputInfo& InElem2 )
+		{
+			return InElem1.NowSectionIndex < InElem2.NowSectionIndex;
+		} );
 	}
 }
 #endif
@@ -92,7 +79,8 @@ void UR4Skill_PlayerCombo::GetLifetimeReplicatedProps( TArray<class FLifetimePro
 {
 	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
 
-	DOREPLIFETIME_CONDITION( UR4Skill_PlayerCombo, ComboSkillAnimInfo, COND_OwnerOnly );
+	// Anim Key를 Replicate 받을 수 있도록 설정
+	DOREPLIFETIME_CONDITION( UR4Skill_PlayerCombo, ComboSkillAnimInfo, COND_InitialOnly );
 }
 
 /**
@@ -111,8 +99,7 @@ void UR4Skill_PlayerCombo::OnInputStarted()
 	
 	// Server에서 Combo Skill Anim 사용 중이 확인되고, Combo Input Check가 가능하며,
 	// Combo Input이 입력 된 상태가 아니면 요청
-	if ( IsSkillAnimPlaying( ComboSkillAnimInfo.SkillAnimServerKey ) && CachedCanComboInput
-		&& !CachedOnComboInput )
+	if ( IsSkillAnimServerPlaying( ComboSkillAnimInfo.SkillAnimServerKey ) && CachedCanComboInput && !CachedOnComboInput )
 	{
 		CachedOnComboInput = true;
 		_ServerRPC_RequestComboInput();
@@ -120,37 +107,108 @@ void UR4Skill_PlayerCombo::OnInputStarted()
 }
 
 /**
- * Anim을 Play시작 시 호출. Server와 Owner Client 에서 호출.
- * @param InInstanceID : 부여된 MontageInstanceID
- * @param InSkillAnimInfo : Play될 Skill Anim 정보
+ * 스킬 사용이 가능한지 판단
  */
-void UR4Skill_PlayerCombo::OnBeginSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo )
+bool UR4Skill_PlayerCombo::CanActivateSkill() const
 {
-	Super::OnBeginSkillAnim( InInstanceID, InSkillAnimInfo );
+	// Combo input test를 받을 수 있는 상태이면, 사용중 인 것
+	return Super::CanActivateSkill() && !CachedCanComboInput;
+}
+
+/**
+ * Anim을 Play시작 시 호출.
+ * @param InSkillAnimInfo : Play된 Skill Anim 정보
+ * @param InStartServerTime : Skill Anim이 시작된 Server Time
+ */
+void UR4Skill_PlayerCombo::OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, float InStartServerTime )
+{
+	Super::OnBeginSkillAnim( InSkillAnimInfo, InStartServerTime );
+
+	// server & autonomous only
+	if( GetOwnerRole() == ROLE_SimulatedProxy )
+		return;
 	
-	// Anim Play 시작 성공 시 Combo Skill 사용중으로 판단
+	// Anim Play 시작 성공 시 Combo Skill 사용중으로 판단, Combo Input 가능
+	if ( InSkillAnimInfo.SkillAnimServerKey == ComboSkillAnimInfo.SkillAnimServerKey )
+		CachedCanComboInput = true;
+}
+
+/**
+ * Anim Section Change시 호출
+ * @param InSkillAnimInfo : Section이 변경 된 Play Skill Anim 정보
+ * @param InSectionName : 변경된 Section Name
+ * @param InStartChangeTime : 변경이 된 Server Time
+ */
+void UR4Skill_PlayerCombo::OnChangeSkillAnimSection( const FR4SkillAnimInfo& InSkillAnimInfo, FName InSectionName, float InStartChangeTime )
+{
+	Super::OnChangeSkillAnimSection( InSkillAnimInfo, InSectionName, InStartChangeTime );
+
+	// server & autonomous only
+	if( GetOwnerRole() == ROLE_SimulatedProxy )
+		return;
+	
 	if ( InSkillAnimInfo.SkillAnimServerKey == ComboSkillAnimInfo.SkillAnimServerKey )
 	{
-		// InputTest Notify <-> InputTest Bind
-		_BindNotifiesAndInputTest( InInstanceID );
-		CachedCanComboInput = true;
+		// Add Execute Combo Input Test는 Autonomous & server에서 진행
+		if( GetOwnerRole() == ROLE_SimulatedProxy )
+			return;
+			
 		CachedOnComboInput = false;
+		
+		if ( !IsValid( InSkillAnimInfo.SkillAnim ) )
+		{
+			LOG_WARN( R4Skill, TEXT("Skill Anim is Invalid. Check SkillAnim Replicate State.") );
+			return;
+		}
+
+		int32 nowSectionIndex = InSkillAnimInfo.SkillAnim->GetSectionIndex( InSectionName );
+		if ( nowSectionIndex == INDEX_NONE )
+		{
+			LOG_WARN( R4Skill, TEXT("Skill Anim [%s] section index [%s] is Invalid. Check SkillAnim State."), *InSkillAnimInfo.SkillAnim->GetName( ), *InSectionName.ToString() );
+			return;
+		}
+		
+		// Combo Input Test 정보를 SectionIndex 기준으로 Sort해 놓았으므로 binary_search
+		int32 index = Algo::LowerBound( ComboInputInfo, nowSectionIndex,
+			[]( const FR4ComboInputInfo& InElem1, int32 InIndex )
+			{
+				return InElem1.NowSectionIndex < InIndex; 
+			});
+		
+		// Add Execute Combo Input Test
+		// 다음 Section이 잘 존재하면, Add Execute
+		if ( ComboInputInfo.IsValidIndex( index ) && ComboSkillAnimInfo.SkillAnim->IsValidSectionName( ComboInputInfo[index].NextSectionName ) )
+		{
+			// Execute Delay Rate는 Anim과 동기화
+			float sectionLength = UtilAnimation::GetCompositeAnimLength( InSkillAnimInfo.SkillAnim, nowSectionIndex );
+			float executeDelayRate = CalculateDelayRate( sectionLength, InStartChangeTime );
+
+			// delay가 너무 길어졌으면 Skip
+			if ( executeDelayRate < 0.f )
+			{
+				LOG_N( R4Skill, TEXT("Execute delay is too late. Anim Section Length : [%f], delay : [%f]"), sectionLength, R4GetServerTimeSeconds( GetWorld() ) - InStartChangeTime );
+				return;
+			}
+
+			AddInputTestExecute( ComboSkillAnimInfo.SkillAnimServerKey, ComboInputInfo[index], executeDelayRate );
+		}
 	}
 }
 
 /**
- *  Anim 종료 시 호출. Server와 Owner Client 에서 호출
- * @param InInstanceID : Play시 부여된 MontageInstanceID
- * @param InSkillAnimInfo : End될 Skill Anim 정보
+ * Anim 종료 시 호출.
+ * @param InSkillAnimInfo : End된 Skill Anim 정보
  */
-void UR4Skill_PlayerCombo::OnEndSkillAnim( int32 InInstanceID, const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted )
+void UR4Skill_PlayerCombo::OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted )
 {
-	Super::OnEndSkillAnim( InInstanceID, InSkillAnimInfo, InIsInterrupted );
+	Super::OnEndSkillAnim( InSkillAnimInfo, InIsInterrupted );
 
+	// server & autonomous only
+	if( GetOwnerRole() == ROLE_SimulatedProxy )
+		return;
+	
 	if ( InSkillAnimInfo.SkillAnimServerKey == ComboSkillAnimInfo.SkillAnimServerKey )
 	{
-		// InputTest Notify <-> InputTest Unbind
-		_UnbindNotifiesAndInputTest( InInstanceID );
 		CachedCanComboInput = false;
 		CachedOnComboInput = false;
 
@@ -160,52 +218,39 @@ void UR4Skill_PlayerCombo::OnEndSkillAnim( int32 InInstanceID, const FR4SkillAni
 }
 
 /**
- *  Server RPC의 Play Skill Anim 시 요청 무시 check에 사용.
- *  ( Validate Check 후 Server RPC 내에서 체크함으로 Index가 유효함이 보장 )
+ * Combo Input Test Execute 추가
+ *  @param InSkillAnimKey : Execute가 필요한 Skill Anim Key
+ *  @param InComboInputInfo : 현재 Combo Input 정보
+ *  @param InDelayRate :Delay를 얼마나 빠르게 체크할지, ( 실제로 InDelay / InDelayRate 뒤에 실행 됨 ). InDelayRate < 0.f인 경우는 처리하지 않음 !
  */
-bool UR4Skill_PlayerCombo::PlaySkillAnim_Ignore( uint32 InSkillAnimKey ) const
+void UR4Skill_PlayerCombo::AddInputTestExecute( int32 InSkillAnimKey, const FR4ComboInputInfo& InComboInputInfo, float InDelayRate )
 {
-	// 이미 Anim을 Play 중이거나 || 스킬을 사용할 수 없을 때.
-	if ( InSkillAnimKey == ComboSkillAnimInfo.SkillAnimServerKey )
-		return Super::PlaySkillAnim_Ignore( InSkillAnimKey ) || !CanActivateSkill();
-	
-	return true;
+	// InPlayRate가 음수이면, 처리하지 않음.
+	if( InDelayRate < 0.f )
+	{
+		LOG_WARN( R4Skill, TEXT("Negative InDelayRate [%f] is not processed."), InDelayRate );
+		return;
+	}
+
+	AddExecute( InSkillAnimKey, [thisPtr = TWeakObjectPtr<UR4Skill_PlayerCombo>(this), &InComboInputInfo]()
+	{
+		if ( thisPtr.IsValid() )
+			thisPtr->_ComboInputTest( InComboInputInfo );
+	}, InComboInputInfo.InputTestDelay, InDelayRate );
 }
 
-/**
- * Server로 ComboInput을 요청
- */
-void UR4Skill_PlayerCombo::_ServerRPC_RequestComboInput_Implementation()
-{
-	// 현재 Combo Input을 받을 수 있는 경우, true
-	if ( CachedCanComboInput )
-		CachedOnComboInput = true;
-}
 
 /**
  * Combo Input Test
- * Input Test 시점 이전에 입력이 들어와 있으면 (Server_CachedOnComboInput) 다음 Anim으로 Transition
- * @param InNotifyNumber : Input Test를 진행하라고 알린 Notify의 Index
+ * Input Test 시점 이전에 입력이 들어와 있으면 ( CachedOnComboInput ) 다음 Anim으로 Transition
+ * @param InComboInputInfo : 현재 Combo Input 정보
  */
-void UR4Skill_PlayerCombo::_ComboInputTest( uint8 InNotifyNumber )
+void UR4Skill_PlayerCombo::_ComboInputTest( const FR4ComboInputInfo& InComboInputInfo )
 {
-	// Input Test가 지나고는 받을 수 없음. 성공적으로 Transition 시에는 다시 설정.
-	CachedCanComboInput = false;
-	
+	// Combo Input이 입력 되었는지?
 	if ( !CachedOnComboInput )
 		return;
-
-	// Combo Input Notify 정보를 Notify 기준으로 Sort해 놓았으므로 binary_search
-	int32 index = Algo::LowerBound( ComboInputInfo, InNotifyNumber,
-		[](const FR4ComboInputInfo& InElem1, int32 InIndex)
-		{
-			return InElem1.NotifyNumber < InIndex; 
-		});
 	
-	// 다음 Section이 잘 존재하는지 확인
-	if ( !ComboInputInfo.IsValidIndex( index ) || ComboInputInfo[index].NotifyNumber != InNotifyNumber ) 
-		return;
-
 	IR4AnimationInterface* owner = Cast<IR4AnimationInterface>(GetOwner());
 	if ( owner == nullptr )
 	{
@@ -215,60 +260,24 @@ void UR4Skill_PlayerCombo::_ComboInputTest( uint8 InNotifyNumber )
 	
 	// Section Transition In Local
 	if ( GetOwnerRole() == ROLE_AutonomousProxy )
-		owner->JumpToSection_Local( ComboInputInfo[index].NextSectionName );
+		owner->JumpToSection_Local( InComboInputInfo.NextSectionName );
 	
 	// Section Transition Server
 	if ( GetOwnerRole() == ROLE_Authority )
-		owner->Server_JumpToSection_WithoutAutonomous( ComboInputInfo[index].NextSectionName, true );
+		owner->Server_JumpToSection_WithoutAutonomous( InComboInputInfo.NextSectionName, true );
 
-	CachedCanComboInput = true;
+	// Section Change
+	OnChangeSkillAnimSection( ComboSkillAnimInfo, InComboInputInfo.NextSectionName, R4GetServerTimeSeconds( GetWorld() ) );
+	
 	CachedOnComboInput = false;
 }
 
 /**
- *  InputTest Notify <-> InputTest Bind
- *  @param InMontageInstanceId : Notify delegate bind 시 구별할 MontageInstance ID
+ * Server로 ComboInput을 요청
  */
-void UR4Skill_PlayerCombo::_BindNotifiesAndInputTest( int32 InMontageInstanceId )
+void UR4Skill_PlayerCombo::_ServerRPC_RequestComboInput_Implementation()
 {
-	if( !ensureMsgf( IsValid(ComboSkillAnimInfo.SkillAnim) , TEXT("Skill Anim is Invalid.")))
-		return;
-	
-	for ( const auto& comboInfo : ComboInputInfo )
-	{
-		if( !ensureMsgf( ComboSkillAnimInfo.SkillAnim->Notifies.IsValidIndex( comboInfo.NotifyNumber ),
-			TEXT("Notify index is Invalid.")))
-			return;
-
-		if( IR4NotifyByIdInterface* comboInputTestNotifyObj = Cast<IR4NotifyByIdInterface>(ComboSkillAnimInfo.SkillAnim->Notifies[comboInfo.NotifyNumber].Notify ) )
-		{
-			// this 캡처, WeakLambda 사용
-			comboInputTestNotifyObj->OnNotify( InMontageInstanceId ).BindWeakLambda(this,
-				[this, notifyNum = comboInfo.NotifyNumber]()
-				{
-					// Input Test 실행
-					_ComboInputTest( notifyNum );
-				});
-		}
-	}
-}
-
-/**
- *  InputTest Notify <-> InputTest Unbind
- *  @param InMontageInstanceId : Notify delegate bind 시 구별할 MontageInstance ID
- */
-void UR4Skill_PlayerCombo::_UnbindNotifiesAndInputTest( int32 InMontageInstanceId )
-{
-	if( !ensureMsgf( IsValid(ComboSkillAnimInfo.SkillAnim) , TEXT("Skill Anim is Invalid.")))
-		return;
-	
-	for ( const auto& comboInfo : ComboInputInfo )
-	{
-		if( !ensureMsgf( ComboSkillAnimInfo.SkillAnim->Notifies.IsValidIndex( comboInfo.NotifyNumber ),
-			TEXT("Notify index is Invalid.")))
-			return;
-
-		if( IR4NotifyByIdInterface* comboInputTestNotifyObj = Cast<IR4NotifyByIdInterface>(ComboSkillAnimInfo.SkillAnim->Notifies[comboInfo.NotifyNumber].Notify ) )
-			comboInputTestNotifyObj->UnbindNotify( InMontageInstanceId );
-	}
+	// 현재 Combo Input을 받을 수 있는 경우, true
+	if ( CachedCanComboInput && !CachedOnComboInput )
+		CachedOnComboInput = true;
 }
