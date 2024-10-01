@@ -59,6 +59,7 @@ class FNetworkPredictionData_Client* UR4CharacterMovementComponent::GetPredictio
  */
 void UR4CharacterMovementComponent::SetForceMovementByLinear_Local( const FVector& InTargetLoc, float InDuration )
 {
+	StopMovementImmediately();
 	ForceMoveType = ER4ForceMoveType::Linear;
 	_SetupForceMovement( InTargetLoc, InDuration );
 }

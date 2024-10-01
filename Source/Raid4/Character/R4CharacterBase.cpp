@@ -33,7 +33,7 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 	SkillComp = CreateDefaultSubobject<UR4SkillComponent>(TEXT("SkillComp"));
 
 	BuffManageComp = CreateDefaultSubobject<UR4BuffManageComponent>(TEXT("BuffManageComp"));
-
+	
 	ShieldComp = CreateDefaultSubobject<UR4ShieldComponent>(TEXT("ShieldComp"));
 	
 	AnimComp = CreateDefaultSubobject<UR4AnimationComponent>(TEXT("AnimComp"));
@@ -207,7 +207,7 @@ void AR4CharacterBase::ReceiveDamage(AActor* InInstigator, const FR4DamageReceiv
 	reducedDamage = reducedDamage - ShieldComp->ConsumeShield(reducedDamage);
 	
 	// 실제 HP 감소, StatComp에 적용
-	float damagedHp = FMath::Clamp(StatComp->GetCurrentHp() - reducedDamage, 0.f, StatComp->GetCurrentHp());
+	float damagedHp = FMath::Max(StatComp->GetCurrentHp() - reducedDamage, 0.f);
 	StatComp->SetCurrentHp(damagedHp);
 	
 	// 죽었다면 죽었다고 알림

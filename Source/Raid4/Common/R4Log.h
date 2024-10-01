@@ -9,6 +9,7 @@ DECLARE_LOG_CATEGORY_EXTERN( R4Effect, Log, All );
 DECLARE_LOG_CATEGORY_EXTERN( R4Log, Log, All );
 DECLARE_LOG_CATEGORY_EXTERN( R4Stat, Log, All );
 DECLARE_LOG_CATEGORY_EXTERN( R4Skill, Log, All );
+DECLARE_LOG_CATEGORY_EXTERN( R4Anim, Log, All );
 
 /**
  * 로그 매크로 모음. SHIPPING 시에 지워지지 않으면 패키징 안되므로 #if 추가
