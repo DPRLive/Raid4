@@ -14,7 +14,7 @@ UR4CameraManageComponent::UR4CameraManageComponent()
 
 	SpringArmLengthTolerance = 0.5f;
 	CachedNewSpringArmLength = 0.f;
-	CachedSpringArmUpdateSpeed = 0.f;
+	CachedSpringArmResizeSpeed = 0.f;
 }
 
 /**
@@ -24,6 +24,13 @@ void UR4CameraManageComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Get Camera Comp, Spring Comp
+	if ( IsValid( GetOwner() ) )
+	{
+		SetCameraComp( GetOwner()->FindComponentByClass<UCameraComponent>() );
+		SetSpringArmComp( GetOwner()->FindComponentByClass<USpringArmComponent>() );
+	}
+	
 	// 필요할 때 켜서 사용
 	SetComponentTickEnabled( false );
 }
@@ -40,9 +47,7 @@ void UR4CameraManageComponent::TickComponent( float DeltaTime, enum ELevelTick T
 	bNeedUpdate |= _UpdateSpringArmLength( DeltaTime );
 
 	if ( !bNeedUpdate )
-	{
 		SetComponentTickEnabled( false );
-	}
 }
 
 void UR4CameraManageComponent::SetCameraComp( UCameraComponent* InCameraComp )
@@ -50,35 +55,29 @@ void UR4CameraManageComponent::SetCameraComp( UCameraComponent* InCameraComp )
 	CachedCameraComp = InCameraComp;
 }
 
-void UR4CameraManageComponent::SetSpringArmComp( USpringArmComponent* InSpringArComp )
+void UR4CameraManageComponent::SetSpringArmComp( USpringArmComponent* InSpringArmComp )
 {
-	CachedSpringArmComp = InSpringArComp;
+	CachedSpringArmComp = InSpringArmComp;
+
+	if ( CachedSpringArmComp.IsValid() )
+		CachedNewSpringArmLength = CachedSpringArmComp->TargetArmLength;
 }
 
 /**
- *  Spring Arm Length Update 요청
- *  @param InNewLength : 변경할 값
- *  @param InSpeed : 현재 값 -> 변경할 값 까지의 변경 지연 속도, <= 0일 경우 즉시 이동 
+ *  Spring Arm의 길이를 조정 SpringArmResizeSpeed <= 0일 경우 즉시 이동 
+ *  @param InDeltaLength : 변화시킬 값
  */
-void UR4CameraManageComponent::SetSpringArmLength( float InNewLength, float InSpeed )
+void UR4CameraManageComponent::AddSpringArmLength( float InDeltaLength )
 {
 	if ( !CachedSpringArmComp.IsValid() )
 		return;
 	
-	if ( InSpeed < KINDA_SMALL_NUMBER )
-	{
-		CachedSpringArmComp->TargetArmLength = InNewLength;
-		return;
-	}
-
-	CachedNewSpringArmLength = InNewLength;
-	CachedSpringArmUpdateSpeed = InSpeed;
-	
+	CachedNewSpringArmLength += InDeltaLength;
 	SetComponentTickEnabled( true );
 }
 
 /**
- *  Spring Arm을 Update
+ *  Spring Arm을 Update, SpringArmResizeSpeed <= 0일 경우 즉시 이동
  *  @return : Update가 되었는지 여부, false 시 더이상 Update가 필요 없다는 뜻
  */
 bool UR4CameraManageComponent::_UpdateSpringArmLength( float InDeltaTime ) const
@@ -86,14 +85,19 @@ bool UR4CameraManageComponent::_UpdateSpringArmLength( float InDeltaTime ) const
 	if ( !CachedSpringArmComp.IsValid() )
 		return false;
 
+	float newLength = 0.f;
+	
+	// SpringArmResizeSpeed <= 0일 경우 즉시 이동
+	if ( CachedSpringArmResizeSpeed < KINDA_SMALL_NUMBER )
+		newLength = CachedNewSpringArmLength;
+	else
+		newLength = FMath::FInterpTo( CachedSpringArmComp->TargetArmLength, CachedNewSpringArmLength, InDeltaTime, CachedSpringArmResizeSpeed );
+
+	CachedSpringArmComp->TargetArmLength = newLength;
+
 	// 차이가 SpringArmLengthTolerance 이하면 중지
 	if ( FMath::Abs( CachedNewSpringArmLength - CachedSpringArmComp->TargetArmLength ) <= SpringArmLengthTolerance )
 		return false;
-	
-	float newLength = FMath::FInterpTo( CachedSpringArmComp->TargetArmLength, CachedNewSpringArmLength, InDeltaTime, CachedSpringArmUpdateSpeed );
-	CachedSpringArmComp->TargetArmLength = newLength;
-
-	LOG_WARN( LogTemp, TEXT("%f, %f"), newLength, CachedNewSpringArmLength );
 	
 	return true;
 }

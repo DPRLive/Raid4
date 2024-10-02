@@ -23,19 +23,22 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction);
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 
 public:
 	// Setter
 	void SetCameraComp( UCameraComponent* InCameraComp );
-	void SetSpringArmComp( USpringArmComponent* InSpringArComp );
+	void SetSpringArmComp( USpringArmComponent* InSpringArmComp );
 
 	// Getter
 	FORCEINLINE UCameraComponent* GetCameraComp( ) const { return CachedCameraComp.Get(); }
 	FORCEINLINE USpringArmComponent* GetSpringArmComp( ) const { return CachedSpringArmComp.Get(); }
 
 	// Spring Arm의 길이를 조정
-	void SetSpringArmLength( float InNewLength, float InSpeed );
+	void AddSpringArmLength( float InDeltaLength );
+
+	// Spring Arm 길이 조정 속도를 설정
+	void SetSpringArmResizeSpeed( float InSpeed ) { CachedSpringArmResizeSpeed = InSpeed; }
 	
 private:
 	// Spring Arm을 Update
@@ -58,5 +61,5 @@ private:
 	float CachedNewSpringArmLength;
 
 	// Spring Arm Update 시 Speed
-	float CachedSpringArmUpdateSpeed;
+	float CachedSpringArmResizeSpeed;
 };
