@@ -3,6 +3,7 @@
 
 #include "R4Detector_Active.h"
 #include "../R4DetectStruct.h"
+#include "../../Util/UtilOverlap.h"
 
 #include <Net/UnrealNetwork.h>
 #include <Components/ShapeComponent.h>
@@ -139,8 +140,9 @@ void AR4Detector_Active::_OnBeginShapeOverlap( UPrimitiveComponent* OverlappedCo
 	FR4DetectResult result;
 	result.DetectedActor = OtherActor;
 	result.DetectedComponent = OtherComp;
-	// TODO: Trace로 대략적 위치 계싼 할까? 말까?
-	result.Location = SweepResult.Location;
+	// 대략적인 위치 계산.
+	if ( IsValid( OverlappedComponent ) )
+		UtilOverlap::GetRoughOverlapPosition( OverlappedComponent->GetComponentLocation(), OtherComp, result.Location );
 
 	if ( OnBeginDetectDelegate.IsBound() )
 		OnBeginDetectDelegate.Broadcast( result );
@@ -156,8 +158,10 @@ void AR4Detector_Active::_OnEndShapeOverlap( UPrimitiveComponent* OverlappedComp
 	FR4DetectResult result;
 	result.DetectedActor = OtherActor;
 	result.DetectedComponent = OtherComp;
+
+	// 대략적인 위치 계산.
 	if ( IsValid( OverlappedComponent ) )
-		result.Location = OverlappedComponent->GetComponentLocation();
+		UtilOverlap::GetRoughOverlapPosition( OverlappedComponent->GetComponentLocation(), OtherComp, result.Location );
 
 	if ( OnEndDetectDelegate.IsBound() )
 		OnEndDetectDelegate.Broadcast( result );

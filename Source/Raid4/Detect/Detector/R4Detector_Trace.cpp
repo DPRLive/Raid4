@@ -225,19 +225,20 @@ void AR4Detector_Trace::_Trace( )
 		{
 			FR4DetectResult result;
 			
-			// Location : closest point
-			overlapResult.GetComponent()->GetClosestPointOnCollision(center, result.Location);
 			result.DetectedActor = overlapResult.GetActor();
 			result.DetectedComponent = overlapResult.GetComponent();
 
+			// 대략적인 위치 계산.
+			UtilOverlap::GetRoughOverlapPosition( center, overlapResult.GetComponent(), result.Location );
+			
 			// OneFrame 의 경우에는 begin, end가 동시에 발생
-			if(OnBeginDetectDelegate.IsBound())
-				OnBeginDetectDelegate.Broadcast(result);
+			if ( OnBeginDetectDelegate.IsBound() )
+				OnBeginDetectDelegate.Broadcast( result );
 
 			BP_OnBeginDetect( result );
-			
-			if(OnEndDetectDelegate.IsBound())
-				OnEndDetectDelegate.Broadcast(result);
+
+			if ( OnEndDetectDelegate.IsBound() )
+				OnEndDetectDelegate.Broadcast( result );
 		}
 	}
 }

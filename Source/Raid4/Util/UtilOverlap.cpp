@@ -332,3 +332,19 @@ bool UtilOverlap::SectorOverlapByChannel(TArray<FOverlapResult>& OutOverlaps, co
 
 	return true;
 }
+
+/**
+* 대략적인 Overlap 위치를 계산하여 return.
+* @param InOrigin : Overlap 주체의 위치
+* @param InOtherComp : Overlap 당한 Prim Comp
+* @param OutPos : 계산된 Pos
+* @return : 계산 성공시 true
+*/
+bool UtilOverlap::GetRoughOverlapPosition( const FVector& InOrigin, const UPrimitiveComponent* InOtherComp, FVector& OutPos )
+{
+	if ( !IsValid( InOtherComp ) )
+		return false;
+
+	InOtherComp->GetClosestPointOnCollision( InOrigin, OutPos );
+	return true;
+}

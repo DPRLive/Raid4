@@ -20,4 +20,7 @@ namespace UtilOverlap
 	// Sector (부채꼴) 형태의 Overlap을 체크한다.
 	bool SectorOverlapByProfile(TArray<FOverlapResult>& OutOverlaps, const UWorld* InWorld, const FTransform& InTrans, float InRadius, float InHalfHeight, float InDegree, const FName InProfileName, const FCollisionQueryParams& InParams = FCollisionQueryParams(), bool InIsShowDebug = false, const FColor& InDebugColor = FColor::Red, float InDebugTime = 0.f);
 	bool SectorOverlapByChannel(TArray<FOverlapResult>& OutOverlaps, const UWorld* InWorld, const FTransform& InTrans, float InRadius, float InHalfHeight, float InDegree, const ECollisionChannel InTraceChannel, const FCollisionQueryParams& InParams = FCollisionQueryParams::DefaultQueryParam, const FCollisionResponseParams& InResponseParams = FCollisionResponseParams::DefaultResponseParam, bool InIsShowDebug = false, const FColor& InDebugColor = FColor::Red, float InDebugTime = 0.f);
+
+	// 대략적인 Overlap 위치를 계산.
+	bool GetRoughOverlapPosition( const FVector& InOrigin, const UPrimitiveComponent* InOtherComp, FVector& OutPos );
 };
