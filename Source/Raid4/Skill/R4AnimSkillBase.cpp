@@ -162,7 +162,7 @@ void UR4AnimSkillBase::AddExecute( int32 InSkillAnimKey, TFunction<void()>&& InF
 }
 
 /**
- *  Detect Execute 추가
+ *  Detect Execute Net Flag에 맞춰 추가
  *  @param InSkillAnimKey : Execute가 필요한 Skill Anim Key
  *  @param InTimeDetectInfo : Delay와 Detect 정보
  *  @param InDelayRate :Delay를 얼마나 빠르게 체크할지, ( 실제로 InDelay / InDelayRate 뒤에 실행 됨 ). InDelayRate < 0.f인 경우는 처리하지 않음 !
@@ -175,6 +175,23 @@ void UR4AnimSkillBase::AddDetectExecute( int32 InSkillAnimKey, const FR4SkillTim
 		LOG_WARN( R4Skill, TEXT("Negative InDelayRate [%f] is not processed."), InDelayRate );
 		return;
 	}
+
+	// Replicated Detector일 시 Server에서만 Spawn 하는지 확인
+	{
+		// Parse Net Flag
+		bool bReplicate = InTimeDetectInfo.DetectEffect.DetectorInfo.DetectClass.GetDefaultObject()->GetIsReplicated();
+		bool bServerSpawn = ( InTimeDetectInfo.DetectEffect.DetectorInfo.DetectorNetFlag & static_cast<uint8>( ER4NetworkFlag::Server) );
+		bool bLocalSpawn = ( InTimeDetectInfo.DetectEffect.DetectorInfo.DetectorNetFlag & static_cast<uint8>( ER4NetworkFlag::Local ) );
+		bool bSimulatedSpawn = ( InTimeDetectInfo.DetectEffect.DetectorInfo.DetectorNetFlag & static_cast<uint8>( ER4NetworkFlag::Simulated ) );
+		
+		if ( !ensureMsgf( bReplicate ? ( bServerSpawn && !bLocalSpawn && !bSimulatedSpawn ) : true,
+				TEXT("Replicated Detector must be spawned only on Server") ) )
+			return;
+	}
+	
+	// Net Flag가 일치하지 않으면 추가하지 않음.
+	if ( !IsMatchNetFlag( InTimeDetectInfo.DetectEffect.DetectorInfo.DetectorNetFlag ) )
+		return;
 	
 	AddExecute( InSkillAnimKey, [thisPtr = TWeakObjectPtr<UR4AnimSkillBase>(this), &detectInfo = InTimeDetectInfo.DetectEffect]()
 	{
@@ -184,7 +201,7 @@ void UR4AnimSkillBase::AddDetectExecute( int32 InSkillAnimKey, const FR4SkillTim
 }
 
 /**
- *  buff Execute 추가
+ *  buff Execute Net Flag에 맞춰 추가
  *  @param InSkillAnimKey : Execute가 필요한 Skill Anim Key
  *  @param InTimeBuffInfo : buff 정보
  *  @param InDelayRate :Delay를 얼마나 빠르게 체크할지, ( 실제로 InDelay / InDelayRate 뒤에 실행 됨 ). InDelayRate < 0.f인 경우는 처리하지 않음 !
@@ -197,26 +214,18 @@ void UR4AnimSkillBase::AddBuffExecute( int32 InSkillAnimKey, const FR4SkillTimeB
 		LOG_WARN( R4Skill, TEXT("Negative InDelayRate [%f] is not processed."), InDelayRate );
 		return;
 	}
+
+	// Net Flag가 일치하지 않으면 추가하지 않음.
+	if ( !IsMatchNetFlag( InTimeBuffInfo.BuffNetFlag ) )
+		return;
 	
 	AddExecute( InSkillAnimKey, [thisPtr = TWeakObjectPtr<UR4AnimSkillBase>(this), &InTimeBuffInfo]()
 	{
 		if ( thisPtr.IsValid() )
 		{
-			// Parse Net Flag
-			bool bServerApply = ( InTimeBuffInfo.BuffNetFlag & static_cast<uint8>( ER4NetworkFlag::Server) );
-			bool bOwnerApply = ( InTimeBuffInfo.BuffNetFlag & static_cast<uint8>( ER4NetworkFlag::Owner ) );
-			bool bSimulatedApply = ( InTimeBuffInfo.BuffNetFlag & static_cast<uint8>( ER4NetworkFlag::Simulated ) );
-
-			// apply buffs
-			// role flag && owner role이 일치하면 apply 
-			if ( ( thisPtr->GetOwnerRole() == ROLE_Authority && bServerApply )
-				|| ( thisPtr->GetOwnerRole() == ROLE_AutonomousProxy && bOwnerApply )
-				|| ( thisPtr->GetOwnerRole() == ROLE_SimulatedProxy && bSimulatedApply ) )
-			{
-				// 나에게 버프 적용
-				if ( IR4BuffReceiveInterface* victim = Cast<IR4BuffReceiveInterface>( thisPtr->GetOwner() ) )
-					victim->ReceiveBuff( thisPtr->GetOwner(), InTimeBuffInfo.BuffClass, InTimeBuffInfo.BuffSetting );
-			}
+			// 나에게 버프 적용
+			if ( IR4BuffReceiveInterface* victim = Cast<IR4BuffReceiveInterface>( thisPtr->GetOwner() ) )
+				victim->ReceiveBuff( thisPtr->GetOwner(), InTimeBuffInfo.BuffClass, InTimeBuffInfo.BuffSetting );
 		}
 	}, InTimeBuffInfo.DelayTime, InDelayRate );
 }

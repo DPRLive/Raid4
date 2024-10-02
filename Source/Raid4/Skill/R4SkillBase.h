@@ -44,7 +44,9 @@ protected:
 	
 	// Detect 실행
 	void ExecuteDetect( const FR4SkillDetectBuffWrapper& InDetectBuffInfo );
-	
+
+	// NetFlag와 현재 Comp의 Net 상태를 비교 ( ER4NetworkFlag )
+	bool IsMatchNetFlag( uint8 InNetFlag ) const;
 private:
 	// Spawn Detector
 	void _SpawnDetector( const FR4SkillDetectBuffWrapper& InDetectBuffInfo );

@@ -103,7 +103,7 @@ enum class ER4NetworkFlag : uint8
 {
 	None		=  0		UMETA( Hidden ),
 	Server		= (1 << 0)	UMETA( DisplayName = "Server" ),
-	Owner		= (1 << 1)	UMETA( DisplayName = "Owner Client" ),
+	Local		= (1 << 1)	UMETA( DisplayName = "Locally Control" ),
 	Simulated 	= (1 << 2)	UMETA( DisplayName = "Simulated Client" ),
 	Max			= (1 << 3)	UMETA( Hidden )
 };
@@ -117,7 +117,7 @@ enum class ER4NetworkFlag_NoSimulated : uint8
 {
 	None		= 0			UMETA( Hidden ),
 	Server		= (1 << 0)	UMETA( DisplayName = "Server" ),
-	Owner		= (1 << 1)	UMETA( DisplayName = "Owner Client" ),
+	Local		= (1 << 1)	UMETA( DisplayName = "Locally Control" ),
 	Max			= (1 << 2)	UMETA( Hidden )
 };
 ENUM_CLASS_FLAGS(ER4NetworkFlag_NoSimulated);

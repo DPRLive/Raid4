@@ -83,7 +83,6 @@ float UR4SkillBase::GetSkillCoolDownTime( bool InIsIgnoreReduction ) const
 
 /**
  *  Detect 실행.
- *  DetectorNetFlag && owner role 에 맞춰서 생성.
  *  Replicated Detector일 시 Server에서만 Spawn 해야함.
  *  particle이 있으나 투사체 등 (시각적인 요소 + 위치 같이) 중요하지 않다면 굳이 Replicate 하지 않고 Local 생성하는걸 권장
  *  @param InDetectBuffInfo : Detector & Buff Info.
@@ -93,22 +92,26 @@ void UR4SkillBase::ExecuteDetect( const FR4SkillDetectBuffWrapper& InDetectBuffI
 	if ( !ensureMsgf( IsValid( InDetectBuffInfo.DetectorInfo.DetectClass ), TEXT("DetectClass is nullptr.") ) )
 		return;
 
-	// Parse Net Flag
-	bool bReplicate = InDetectBuffInfo.DetectorInfo.DetectClass.GetDefaultObject()->GetIsReplicated();
-	bool bServerSpawn = ( InDetectBuffInfo.DetectorInfo.DetectorNetFlag & static_cast<uint8>( ER4NetworkFlag::Server) );
-	bool bOwnerSpawn = ( InDetectBuffInfo.DetectorInfo.DetectorNetFlag & static_cast<uint8>( ER4NetworkFlag::Owner ) );
-	bool bSimulatedSpawn = ( InDetectBuffInfo.DetectorInfo.DetectorNetFlag & static_cast<uint8>( ER4NetworkFlag::Simulated ) );
-	
-	// Replicated Detector일 시 Server에서만 Spawn 해야함.
-	if ( !ensureMsgf( bReplicate ? ( bServerSpawn && !bOwnerSpawn && !bSimulatedSpawn ) : true,
-			TEXT("Replicated Detector must be spawned only on Server") ) )
-		return;
+	_SpawnDetector( InDetectBuffInfo );
+}
 
-	// role flag && owner role이 일치하면 Spawn 
-	if ( ( GetOwnerRole() == ROLE_Authority && bServerSpawn )
-		|| ( GetOwnerRole() == ROLE_AutonomousProxy && bOwnerSpawn )
-		|| ( GetOwnerRole() == ROLE_SimulatedProxy && bSimulatedSpawn ) )
-		 _SpawnDetector( InDetectBuffInfo );
+/**
+ *  NetFlag와 현재 Comp의 Net 상태를 비교 ( ER4NetworkFlag )
+ *  @param InNetFlag : 비교할 Net Flag 정보 ( ER4NetworkFlag )
+ *  @return : NetFlag와 Match하여 현재 Comp의 Net 상태와 맞으면 true 리턴
+ */
+bool UR4SkillBase::IsMatchNetFlag( uint8 InNetFlag ) const
+{
+	// Parse Net Flag
+	bool bLocalMatch = false;
+	if ( APawn* owner = Cast<APawn>( GetOwner() ) )
+		bLocalMatch = ( InNetFlag & static_cast<uint8>( ER4NetworkFlag::Local ) ) && owner->IsLocallyControlled();
+	
+	bool bServerMatch = ( InNetFlag & static_cast<uint8>( ER4NetworkFlag::Server) ) && ( GetOwnerRole() == ROLE_Authority );
+	
+	bool bSimulatedMatch = (InNetFlag & static_cast<uint8>( ER4NetworkFlag::Simulated ) ) && ( GetOwnerRole() == ROLE_SimulatedProxy );
+
+	return ( bLocalMatch || bServerMatch || bSimulatedMatch );
 }
 
 /**
