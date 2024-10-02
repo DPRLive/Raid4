@@ -114,6 +114,7 @@ void UR4AnimSkillBase::TickComponent( float DeltaTime, enum ELevelTick TickType,
 /**
  *  Skill Anim Key에 맞는, 특정 시간 뒤에 Execute 예약 추가.
  *  멤버로 등록된 Skill Anim Key만 추가 가능.
+ *  InFunc에 Update 배열에 무언가를 추가하는 로직 작성 시 추가 로직 반복에 의한 메모리 누수 주의.
  *  @param InSkillAnimKey : 멤버로 등록된, Play할 Skill Anim Info
  *  @param InFunc : 실행시킬 Lambda, R-value, this 캡쳐 시 weak 캡쳐할 것
  *  @param InDelay : 실행 Delay. ( Delay <= 0 이면, 바로 실행 됨 ) 
@@ -221,7 +222,8 @@ void UR4AnimSkillBase::AddBuffExecute( int32 InSkillAnimKey, const FR4SkillTimeB
 }
 
 /**
- *  Skill Anim Key에 맞는, 특정 시간 뒤의 Execute 예약 모두 제거
+ *  Skill Anim Key에 맞는, 특정 시간 뒤의 Execute 예약 모두 제거.
+ *  StateFlag를 변경해두었다가, 발견되면 삭제. 다음 Tick에 삭제될 수 있으나, Update는 되지 않음.
  *  @param InSkillAnimKey : 멤버로 등록된, Play할 Skill Anim Info
  */
 void UR4AnimSkillBase::RemoveAllExecute( int32 InSkillAnimKey )
@@ -234,9 +236,9 @@ void UR4AnimSkillBase::RemoveAllExecute( int32 InSkillAnimKey )
 	
 	for( auto it = PendingExecutes.CreateIterator(); it; ++it )
 	{
-		// 하는김에 InValid한 InFunc 제거
-		if ( ( it->SkillAnimKey == InSkillAnimKey ) || !( it->Func ) )
-			it.RemoveCurrent();
+		// State Flag 변경
+		if ( it->SkillAnimKey == InSkillAnimKey )
+			it->StateFlag = FR4AnimSkillExecuteInfo::PendingKill;
 	}
 }
 
@@ -498,20 +500,27 @@ bool UR4AnimSkillBase::_UpdateExecute( float InNowServerTime )
 {
 	for( auto it = PendingExecutes.CreateIterator(); it; ++it )
 	{
-		// Invalid한 Func를 들고 있다면, 제거
-		if ( !( it->Func ) )
+		// Pending Kill이거나, Invalid한 Func를 들고 있으면 제거 
+		if ( (it->StateFlag == FR4AnimSkillExecuteInfo::PendingKill) || !( it->Func ) )
 		{
-			it.RemoveCurrent();
+			it.RemoveCurrentSwap();
+			continue;
+		}
+
+		// New 상태이면, 다음 Tick에 업데이트 할 수 있도록 Update Flag로 변경
+		if ( it->StateFlag == FR4AnimSkillExecuteInfo::New )
+		{
+			it->StateFlag = FR4AnimSkillExecuteInfo::CanUpdate;
 			continue;
 		}
 		
-		// 시간이 지났다면, execute 후 제거
+		// Update 가능 상태이고, 시간이 지났다면, execute 후 제거
 		if ( InNowServerTime > it->ExecuteServerTime )
 		{
 			if ( it->Func )
 				it->Func();
 			
-			it.RemoveCurrent();
+			it.RemoveCurrentSwap();
 		}
 	}
 

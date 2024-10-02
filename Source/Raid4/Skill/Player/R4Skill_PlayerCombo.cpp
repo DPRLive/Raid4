@@ -149,10 +149,6 @@ void UR4Skill_PlayerCombo::OnChangeSkillAnimSection( const FR4SkillAnimInfo& InS
 	
 	if ( InSkillAnimInfo.SkillAnimServerKey == ComboSkillAnimInfo.SkillAnimServerKey )
 	{
-		// Add Execute Combo Input Test는 Autonomous & server에서 진행
-		if( GetOwnerRole() == ROLE_SimulatedProxy )
-			return;
-			
 		CachedOnComboInput = false;
 		
 		if ( !IsValid( InSkillAnimInfo.SkillAnim ) )

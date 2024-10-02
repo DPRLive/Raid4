@@ -18,6 +18,7 @@ struct FR4AnimSkillExecuteInfo
 	: SkillAnimKey( InSkillAnimKey )
 	, ExecuteServerTime( InExecuteServerTime )
 	, Func ( MoveTemp(InFunc) )
+	, StateFlag( EStateFlag::New )
 	{}
 
 	// Skill Anim Key
@@ -28,6 +29,16 @@ struct FR4AnimSkillExecuteInfo
 
 	// 실행시킬 Func
 	TFunction<void()> Func;
+
+	enum EStateFlag : uint8
+	{
+		PendingKill, // 삭제 대기 ( 다음 Tick에 삭제될 수도 있음)
+		CanUpdate, // 업데이트 가능
+		New // 새로 추가됨 ( 다음 Tick에 업데이트 )
+	};
+	
+	// 이 업데이트의 상태 플래그.
+	EStateFlag StateFlag;
 };
 
 /**
@@ -143,7 +154,7 @@ private:
 	void _OnRep_AnimPlayServerState( const TArray<FAnimPlayServerStateInfo>& InPrevAnimPlayServerStates );
 	
 private:
-	// 호출 대기중인 Executes
+	// 호출 대기중인 Executes ( Update Buffer, Pending Update Buffer )
 	TArray<FR4AnimSkillExecuteInfo> PendingExecutes;
 	
     // 서버에서의 해당 Skill Key의 Anim의 Play 상태.
