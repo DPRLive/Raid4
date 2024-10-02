@@ -59,7 +59,6 @@ class FNetworkPredictionData_Client* UR4CharacterMovementComponent::GetPredictio
  */
 void UR4CharacterMovementComponent::SetForceMovementByLinear_Local( const FVector& InTargetLoc, float InDuration )
 {
-	StopMovementImmediately();
 	ForceMoveType = ER4ForceMoveType::Linear;
 	_SetupForceMovement( InTargetLoc, InDuration );
 }
@@ -85,7 +84,7 @@ void UR4CharacterMovementComponent::SetForceMovementByCurve_Local( const FVector
 
 	ForceMoveType = ER4ForceMoveType::CurveVector;
 	_SetupForceMovement( InTargetLoc, InDuration );
-	
+
 	CachedCurveVector = InCurveVector;
 	CachedIsReverseCurve = InIsReverse;
 }
@@ -95,6 +94,8 @@ void UR4CharacterMovementComponent::SetForceMovementByCurve_Local( const FVector
  */
 void UR4CharacterMovementComponent::_SetupForceMovement( const FVector& InTargetLoc, float InDuration )
 {
+	StopMovementImmediately();
+	
 	SetMovementMode( MOVE_Custom );
 	CachedForceMoveStartWorldLoc = UpdatedComponent->GetComponentLocation();
 	CachedForceMoveTargetWorldLoc = InTargetLoc;

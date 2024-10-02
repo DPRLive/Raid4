@@ -35,6 +35,7 @@ public:
  * Curve Vector는 주어진 Duration 동안 각 X,Y,Z의 값의 Curve Y축 값을 추출해 적용하며
  * X,Y,Z값의 Curve Y축 값은 Curve X축(시간당 위치 (0:StartLoc ~ 1:TargetLoc 까지 사용))으로 추출.
  * X,Y,Z값은 시작지점 <-> 목표지점에 선형의 줄을 긋고 시간 비율에 맞는 위치로부터의 Relative Location으로 적용함.
+ * TODO : 중간에 Force Move가 끊기는 경우가 있는지?
  */
 UCLASS()
 class RAID4_API UR4CharacterMovementComponent : public UCharacterMovementComponent
