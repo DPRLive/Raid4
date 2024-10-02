@@ -13,6 +13,7 @@ UR4Buff_SpringArmModifier::UR4Buff_SpringArmModifier()
 
 	DeltaLength = 0.f;
 	Speed = 0.f;
+	CachedTotalDeltaLength = 0.f;
 }
 
 /**
@@ -44,6 +45,7 @@ bool UR4Buff_SpringArmModifier::ApplyBuff()
 	{
 		CachedCameraManageComp->AddSpringArmLength( DeltaLength );
 		CachedCameraManageComp->SetSpringArmResizeSpeed( Speed );
+		CachedTotalDeltaLength += DeltaLength;
 		return true;
 	}
 
@@ -61,7 +63,7 @@ void UR4Buff_SpringArmModifier::Deactivate()
 	// 원래대로 이동
 	if ( CachedCameraManageComp.IsValid() && CachedVictim.IsValid() )
 	{
-		CachedCameraManageComp->AddSpringArmLength( - DeltaLength );
+		CachedCameraManageComp->AddSpringArmLength( - CachedTotalDeltaLength );
 		CachedCameraManageComp->SetSpringArmResizeSpeed( Speed );
 	}
 }
@@ -73,5 +75,6 @@ void UR4Buff_SpringArmModifier::Reset()
 {
 	Super::Reset();
 
+	CachedTotalDeltaLength = 0.f;
 	CachedCameraManageComp.Reset();
 }

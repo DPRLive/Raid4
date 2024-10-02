@@ -42,6 +42,9 @@ private:
 	// 이동에 보간 속도. <= 0일 시 즉시 이동.
 	UPROPERTY( EditDefaultsOnly )
 	float Speed;
+
+	// 현재까지 총 변화를 요청한 값
+	float CachedTotalDeltaLength;
 	
 	// Camera Manage Comp 캐싱
 	TWeakObjectPtr<UR4CameraManageComponent> CachedCameraManageComp;
