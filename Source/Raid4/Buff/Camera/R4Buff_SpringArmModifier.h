@@ -2,24 +2,22 @@
 
 #pragma once
 
-#include "../../Buff/R4BuffBase.h"
-#include "R4Buff_ForceMove.generated.h"
+#include "../R4BuffBase.h"
+#include "R4Buff_SpringArmModifier.generated.h"
 
-class UCurveVector;
-class UR4CharacterMovementComponent;
+class UR4CameraManageComponent;
 
 /**
- * ForceMove를 적용하는 버프.
- * R4CharacterMovementComp에 의존.
+ * Spring Arm 길이를 변경하는 버프.
+ * UR4CameraManageComponent에 의존.
  * Deactivate 시 해당 버프가 이동 시킨 만큼 다시 원래대로 이동
  */
 UCLASS( HideDropdown, NotBlueprintType, Blueprintable, ClassGroup=(Buff) )
-class RAID4_API UR4Buff_ForceMove : public UR4BuffBase
+class RAID4_API UR4Buff_SpringArmModifier : public UR4BuffBase
 {
 	GENERATED_BODY()
 
-public:
-	UR4Buff_ForceMove();
+	UR4Buff_SpringArmModifier();
 	
 public:
 	// 버프가 적용 전 해야 할 로직 (세팅 등)해야 하는 것을 정의. 세팅( 버프 효과 적용이 가능한 상태인가 ) 실패 시 false를 꼭 리턴,
@@ -37,25 +35,14 @@ protected:
 	virtual void Reset() override;
 
 private:
-	// Force Move시 사용할 타입
+	// 변화시킬 Delta 길이 값
 	UPROPERTY( EditDefaultsOnly )
-	ER4ForceMoveType ForceMoveType;
-	
-	// 이동시킬 Relative Location
-	UPROPERTY( EditDefaultsOnly )
-	FVector TargetRelativeLocation;
+	float DeltaLength;
 
-	// 이동에 걸리는 시간
+	// 이동에 보간 속도. <= 0일 시 즉시 이동.
 	UPROPERTY( EditDefaultsOnly )
-	float Duration;
+	float Speed;
 	
-	// Curve Move시 사용할 Curve Vector Asset
-	UPROPERTY( EditDefaultsOnly, meta = (editcondition = "ForceMoveType == ER4ForceMoveType::CurveVector", EditConditionHides) )
-	TObjectPtr<UCurveVector> CurveVector;
-
-	// 시작 지점 캐싱
-	FVector CachedStartLoc;
-	
-	// Move Comp 캐싱
-	TWeakObjectPtr<UR4CharacterMovementComponent> CachedMoveComp;
+	// Camera Manage Comp 캐싱
+	TWeakObjectPtr<UR4CameraManageComponent> CachedCameraManageComp;
 };
