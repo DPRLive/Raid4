@@ -18,7 +18,6 @@ UR4AnimInstance::UR4AnimInstance()
 	bIsAccelerating = false;
 	CharacterToAimRotation = FRotator::ZeroRotator;
 	YawDelta = 0.f;
-	bFullBody = false;
 	TurnInPlace = 0.f;
 	LeanScaling = 12.f;
 	TurnInPlaceInterpSpeed = 30.f;
@@ -52,8 +51,6 @@ void UR4AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsAccelerating = MovementComp->GetCurrentAcceleration().Length() > 0.f;
 		// Character와 Aim 사이 Rotation
 		CharacterToAimRotation = ( Owner->GetBaseAimRotation() - Owner->GetActorRotation() ).GetNormalized();
-		// Full Body인지
-		bFullBody = GetCurveValue( FName(TEXT("FullBody")) ) > 0.f;
 
 		// delta
 		FRotator delta = PrevRotation - Owner->GetActorRotation();

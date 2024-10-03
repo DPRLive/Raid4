@@ -53,10 +53,6 @@ protected:
 	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = "Character" )
 	float YawDelta;
 
-	// Is Full Body?
-	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = "Character" )
-	uint8 bFullBody:1;
-
 	// Turn in place. Delta Yaw를 누적시키고 Turn In Place Speed로 Interpolate하는 방식
 	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = "Character" )
 	float TurnInPlace;
