@@ -68,11 +68,11 @@ protected:
 
 protected:
 	// 이 애니메이션의 Owner
-	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = "Character" )
+	UPROPERTY( Transient, VisibleInstanceOnly, BlueprintReadOnly, Category = "Character" )
 	TWeakObjectPtr<ACharacter> Owner;
 
 	// Move Comp
-	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = "Character" )
+	UPROPERTY( Transient, VisibleInstanceOnly, BlueprintReadOnly, Category = "Character" )
 	TWeakObjectPtr<UCharacterMovementComponent> MovementComp;
 	
 	// Yaw delta 보간을 위한 마지막 Rotation 캐싱
