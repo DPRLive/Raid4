@@ -49,7 +49,9 @@ void UR4AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsAccelerating = MovementComp->GetCurrentAcceleration().Length() > 0.f;
 		// Character와 Aim 사이 Rotation
 		CharacterToAimRotation = Owner->GetBaseAimRotation() - Owner->GetActorRotation();
-		
+		// Full Body인지
+		bFullBody = GetCurveValue( FName(TEXT("FullBody")) ) > 0.f;
+
 		// Yaw Delta를 보간하여 계산
 		FRotator delta = PrevRotation - Owner->GetActorRotation();
 		delta.Normalize();

@@ -53,6 +53,9 @@ protected:
 	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = "Character" )
 	float YawDelta;
 
+	// Is Full Body?
+	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = "Character" )
+	uint8 bFullBody:1;
 protected:
 	// Lean Intensity Scaling Setting
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Character|Setting" )
