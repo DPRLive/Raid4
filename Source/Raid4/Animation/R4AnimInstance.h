@@ -56,10 +56,19 @@ protected:
 	// Is Full Body?
 	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = "Character" )
 	uint8 bFullBody:1;
+
+	// Turn in place. Delta Yaw를 누적시키고 Turn In Place Speed로 Interpolate하는 방식
+	UPROPERTY( VisibleAnywhere, BlueprintReadOnly, Category = "Character" )
+	float TurnInPlace;
+	
 protected:
 	// Lean Intensity Scaling Setting
 	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Character|Setting" )
 	float LeanScaling;
+
+	// Turn in place interpolate speed
+	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category = "Character|Setting" )
+	float TurnInPlaceInterpSpeed;
 
 protected:
 	// 이 애니메이션의 Owner

@@ -18,7 +18,10 @@ UR4AnimInstance::UR4AnimInstance()
 	bIsAccelerating = false;
 	CharacterToAimRotation = FRotator::ZeroRotator;
 	YawDelta = 0.f;
+	bFullBody = false;
+	TurnInPlace = 0.f;
 	LeanScaling = 12.f;
+	TurnInPlaceInterpSpeed = 30.f;
 	PrevRotation = FRotator::ZeroRotator;
 }
 
@@ -26,8 +29,8 @@ void UR4AnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	Owner = Cast<ACharacter>(GetOwningActor());
-	if (Owner.IsValid())
+	Owner = Cast<ACharacter>( GetOwningActor() );
+	if ( Owner.IsValid() )
 		MovementComp = Owner->GetCharacterMovement();
 }
 
@@ -48,14 +51,19 @@ void UR4AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		// 가속중인지
 		bIsAccelerating = MovementComp->GetCurrentAcceleration().Length() > 0.f;
 		// Character와 Aim 사이 Rotation
-		CharacterToAimRotation = Owner->GetBaseAimRotation() - Owner->GetActorRotation();
+		CharacterToAimRotation = ( Owner->GetBaseAimRotation() - Owner->GetActorRotation() ).GetNormalized();
 		// Full Body인지
 		bFullBody = GetCurveValue( FName(TEXT("FullBody")) ) > 0.f;
 
-		// Yaw Delta를 보간하여 계산
+		// delta
 		FRotator delta = PrevRotation - Owner->GetActorRotation();
 		delta.Normalize();
 		
+		// Turn in place
+		TurnInPlace += delta.Yaw;
+		TurnInPlace = FMath::FInterpTo( TurnInPlace, 0.f, DeltaSeconds, TurnInPlaceInterpSpeed );
+
+		// Yaw Delta를 보간하여 계산
 		float targetYaw = delta.Yaw / (LeanScaling * DeltaSeconds);
 		YawDelta = FMath::FInterpTo(YawDelta, targetYaw, DeltaSeconds, 6.f);
 		PrevRotation = Owner->GetActorRotation();
