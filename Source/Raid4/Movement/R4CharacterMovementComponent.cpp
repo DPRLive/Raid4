@@ -121,7 +121,7 @@ void UR4CharacterMovementComponent::OnMovementUpdated( float DeltaSeconds, const
 {
 	Super::OnMovementUpdated( DeltaSeconds, OldLocation, OldVelocity );
 
-	if ( ForceMoveType == ER4ForceMoveType::None )
+	if ( ForceMoveType == ER4ForceMoveType::None || !IsValid( UpdatedComponent ) )
 		return;
 	
 	// Force Movement가 설정되어 있다면 진행
@@ -148,7 +148,9 @@ void UR4CharacterMovementComponent::OnMovementUpdated( float DeltaSeconds, const
 			CachedCurveVector->GetVectorValue( 1.f - ratio ) : CachedCurveVector->GetVectorValue( ratio );
 
 		// Curve 값을 Relative로 사용
-		nextLoc = nextLoc + curveValue;
+		FTransform trans = UpdatedComponent->GetComponentTransform();
+		trans.SetLocation( nextLoc );
+		nextLoc = trans.TransformPosition( curveValue );
 	}
 	
 	FVector delta = nextLoc - UpdatedComponent->GetComponentLocation();
