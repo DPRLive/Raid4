@@ -47,22 +47,22 @@ struct FR4TraceDetectShapeInfo
 	
 	// 반지름
 	UPROPERTY( EditAnywhere, Category="Collision",
-		meta =(  EditCondition = "Shape == ER4TraceDetectType::Box", EditConditionHides, AllowPrivateAccess = true) )
+		meta =(  EditCondition = "Shape == ER4TraceDetectShapeType::Box", EditConditionHides, AllowPrivateAccess = true) )
 	FVector BoxHalfExtent;
 	
 	// 반지름
 	UPROPERTY( EditAnywhere, Category="Collision",
-		meta =( EditCondition = "Shape != ER4TraceDetectType::Box", EditConditionHides, AllowPrivateAccess = true) )
+		meta =( EditCondition = "Shape != ER4TraceDetectShapeType::Box", EditConditionHides, AllowPrivateAccess = true) )
 	float Radius;
 
 	// HalfHeight
 	UPROPERTY( EditAnywhere, Category="Collision",
-		meta =( EditCondition = "Shape == ER4TraceDetectType::Capsule || Shape == ER4TraceDetectType::Sector", EditConditionHides, AllowPrivateAccess = true) )
+		meta =( EditCondition = "Shape == ER4TraceDetectShapeType::Capsule || Shape == ER4TraceDetectShapeType::Sector", EditConditionHides, AllowPrivateAccess = true) )
 	float HalfHeight;
 
 	// angle
 	UPROPERTY( EditAnywhere, Category="Collision",
-		meta =( EditCondition = "Shape == ER4TraceDetectType::Sector", EditConditionHides, AllowPrivateAccess = true) )
+		meta =( EditCondition = "Shape == ER4TraceDetectShapeType::Sector", EditConditionHides, AllowPrivateAccess = true) )
 	float Angle;
 };
 

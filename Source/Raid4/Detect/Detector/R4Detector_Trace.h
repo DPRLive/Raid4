@@ -77,7 +77,7 @@ private:
 
 	// Trace를 체크할 간격시간.
 	// 3초 LifeTime에 Interval 1초 일 시, 0, 1, 2 3번 사용됨. 
-	UPROPERTY( EditAnywhere, Category="Collision", meta = ( ClampMin = 0.1f, UIMin = 0.1f,
+	UPROPERTY( EditAnywhere, Category="Collision", meta = ( ClampMin = 0.01f, UIMin = 0.01f,
 		EditCondition = "ExecutionType == ER4TraceDetectExecutionType::Interval", EditConditionHides) )
 	float DetectInterval;
 
