@@ -3,7 +3,7 @@
 #pragma once
 
 #include "../R4BuffBase.h"
-#include "../../Value/R4ValueSelector.h"
+#include "../../Calculator/Interaction/R4InteractionValueSelector.h"
 
 #include "R4Buff_ShieldApplier.generated.h"
 
@@ -41,7 +41,7 @@ protected:
 private:
 	// Shield의 양으로 사용
 	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
-	FR4ValueSelector Value;
+	FR4InteractValueSelector Value;
 	
 	// Shield Comp 캐싱
 	TWeakObjectPtr<UR4ShieldComponent> CachedShieldComp;

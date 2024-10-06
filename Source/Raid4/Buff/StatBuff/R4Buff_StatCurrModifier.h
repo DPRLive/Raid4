@@ -3,7 +3,7 @@
 #pragma once
 
 #include "../R4BuffBase.h"
-#include "../../Value/R4ValueSelector.h"
+#include "../../Calculator/Interaction/R4InteractionValueSelector.h"
 
 #include "R4Buff_StatCurrModifier.generated.h"
 
@@ -40,7 +40,7 @@ private:
 
 	// 변경할 값, Current Stat와의 피연산자로 사용.
 	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
-	FR4ValueSelector Value;
+	FR4InteractValueSelector Value;
 	
 	// Current Value가 음수로 내려가는 것을 허용할 것인지
 	UPROPERTY( EditDefaultsOnly, Category = "Clamp",  meta = (AllowPrivateAccess = true))

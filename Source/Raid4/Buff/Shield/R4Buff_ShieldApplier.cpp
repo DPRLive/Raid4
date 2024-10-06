@@ -8,7 +8,7 @@
 
 UR4Buff_ShieldApplier::UR4Buff_ShieldApplier()
 {
-	Value = FR4ValueSelector();
+	Value = FR4InteractValueSelector();
 	bDeactivate = true;
 }
 

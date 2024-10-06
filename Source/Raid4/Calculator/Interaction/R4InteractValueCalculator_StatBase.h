@@ -2,29 +2,29 @@
 
 #pragma once
 
-#include "../R4ValueCalculatorInterface.h"
+#include "R4InteractValueCalculatorInterface.h"
 
 #include <UObject/Object.h>
 
-#include "R4ValueCalculator_StatBase.generated.h"
+#include "R4InteractValueCalculator_StatBase.generated.h"
 
 /**
  * Stat에 기반하여 Value를 구하는 Calculator Class.
  */
-UCLASS( HideDropdown, NotBlueprintType, Blueprintable, ClassGroup=(ValueCalculator) )
-class RAID4_API UR4ValueCalculator_StatBase : public UObject, public IR4ValueCalculatorInterface
+UCLASS( HideDropdown, NotBlueprintType, Blueprintable, ClassGroup=(Calculator) )
+class RAID4_API UR4InteractValueCalculator_StatBase : public UObject, public IR4InteractValueCalculatorInterface
 {
 	GENERATED_BODY()
 	
 public:
-	UR4ValueCalculator_StatBase();
+	UR4InteractValueCalculator_StatBase();
 	
 	/**
-	*  Stat에 기반한 Value를 계산.
+	*  Stat에 기반한 Interact Value를 계산.
 	*  @param InInstigator : 가해자 객체
 	*  @param InVictim : 피해자 객체
 	*/
-	virtual float CalculateValue(const AActor* InInstigator, const AActor* InVictim) const override;
+	virtual float CalculateInteractValue( const AActor* InInstigator, const AActor* InVictim ) const override;
 
 private:
 	// 상대의 스탯인지 나의 스탯인지

@@ -95,6 +95,7 @@ struct FR4DetectDesc
 
 /**
  * Detect한 결과 정보.
+ * TODO : Requester, Detecting Detector 추가
  */
 USTRUCT( BlueprintType )
 struct FR4DetectResult

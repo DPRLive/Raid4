@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "../Value/R4ValueSelector.h"
+#include "../Calculator/Interaction/R4InteractionValueSelector.h"
 #include "R4DamageStruct.generated.h"
 
 /**
@@ -12,13 +12,13 @@ struct RAID4_API FR4DamageApplyDesc
 	GENERATED_BODY()
 
 	FR4DamageApplyDesc()
-	: Value(FR4ValueSelector())
+	: Value(FR4InteractValueSelector())
 	, bFixedDamage(false)
 	{ }
 
 	// 사용할 Value. 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly )
-	FR4ValueSelector Value;
+	FR4InteractValueSelector Value;
 	
 	// 고정 데미지 (데미지 증감의 영향을 받지 않는지)
 	UPROPERTY( EditAnywhere, BlueprintReadOnly )

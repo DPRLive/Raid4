@@ -3,7 +3,7 @@
 #pragma once
 
 #include "../R4BuffBase.h"
-#include "../../Value/R4ValueSelector.h"
+#include "../../Calculator/Interaction/R4InteractionValueSelector.h"
 
 #include "R4Buff_StatModifier.generated.h"
 
@@ -52,7 +52,7 @@ private:
 
 	// 변경할 값, Modifier Stat와의 피연산자로 사용.
 	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
-	FR4ValueSelector Value;
+	FR4InteractValueSelector Value;
 	
 	// Modifier 변경 시, Current Stat이 존재한다면 비례하여 같이 조정할 것인지?
 	// ex) 최대 체력이 100에서 150으로 50% 증가 시 현재 체력도 50% 증가. 예를 들어, 기존 체력이 50이면 새로운 체력은 75.

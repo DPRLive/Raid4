@@ -12,7 +12,7 @@ UR4Buff_StatCurrModifier::UR4Buff_StatCurrModifier()
 	bDeactivate = false;
 	TargetStatTag = FGameplayTag::EmptyTag;
 	OperatorType = EOperatorType::Add;
-	Value = FR4ValueSelector();
+	Value = FR4InteractValueSelector();
 	bAllowNegative = false;
 	bAllowOverTotalStat = false;
 }

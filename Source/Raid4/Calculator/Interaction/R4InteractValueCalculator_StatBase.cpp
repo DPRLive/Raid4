@@ -1,13 +1,13 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "R4ValueCalculator_StatBase.h"
+#include "R4InteractValueCalculator_StatBase.h"
 #include "../../Stat/R4TagStatQueryInterface.h"
 #include "../../Stat/R4StatStruct.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(R4ValueCalculator_StatBase)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(R4InteractValueCalculator_StatBase)
 
-UR4ValueCalculator_StatBase::UR4ValueCalculator_StatBase()
+UR4InteractValueCalculator_StatBase::UR4InteractValueCalculator_StatBase()
 {
 	TargetStatOwner = ETargetType::Instigator;
 	StatTag = FGameplayTag::EmptyTag;
@@ -21,7 +21,7 @@ UR4ValueCalculator_StatBase::UR4ValueCalculator_StatBase()
 *  @param InVictim : 피해자 객체
 *  @return : Stat에 기반하여 계산 된 Value
 */
-float UR4ValueCalculator_StatBase::CalculateValue(const AActor* InInstigator, const AActor* InVictim) const
+float UR4InteractValueCalculator_StatBase::CalculateInteractValue(const AActor* InInstigator, const AActor* InVictim) const
 {
 	const AActor* target = (TargetStatOwner == ETargetType::Instigator ? InInstigator : InVictim);
 	if(!IsValid(target))
