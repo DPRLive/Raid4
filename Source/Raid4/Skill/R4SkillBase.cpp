@@ -120,6 +120,12 @@ bool UR4SkillBase::IsMatchNetFlag( uint8 InNetFlag ) const
  */
 void UR4SkillBase::_SpawnDetector( const FR4SkillDetectBuffWrapper& InDetectBuffInfo )
 {
+	if ( !IsValid(GetOwner()) )
+	{
+		LOG_WARN( R4Skill, TEXT("Owner is invalid.") );
+		return;
+	}
+	
 	TScriptInterface<IR4DetectorInterface> detector(nullptr);
 	
 	// Detector 생성
@@ -153,42 +159,42 @@ void UR4SkillBase::_SpawnDetector( const FR4SkillDetectBuffWrapper& InDetectBuff
 
 	// origin 설정
 	FTransform origin;
-	if ( IsValid(GetOwner()) )
+	
+	// Character 기준
+	if( InDetectBuffInfo.DetectorInfo.DetectorOriginType == ER4SkillDetectorOriginType::CharacterCenter )
 	{
 		origin = GetOwner()->GetActorTransform();
 
-		// Attach to mesh?
-		if( InDetectBuffInfo.DetectorInfo.bAttachToMesh )
+		if( InDetectBuffInfo.DetectorInfo.bAttach )
 		{
-			ACharacter* parentActor = Cast<ACharacter>( GetOwner() );
-			USkeletalMeshComponent* parentSkel = parentActor ? parentActor->GetMesh() : nullptr;
+			if ( AActor* detectorActor = Cast<AActor>( detector.GetObject() ); IsValid( detectorActor ) )
+				detectorActor->AttachToActor( GetOwner(), FAttachmentTransformRules::KeepWorldTransform );
+		}
+	}
 
-			origin = _AttachDetectorToTargetMesh( Cast<AActor>( detector.GetObject() ), parentSkel, InDetectBuffInfo.DetectorInfo.MeshSocketName );
+	// Mesh Socket 기준
+	if( InDetectBuffInfo.DetectorInfo.DetectorOriginType == ER4SkillDetectorOriginType::MeshSocket )
+	{
+		ACharacter* parentActor = Cast<ACharacter>( GetOwner() );
+		USkeletalMeshComponent* parentSkel = parentActor ? parentActor->GetMesh() : nullptr;
+		
+		if ( !IsValid( parentSkel ) )
+		{
+			LOG_WARN( R4Skill, TEXT("TargetMesh is invalid."));
+			return;
+		}
+
+		origin = parentSkel->GetSocketTransform( InDetectBuffInfo.DetectorInfo.SocketName );
+		
+		if( InDetectBuffInfo.DetectorInfo.bAttach )
+		{
+			if ( AActor* detectorActor = Cast<AActor>( detector.GetObject() ); IsValid( detectorActor ) )
+				detectorActor->AttachToComponent( parentSkel, FAttachmentTransformRules::KeepWorldTransform, InDetectBuffInfo.DetectorInfo.SocketName );
 		}
 	}
 
 	// Execute Detect
 	detector.GetInterface()->ExecuteDetect( origin, InDetectBuffInfo.DetectorInfo.DetectDesc );
-}
-
-/**
- *  Detector를 Target의 Mesh에 부착
- *  @param InDetector : attach될 Detector
- *  @param InTargetMesh : attach할 TargetMesh
- *  @param InSocketName : TargetMesh의 Socket Name
- *  @return : Attach한 Socket의 Transform
- */
-FTransform UR4SkillBase::_AttachDetectorToTargetMesh( AActor* InDetector, USkeletalMeshComponent* InTargetMesh, const FName& InSocketName )
-{
-	if ( !IsValid( InDetector ) || !IsValid( InTargetMesh ) )
-	{
-		LOG_WARN( R4Skill, TEXT("InDetector or InTargetMesh is invalid."));
-		return FTransform::Identity;
-	}
-	
-	// parent skeleton에 부착
-	InDetector->AttachToComponent( InTargetMesh, FAttachmentTransformRules::KeepWorldTransform, InSocketName );
-	return InTargetMesh->GetSocketTransform( InSocketName );
 }
 
 /**

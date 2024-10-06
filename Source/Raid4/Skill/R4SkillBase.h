@@ -51,9 +51,6 @@ private:
 	// Spawn Detector
 	void _SpawnDetector( const FR4SkillDetectBuffWrapper& InDetectBuffInfo );
 	
-	// Detector를 Target의 Mesh에 부착
-	FTransform _AttachDetectorToTargetMesh( AActor* InDetector, USkeletalMeshComponent* InTargetMesh, const FName& InSocketName );
-
 	// 특정한 버프들을 적용. Detect Buff는 Server Only.
 	void _Server_ApplyDetectBuffs( AActor* InVictim, const TArray<FR4SkillDetectBuffInfo>& InSkillBuffInfos ) const;
 
