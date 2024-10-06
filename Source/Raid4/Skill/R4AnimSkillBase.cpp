@@ -104,10 +104,10 @@ void UR4AnimSkillBase::TickComponent( float DeltaTime, enum ELevelTick TickType,
 		return;
 	}
 	
-	bool bNeedUpdate = _UpdateExecute( nowServerTime );
+	_UpdateExecute( nowServerTime );
 
 	// Update가 더 이상 필요 없다면 Tick Off
-	if ( !bNeedUpdate )
+	if ( !IsNeedTick() )
 		SetComponentTickEnabled( false );
 }
 
@@ -501,11 +501,20 @@ const FR4SkillAnimInfo* UR4AnimSkillBase::GetSkillAnimInfo( int32 InSkillAnimKey
 }
 
 /**
+ *  현재 Tick이 필요한 상태인지 return.
+ *  기본적으로 tick은 off 상태를 유지하며, 특정 함수에서 tick을 on 시키면
+ *  해당 함수 false 시 Tick 함수에서 다시 Off.
+ */
+bool UR4AnimSkillBase::IsNeedTick() const
+{
+	return PendingExecutes.Num() > 0;
+}
+
+/**
  *  실행 대기중인 Executes를 Update.
  *  @param InNowServerTime : 현재 서버 시간
- *  @return : 더 이상의 Update가 필요한지 여부
  */
-bool UR4AnimSkillBase::_UpdateExecute( float InNowServerTime )
+void UR4AnimSkillBase::_UpdateExecute( float InNowServerTime )
 {
 	for( auto it = PendingExecutes.CreateIterator(); it; ++it )
 	{
@@ -532,8 +541,6 @@ bool UR4AnimSkillBase::_UpdateExecute( float InNowServerTime )
 			it.RemoveCurrentSwap();
 		}
 	}
-
-	return PendingExecutes.Num() > 0;
 }
 
 /**

@@ -137,10 +137,13 @@ protected:
 
 	// Key에 맞는 멤버로 등록된 FR4SkillAnimInfo를 찾아서 return
 	const FR4SkillAnimInfo* GetSkillAnimInfo( int32 InSkillAnimKey ) const;
+
+	// 현재 Tick이 필요한 상태인지 return.
+	virtual bool IsNeedTick() const;
 	
 private:
 	// Execute를 Update
-	bool _UpdateExecute( float InNowServerTime );
+	void _UpdateExecute( float InNowServerTime );
 	
 	// Server로 Skill Anim Play를 전송.
 	UFUNCTION( Server, Reliable, WithValidation )
