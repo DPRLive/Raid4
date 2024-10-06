@@ -7,6 +7,7 @@
 #include "../Util/UtilStat.h"
 #include "../Stat/R4TagStatQueryInterface.h"
 #include "../Stat/R4StatStruct.h"
+#include "../Calculator/Origin/R4OriginCalculatorInterface.h"
 
 #include <Net/UnrealNetwork.h>
 #include <GameFramework/Character.h>
@@ -126,7 +127,7 @@ void UR4SkillBase::_SpawnDetector( const FR4SkillDetectBuffWrapper& InDetectBuff
 		return;
 	}
 	
-	TScriptInterface<IR4DetectorInterface> detector(nullptr);
+	TScriptInterface<IR4DetectorInterface> detector( nullptr );
 	
 	// Detector 생성
 	detector = OBJECT_POOL( GetWorld() )->GetObject( InDetectBuffInfo.DetectorInfo.DetectClass );
@@ -157,42 +158,37 @@ void UR4SkillBase::_SpawnDetector( const FR4SkillDetectBuffWrapper& InDetectBuff
 		});
 	}
 
-	// origin 설정
-	FTransform origin;
+	// origin을 계산.
+	FTransform origin = FTransform::Identity;
 	
-	// Character 기준
-	if( InDetectBuffInfo.DetectorInfo.DetectorOriginType == ER4SkillDetectorOriginType::CharacterCenter )
+	if( !ensureMsgf( IsValid( InDetectBuffInfo.DetectorInfo.DetectorOriginCalculator ),
+		TEXT("Detector Origin Calculator is nullptr.") ) )
 	{
-		origin = GetOwner()->GetActorTransform();
-
-		if( InDetectBuffInfo.DetectorInfo.bAttach )
-		{
-			if ( AActor* detectorActor = Cast<AActor>( detector.GetObject() ); IsValid( detectorActor ) )
-				detectorActor->AttachToActor( GetOwner(), FAttachmentTransformRules::KeepWorldTransform );
-		}
+		return;
 	}
 
-	// Mesh Socket 기준
-	if( InDetectBuffInfo.DetectorInfo.DetectorOriginType == ER4SkillDetectorOriginType::MeshSocket )
+	const UObject* cdo = InDetectBuffInfo.DetectorInfo.DetectorOriginCalculator->GetDefaultObject( true );
+	const IR4OriginCalculatorInterface* originCalculator = Cast<IR4OriginCalculatorInterface>( cdo );
+	if( originCalculator == nullptr )
+	{
+		LOG_WARN( R4Skill, TEXT("Origin Calculator is nullptr.") )
+		return;
+	}
+
+	// Calculate origin.
+	origin = originCalculator->CalculateOrigin( GetOwner() );
+
+	// Attach ?
+	if( InDetectBuffInfo.DetectorInfo.bAttachToMesh )
 	{
 		ACharacter* parentActor = Cast<ACharacter>( GetOwner() );
 		USkeletalMeshComponent* parentSkel = parentActor ? parentActor->GetMesh() : nullptr;
+		AActor* detectorActor = Cast<AActor>( detector.GetObject() );
 		
-		if ( !IsValid( parentSkel ) )
-		{
-			LOG_WARN( R4Skill, TEXT("TargetMesh is invalid."));
-			return;
-		}
-
-		origin = parentSkel->GetSocketTransform( InDetectBuffInfo.DetectorInfo.SocketName );
-		
-		if( InDetectBuffInfo.DetectorInfo.bAttach )
-		{
-			if ( AActor* detectorActor = Cast<AActor>( detector.GetObject() ); IsValid( detectorActor ) )
-				detectorActor->AttachToComponent( parentSkel, FAttachmentTransformRules::KeepWorldTransform, InDetectBuffInfo.DetectorInfo.SocketName );
-		}
+		if ( IsValid( parentSkel ) && IsValid( detectorActor ) )
+			detectorActor->AttachToComponent( parentSkel, FAttachmentTransformRules::KeepWorldTransform, InDetectBuffInfo.DetectorInfo.MeshSocketName );
 	}
-
+	
 	// Execute Detect
 	detector.GetInterface()->ExecuteDetect( origin, InDetectBuffInfo.DetectorInfo.DetectDesc );
 }

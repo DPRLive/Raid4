@@ -8,13 +8,6 @@
 class UR4BuffBase;
 class UAnimMontage;
 
-UENUM( BlueprintType )
-enum class ER4SkillDetectorOriginType : uint8
-{
-	CharacterCenter		UMETA( DisplayName = "캐릭터 중심" ),
-	MeshSocket			UMETA( DisplayName = "Mesh Socket 기준" )
-};
-
 /**
  * Skill에서 진행할 탐지에 관한 정보.
  */
@@ -26,9 +19,9 @@ struct FR4SkillDetectInfo
 	FR4SkillDetectInfo()
 	: DetectClass( nullptr )
 	, DetectorNetFlag( 0 )
-	, DetectorOriginType( ER4SkillDetectorOriginType::CharacterCenter )
-	, bAttach( false )
-	, SocketName( NAME_None )
+	, DetectorOriginCalculator( nullptr )
+	, bAttachToMesh( false )
+	, MeshSocketName( NAME_None )
 	, DetectDesc( FR4DetectDesc() )
 	{}
 	
@@ -43,17 +36,17 @@ struct FR4SkillDetectInfo
 	UPROPERTY( EditAnywhere, meta = ( Bitmask, BitmaskEnum = "/Script/Raid4.ER4NetworkFlag" ) )
 	uint8 DetectorNetFlag;
 
-	// Detector의 Relative Location의 기준을 설정
-	UPROPERTY( EditAnywhere )
-	ER4SkillDetectorOriginType DetectorOriginType;
+	// Detector의 Relative Location의 기준이 될 Origin을 계산하는 Class.
+	UPROPERTY( EditAnywhere, meta = ( MustImplement = "/Script/Raid4.R4OriginCalculatorInterface" ) )
+	TSubclassOf<UObject> DetectorOriginCalculator;
 	
-	// Detector를 Attach할 것인지?
+	// Detector를 Mesh에 Attach할 것인지?
 	UPROPERTY( EditAnywhere )
-	uint8 bAttach:1;
+	uint8 bAttachToMesh:1;
 
 	// Skeletal Mesh Socket Name
-	UPROPERTY( EditAnywhere, meta = ( EditCondition = "DetectorOriginType == ER4SkillDetectorOriginType::MeshSocket", EditConditionHides ) )
-	FName SocketName;
+	UPROPERTY( EditAnywhere, meta = ( EditCondition = "bAttachToMesh", EditConditionHides ) )
+	FName MeshSocketName;
 	
 	// 탐지에 관한 Parameter.
 	UPROPERTY( EditAnywhere )
