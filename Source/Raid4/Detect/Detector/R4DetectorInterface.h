@@ -39,8 +39,9 @@ public:
 
 	/**
  	* Detect 준비
+ 	* @param InRequestActor : Detect를 요청한 AActor.
  	* @param InOrigin : 탐지의 기준이 되는 Transform
  	* @param InDetectDesc : 탐지 관련 Param 
  	*/
-	virtual void ExecuteDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) = 0;
+	virtual void ExecuteDetect( AActor* InRequestActor, const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) = 0;
 };

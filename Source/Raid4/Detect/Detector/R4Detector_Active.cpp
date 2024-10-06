@@ -34,6 +34,7 @@ void AR4Detector_Active::GetLifetimeReplicatedProps( TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
 
 	DOREPLIFETIME( AR4Detector_Active, NoAuthCollisionEnableInfo );
+	DOREPLIFETIME( AR4Detector_Active, CachedRequestActor );
 }
 
 void AR4Detector_Active::BeginPlay()
@@ -65,11 +66,14 @@ void AR4Detector_Active::PreReturnPoolObject()
 
 /**
  *	Detect 실행
+ *  @param InRequestActor : Detect를 요청한 AActor.
  *	@param InOrigin : 탐지의 기준이 되는 Transform
  *	@param InDetectDesc : Detect 실행에 필요한 Param
  */
-void AR4Detector_Active::ExecuteDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc )
+void AR4Detector_Active::ExecuteDetect( AActor* InRequestActor, const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc )
 {
+	CachedRequestActor = InRequestActor;
+	
 	// Rotation & Position
 	// InOrigin에 Relative Location을 더한 위치, 회전을 설정.
 	SetActorRotation( InOrigin.TransformRotation( InDetectDesc.RelativeRot.Quaternion() ) );
@@ -89,7 +93,7 @@ void AR4Detector_Active::ExecuteDetect( const FTransform& InOrigin, const FR4Det
 		NoAuthCollisionEnableInfo.LifeTime = InDetectDesc.LifeTime;
 	}
 	
-	BP_ExecuteDetect( InOrigin, InDetectDesc );
+	BP_ExecuteDetect( InRequestActor, InOrigin, InDetectDesc );
 }
 
 /**
@@ -138,8 +142,11 @@ void AR4Detector_Active::_SetLifeTime( float InLifeTime )
 void AR4Detector_Active::_OnBeginShapeOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult )
 {
 	FR4DetectResult result;
+	result.RequestActor = CachedRequestActor;
+	result.Detector = this;
 	result.DetectedActor = OtherActor;
 	result.DetectedComponent = OtherComp;
+	
 	// 대략적인 위치 계산.
 	if ( IsValid( OverlappedComponent ) )
 		UtilOverlap::GetRoughOverlapPosition( OverlappedComponent->GetComponentLocation(), OtherComp, result.Location );
@@ -156,6 +163,8 @@ void AR4Detector_Active::_OnBeginShapeOverlap( UPrimitiveComponent* OverlappedCo
 void AR4Detector_Active::_OnEndShapeOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex )
 {
 	FR4DetectResult result;
+	result.RequestActor = CachedRequestActor;
+	result.Detector = this;
 	result.DetectedActor = OtherActor;
 	result.DetectedComponent = OtherComp;
 
@@ -187,7 +196,9 @@ void AR4Detector_Active::_TearDownDetect()
 		OnBeginDetectDelegate.Clear();
 		OnEndDetectDelegate.Clear();
 	}
-	
+
+	CachedRequestActor.Reset();
+
 	// disable collision
 	SetActorEnableCollision( false );
 

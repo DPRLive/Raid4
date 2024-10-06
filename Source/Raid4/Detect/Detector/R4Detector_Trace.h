@@ -38,13 +38,13 @@ public:
 	// ~ Begin IR4DetectorInterface
 	FORCEINLINE virtual FOnDetectDelegate& OnBeginDetect() override { return OnBeginDetectDelegate; }
 	FORCEINLINE virtual FOnDetectDelegate& OnEndDetect() override { return OnEndDetectDelegate; }
-	virtual void ExecuteDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) override;
+	virtual void ExecuteDetect( AActor* InRequestActor, const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc ) override;
 	// ~ End IR4DetectorInterface
 
 protected:
 	// BP에서 ExecuteDetect시 확장을 위한 제공, Call only authority
 	UFUNCTION( BlueprintImplementableEvent, Category = "Detect", meta=(DisplayName = "ExecuteDetect") )
-	void BP_ExecuteDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc );
+	void BP_ExecuteDetect( AActor* InRequestActor, const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc );
 
 	// BP에서 OnBeginDetect시 확장을 위한 제공
 	UFUNCTION( BlueprintImplementableEvent, Category = "Detect", meta=(DisplayName = "OnBeginDetect") )
@@ -114,6 +114,10 @@ private:
 
 	// Detect Delay, Interval을 위한 Timer
 	FTimerHandle TraceTimerHandle;
+
+	// Request를 요청한 Actor 캐싱.
+	UPROPERTY( Replicated, Transient, VisibleInstanceOnly )
+	TWeakObjectPtr<AActor> CachedRequestActor;
 	
 	// Debug //
 	// TODO : Debug 분리 ?

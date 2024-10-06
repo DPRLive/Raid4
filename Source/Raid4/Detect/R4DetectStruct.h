@@ -95,7 +95,6 @@ struct FR4DetectDesc
 
 /**
  * Detect한 결과 정보.
- * TODO : Requester, Detecting Detector 추가
  */
 USTRUCT( BlueprintType )
 struct FR4DetectResult
@@ -103,16 +102,20 @@ struct FR4DetectResult
 	GENERATED_BODY()
 
 	FR4DetectResult()
-	: Location(FVector_NetQuantize::ZeroVector)
-	, DetectedComponent(nullptr)
-	, DetectedActor(nullptr)
-	{}
-
-	FR4DetectResult(const FVector& InLoc, UPrimitiveComponent* InDetectedComp, AActor* InDetectedActor)
-	: Location(InLoc)
-	, DetectedComponent(InDetectedComp)
-	, DetectedActor(InDetectedActor)
-	{}
+	: RequestActor( nullptr )
+	, Detector( nullptr )
+	, Location( FVector_NetQuantize::ZeroVector )
+	, DetectedComponent( nullptr )
+	, DetectedActor( nullptr )
+	{ }
+	
+	// Detect를 요청한 Request Actor
+	UPROPERTY( Transient, BlueprintReadOnly )
+	TWeakObjectPtr<AActor> RequestActor;
+	
+	// Detect를 진행한 Detector Actor
+	UPROPERTY( Transient, BlueprintReadOnly )
+	TWeakObjectPtr<AActor> Detector;
 	
 	// 발견한 위치
 	UPROPERTY( Transient, BlueprintReadOnly )

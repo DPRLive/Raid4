@@ -34,6 +34,7 @@ void AR4Detector_Trace::GetLifetimeReplicatedProps( TArray<FLifetimeProperty>& O
 	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
 
 	DOREPLIFETIME( AR4Detector_Trace, NoAuthTraceEnableInfo );
+	DOREPLIFETIME( AR4Detector_Trace, CachedRequestActor );
 }
 
 void AR4Detector_Trace::EndPlay( const EEndPlayReason::Type EndPlayReason )
@@ -50,11 +51,14 @@ void AR4Detector_Trace::PreReturnPoolObject()
 
 /**
  *	Detect 준비
+ *  @param InRequestActor : Detect를 요청한 AActor.
  *	@param InOrigin : 탐지의 기준이 되는 Transform
  *	@param InDetectDesc : Detect 실행에 필요한 Param
  */
-void AR4Detector_Trace::ExecuteDetect( const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc )
+void AR4Detector_Trace::ExecuteDetect( AActor* InRequestActor, const FTransform& InOrigin, const FR4DetectDesc& InDetectDesc )
 {
+	CachedRequestActor = InRequestActor;
+	
 	// Rotation & Position
 	// InOrigin에 Relative Location을 더한 위치, 회전을 설정.
 	SetActorRotation( InOrigin.TransformRotation( InDetectDesc.RelativeRot.Quaternion() ) );
@@ -74,7 +78,7 @@ void AR4Detector_Trace::ExecuteDetect( const FTransform& InOrigin, const FR4Dete
 		NoAuthTraceEnableInfo.LifeTime = InDetectDesc.LifeTime;
 	}
 	
-	BP_ExecuteDetect( InOrigin, InDetectDesc );
+	BP_ExecuteDetect( InRequestActor, InOrigin, InDetectDesc );
 }
 
 /**
@@ -224,7 +228,8 @@ void AR4Detector_Trace::_Trace( )
 		for(const auto& overlapResult : overlapResults)
 		{
 			FR4DetectResult result;
-			
+			result.RequestActor = CachedRequestActor;
+			result.Detector = this;
 			result.DetectedActor = overlapResult.GetActor();
 			result.DetectedComponent = overlapResult.GetComponent();
 
@@ -263,6 +268,7 @@ void AR4Detector_Trace::_TearDownDetect()
 		OnEndDetectDelegate.Clear();
 	}
 
+	CachedRequestActor.Reset();
 	GetWorldTimerManager().ClearTimer( LifeTimerHandle );
 	GetWorldTimerManager().ClearTimer( TraceTimerHandle );
 }

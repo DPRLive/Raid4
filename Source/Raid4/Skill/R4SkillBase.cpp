@@ -190,7 +190,7 @@ void UR4SkillBase::_SpawnDetector( const FR4SkillDetectBuffWrapper& InDetectBuff
 	}
 	
 	// Execute Detect
-	detector.GetInterface()->ExecuteDetect( origin, InDetectBuffInfo.DetectorInfo.DetectDesc );
+	detector.GetInterface()->ExecuteDetect( GetOwner(), origin, InDetectBuffInfo.DetectorInfo.DetectDesc );
 }
 
 /**
