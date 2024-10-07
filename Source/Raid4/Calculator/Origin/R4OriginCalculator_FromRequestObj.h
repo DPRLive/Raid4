@@ -6,13 +6,14 @@
 
 #include <UObject/Object.h>
 
-#include "R4OriginCalculator_ActorCenter.generated.h"
+#include "R4OriginCalculator_FromRequestObj.generated.h"
 
 /**
- * Actor의 Center를 Origin으로 계산.
+ * RequestObj에게 Origin을 제공받는 클래스.
+ * Request Obj가 IR4OriginProviderInterface를 통해 Origin을 제공할 수 있어야함!
  */
 UCLASS( NotBlueprintable, ClassGroup=(Calculator) )
-class RAID4_API UR4OriginCalculator_ActorCenter : public UObject, public IR4OriginCalculatorInterface
+class RAID4_API UR4OriginCalculator_FromRequestObj : public UObject, public IR4OriginCalculatorInterface
 {
 	GENERATED_BODY()
 

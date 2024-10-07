@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include <UObject/Object.h>
-
 #include "R4OriginCalculatorInterface.h"
+
+#include <UObject/Object.h>
 
 #include "R4OriginCalculator_MeshSocket.generated.h"
 
