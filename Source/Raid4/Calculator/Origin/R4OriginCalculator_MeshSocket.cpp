@@ -9,9 +9,12 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4OriginCalculator_MeshSocket)
 
 /**
- * Mesh의 Socket을 기준으로 Origin으로 계산.
+ *  Mesh의 Socket을 기준으로 Origin으로 계산.
+ *  CDO를 사용!
+ *  @param InRequestObj : 계산을 요청한 Object
+ *  @param InActor : 계산의 기준이 되는 Actor.
  */
-FTransform UR4OriginCalculator_MeshSocket::CalculateOrigin( const AActor* InActor ) const
+FTransform UR4OriginCalculator_MeshSocket::CalculateOrigin( const UObject* InRequestObj, const AActor* InActor ) const
 {
 	const ACharacter* owner = Cast<ACharacter>( InActor );
 	if( !IsValid( owner ) )

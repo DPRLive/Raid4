@@ -176,7 +176,7 @@ void UR4SkillBase::_SpawnDetector( const FR4SkillDetectBuffWrapper& InDetectBuff
 	}
 
 	// Calculate origin.
-	origin = originCalculator->CalculateOrigin( GetOwner() );
+	origin = originCalculator->CalculateOrigin( this, GetOwner() );
 
 	// Attach ?
 	if( InDetectBuffInfo.DetectorInfo.bAttachToMesh )

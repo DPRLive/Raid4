@@ -22,9 +22,10 @@ class RAID4_API IR4OriginCalculatorInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	/**
-	*  특정 Actor로부터 Origin 값을 계산하여 return.
+	*  특정 Origin 값을 계산하여 return.
 	*  CDO를 사용!
+	*  @param InRequestObj : 계산을 요청한 Object
 	*  @param InActor : 계산의 기준이 되는 Actor.
 	*/
-	virtual FTransform CalculateOrigin( const AActor* InActor ) const = 0;
+	virtual FTransform CalculateOrigin( const UObject* InRequestObj, const AActor* InActor ) const = 0;
 };

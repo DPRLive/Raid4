@@ -17,12 +17,8 @@ class RAID4_API UR4OriginCalculator_MeshSocket : public UObject, public IR4Origi
 	GENERATED_BODY()
 
 public:
-	/**
-	*  특정 Actor로부터 Origin 값을 계산하여 return.
-	*  CDO를 사용!
-	*  @param InActor : 계산의 기준이 되는 Actor.
-	*/
-	virtual FTransform CalculateOrigin( const AActor* InActor ) const override;
+	// Mesh의 Socket을 기준으로 Origin으로 계산.
+	virtual FTransform CalculateOrigin( const UObject* InRequestObj, const AActor* InActor ) const override;
 
 private:
 	// 계산할 Mesh Socket의 Name.
