@@ -42,5 +42,6 @@ int32 UR4NonPlayerSkillComponent::GetAvailableMaxDistSkillIndex( float& OutDist 
 		}
 	}
 
+	OutDist = maxDist;
 	return maxIdx;
 }

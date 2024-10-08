@@ -59,13 +59,13 @@ EBTNodeResult::Type UBTTask_SelectAISkill::ExecuteTask( UBehaviorTreeComponent& 
 	// 사용 가능한 AI Skill의 Index와 Dist Get
 	float skillDist = 0.f;
 	int32 skillIdx = aiPawn->GetAvailableMaxDistSkillIndex( skillDist );
-
-	if ( skillIdx == INDEX_NONE )
-		return EBTNodeResult::Failed;
 	
 	// BB에 저장
 	blackboard->SetValue<UBlackboardKeyType_Int>( SkillIndexBlackboardKey.GetSelectedKeyID(), skillIdx );
 	blackboard->SetValue<UBlackboardKeyType_Float>( SkillDistBlackboardKey.GetSelectedKeyID(), skillDist );
+
+	if ( skillIdx == INDEX_NONE )
+		return EBTNodeResult::Failed;
 	
 	return EBTNodeResult::Succeeded;
 }
