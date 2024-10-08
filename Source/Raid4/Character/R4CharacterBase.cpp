@@ -209,6 +209,10 @@ void AR4CharacterBase::ReceiveDamage(AActor* InInstigator, const FR4DamageReceiv
 	// 실제 HP 감소, StatComp에 적용
 	float damagedHp = FMath::Max(StatComp->GetCurrentHp() - reducedDamage, 0.f);
 	StatComp->SetCurrentHp(damagedHp);
+
+	// Damage 수신 알림
+	if( OnCharacterDamagedDelegate.IsBound() )
+		OnCharacterDamagedDelegate.Broadcast( InInstigator, reducedDamage );
 	
 	// 죽었다면 죽었다고 알림
 	if(FMath::IsNearlyZero(damagedHp) && OnCharacterDeadDelegate.IsBound())

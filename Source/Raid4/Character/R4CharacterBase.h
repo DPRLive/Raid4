@@ -102,6 +102,10 @@ public:
 	UPROPERTY( BlueprintAssignable, VisibleAnywhere )
 	FOnCharacterDeadDelegate OnCharacterDeadDelegate;
 
+	// Damage 피해 알림
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams( FOnCharacterDamaged, const AActor*, InInstigator, float, InDamage );
+	UPROPERTY( BlueprintAssignable, VisibleAnywhere )
+	FOnCharacterDamaged OnCharacterDamagedDelegate;
 protected:
 	// 스탯 기능을 부여해주는 Stat Component
 	UPROPERTY( VisibleAnywhere, Category = "Stat", meta = (AllowPrivateAccess = true) )
