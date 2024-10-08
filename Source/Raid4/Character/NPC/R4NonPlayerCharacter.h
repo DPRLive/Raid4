@@ -26,8 +26,13 @@ public:
 	virtual float GetMaxPatrolRadius() const override { return MaxPatrolRadius; }
 	virtual void ActivateAISkill( uint8 InSkillIndex ) override;
 	virtual int32 GetAvailableMaxDistSkillIndex( float& OutDist ) const override;
+	virtual float GetAIRotationSpeed() const override { return AIRotationSpeed; } 
 	// ~ End IR4CharacterAIInterface
 
+	// ~ Begin IR4DTDataPushable (Character의 데이터를 초기화한다. ( By DT_Character))
+	virtual void PushDTData(FPriKey InPk) override; 
+	// ~ End IR4DTDataPushable
+	
 	// AI 캐릭터 데미지 수신
 	UFUNCTION( )
 	void OnAICharacterDamaged( const AActor* InInstigator, float InDamage );
@@ -36,6 +41,10 @@ private:
 	// 정찰 시 최대 이동 범위.
 	UPROPERTY( EditAnywhere, Category = "AI" )
 	float MaxPatrolRadius;
+
+	// AI Controller에 의해 회전 시 회전 속도.
+	UPROPERTY( EditAnywhere, Category = "AI" )
+	float AIRotationSpeed;
 	
 	// Damage를 입힌 Actor들의 List를 Caching
 	TMap<TWeakObjectPtr<const AController>, float> CachedDamagedControllers;

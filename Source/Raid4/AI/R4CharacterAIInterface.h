@@ -35,4 +35,7 @@ public:
 
 	// 사용 가능한 스킬 중, ActivateSkillMinDist가 가장 큰 Skill Index를 반환
 	virtual int32 GetAvailableMaxDistSkillIndex( float& OutDist ) const = 0;
+
+	// AI의 회전 속도를 반환
+	virtual float GetAIRotationSpeed() const = 0;
 };

@@ -5,6 +5,14 @@
 
 #include "../../Controller/R4AIController.h"
 #include "../../Skill/NonPlayer/R4NonPlayerSkillComponent.h"
+// test..
+#include "Animation/AnimInstance.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Raid4/Character/R4CharacterRow.h"
+#include "Raid4/Skill/R4SkillBase.h"
+#include "Raid4/Stat/CharacterStat/R4CharacterStatComponent.h"
+#include "Engine/SkeletalMesh.h"
+//
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4NonPlayerCharacter)
 
@@ -14,6 +22,7 @@ AR4NonPlayerCharacter::AR4NonPlayerCharacter( const FObjectInitializer& InObject
 	PrimaryActorTick.bCanEverTick = false;
 
 	MaxPatrolRadius = 800.f;
+	AIRotationSpeed = 300.f;
 	
 	// AI Controller 지정
 	AIControllerClass = AR4AIController::StaticClass();
@@ -45,6 +54,45 @@ int32 AR4NonPlayerCharacter::GetAvailableMaxDistSkillIndex( float& OutDist ) con
 		return skillComp->GetAvailableMaxDistSkillIndex( OutDist );
 
 	return INDEX_NONE;
+}
+
+void AR4NonPlayerCharacter::PushDTData( FPriKey InPk )
+{
+	const FR4CharacterRowPtr characterData(100);
+	if(!characterData.IsValid())
+	{
+		LOG_ERROR(R4Data, TEXT("CharacterData is Invalid. PK : [%d]"), InPk);
+		return;
+	}
+	
+	if(USkeletalMeshComponent* meshComp = GetMesh(); IsValid(meshComp))
+	{
+		// 스켈레탈 메시 설정
+		if(USkeletalMesh* skelMesh = characterData->SkeletalMesh.LoadSynchronous(); IsValid(skelMesh))
+			meshComp->SetSkeletalMesh(skelMesh);
+
+		// 애니메이션 설정
+		meshComp->SetAnimInstanceClass(characterData->AnimInstance);
+	}
+
+	// 스탯 컴포넌트에 데이터 입력
+	StatComp->PushDTData(characterData->BaseStatRowPK);
+	
+	if (!HasAuthority())
+		return;
+	
+	///// Only Server /////
+
+	// 스킬 컴포넌트에 스킬을 적용.
+	// TODO : 배열 주면 Skill Comp에서 읽어가게 하는게 좋을거 같단말이야
+	for (const TPair<EPlayerSkillIndex, TSubclassOf<UR4SkillBase>>& skill : characterData->Skills)
+	{
+		if (UR4SkillBase* instanceSkill = NewObject<UR4SkillBase>(this, skill.Value); IsValid(instanceSkill))
+		{
+			instanceSkill->RegisterComponent();
+			SkillComp->Server_AddSkill( static_cast<uint8>(skill.Key), instanceSkill);
+		}
+	}
 }
 
 /**
