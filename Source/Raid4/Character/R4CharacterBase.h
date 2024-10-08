@@ -85,6 +85,10 @@ public:
 	virtual FR4StatInfo* GetStatByTag( const FGameplayTag& InTag ) const override;
 	virtual FR4CurrentStatInfo* GetCurrentStatByTag( const FGameplayTag& InTag ) const override;
 	// ~ End IR4TagStatQueryInterface
+
+	// 죽었는지 반환
+	bool IsDead() const { return bDead; }
+	
 protected:
 	// StatComp와 필요한 바인딩을 진행
 	virtual void BindStatComponent();
@@ -108,22 +112,26 @@ public:
 	FOnCharacterDamaged OnCharacterDamagedDelegate;
 protected:
 	// 스탯 기능을 부여해주는 Stat Component
-	UPROPERTY( VisibleAnywhere, Category = "Stat", meta = (AllowPrivateAccess = true) )
+	UPROPERTY( VisibleAnywhere, Category = "Stat" )
 	TObjectPtr<UR4CharacterStatComponent> StatComp;
 
 	// 스킬 기능을 부여해주는 Skill Component
-	UPROPERTY( VisibleAnywhere, Category = "Skill", meta = (AllowPrivateAccess = true) )
+	UPROPERTY( VisibleAnywhere, Category = "Skill" )
 	TObjectPtr<UR4SkillComponent> SkillComp;
 
 	// 버프 관리 기능을 부여해주는 Buff Component
-	UPROPERTY( VisibleAnywhere, Category = "Buff", meta = (AllowPrivateAccess = true) )
+	UPROPERTY( VisibleAnywhere, Category = "Buff" )
 	TObjectPtr<UR4BuffManageComponent> BuffManageComp;
 
 	// 방어막 기능을 부여해주는 Shield Component
-	UPROPERTY( VisibleAnywhere, Category = "Shield", meta = (AllowPrivateAccess = true) )
+	UPROPERTY( VisibleAnywhere, Category = "Shield" )
 	TObjectPtr<UR4ShieldComponent> ShieldComp;
 	
 	// 여러가지 Animation 기능을 위한 Component
-	UPROPERTY( VisibleAnywhere, Category = "Anim", meta = (AllowPrivateAccess = true) )
+	UPROPERTY( VisibleAnywhere, Category = "Anim" )
 	TObjectPtr<UR4AnimationComponent> AnimComp;
+
+private:
+	// 죽은 상태인지 여부.
+	uint8 bDead:1;
 };

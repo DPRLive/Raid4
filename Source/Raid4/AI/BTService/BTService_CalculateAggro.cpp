@@ -3,6 +3,7 @@
 
 #include "BTService_CalculateAggro.h"
 #include "../R4CharacterAIInterface.h"
+#include "../../Character/R4CharacterBase.h"
 
 #include <AIController.h>
 #include <BehaviorTree/BlackboardComponent.h>
@@ -49,8 +50,8 @@ void UBTService_CalculateAggro::TickNode( UBehaviorTreeComponent& InOwnerComp, u
 		if ( !controller.IsValid() )
 			continue;
 
-		APawn* newTarget = controller->GetPawn();
-		if( !IsValid( newTarget ) )
+		AR4CharacterBase* newTarget = Cast<AR4CharacterBase>( controller->GetPawn() );
+		if( !IsValid( newTarget ) || newTarget->IsDead() )
 			continue;
 
 		float newTargetAggro = damage;

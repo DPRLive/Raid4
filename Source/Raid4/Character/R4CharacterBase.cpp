@@ -40,6 +40,8 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 
 	// Mesh NoCollision
 	GetMesh()->SetCollisionProfileName(Collision::G_ProfileNoCollision);
+
+	bDead = false;
 }
 
 /**
@@ -307,4 +309,6 @@ void AR4CharacterBase::Dead()
 {
 	// TODO : Set Collision, Hide widget, stat, skill reset 등 해야함, Respawn을 위한 reset 기능도 추가
 	LOG_WARN(LogTemp, TEXT("DEAD"));
+
+	bDead = true;
 }
