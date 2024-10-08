@@ -4,11 +4,12 @@
 #include "R4NonPlayerCharacter.h"
 
 #include "../../Controller/R4AIController.h"
+#include "../../Skill/NonPlayer/R4NonPlayerSkillComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4NonPlayerCharacter)
 
 AR4NonPlayerCharacter::AR4NonPlayerCharacter( const FObjectInitializer& InObjectInitializer )
-	: Super( InObjectInitializer )
+	: Super( InObjectInitializer.SetDefaultSubobjectClass<UR4NonPlayerSkillComponent>( FName( TEXT( "SkillComp" ) ) ) )
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -24,6 +25,26 @@ void AR4NonPlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	OnCharacterDamagedDelegate.AddDynamic( this, &AR4NonPlayerCharacter::OnAICharacterDamaged );
+}
+
+/**
+ *  스킬 사용 요청 처리
+ */
+void AR4NonPlayerCharacter::ActivateAISkill( uint8 InSkillIndex )
+{
+	if ( UR4NonPlayerSkillComponent* skillComp = Cast<UR4NonPlayerSkillComponent>( SkillComp ) )
+		skillComp->ActivateAISkill( InSkillIndex );
+}
+
+/**
+ *  사용 가능한 스킬 중, ActivateSkillMinDist가 큰 Skill Index를 반환
+ */
+int32 AR4NonPlayerCharacter::GetAvailableMaxDistSkillIndex( float& OutDist ) const
+{
+	if ( UR4NonPlayerSkillComponent* skillComp = Cast<UR4NonPlayerSkillComponent>( SkillComp ) )
+		return skillComp->GetAvailableMaxDistSkillIndex( OutDist );
+
+	return INDEX_NONE;
 }
 
 /**

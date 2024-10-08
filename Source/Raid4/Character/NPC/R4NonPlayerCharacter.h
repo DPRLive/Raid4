@@ -24,8 +24,11 @@ public:
 	// ~ Begin IR4CharacterAIInterface
 	virtual const TMap<TWeakObjectPtr<const AController>, float>& GetDamagedControllers() const override { return CachedDamagedControllers; }
 	virtual float GetMaxPatrolRadius() const override { return MaxPatrolRadius; }
+	virtual void ActivateAISkill( uint8 InSkillIndex ) override;
+	virtual int32 GetAvailableMaxDistSkillIndex( float& OutDist ) const override;
 	// ~ End IR4CharacterAIInterface
 
+	// AI 캐릭터 데미지 수신
 	UFUNCTION( )
 	void OnAICharacterDamaged( const AActor* InInstigator, float InDamage );
 	

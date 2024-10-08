@@ -8,7 +8,7 @@
 /**
  * Player용 Skill Component
  */
-UCLASS()
+UCLASS( ClassGroup=(Skill), meta=(BlueprintSpawnableComponent) )
 class RAID4_API UR4PlayerSkillComponent : public UR4SkillComponent
 {
 	GENERATED_BODY()
