@@ -24,8 +24,9 @@ class RAID4_API IR4CharacterAIInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
-	/**
-	 *  해당 AI에게 데미지를 입힌 Controller TMap을 반환.
-	 */
+	// 해당 AI에게 데미지를 입힌 Controller TMap을 반환.
 	virtual const TMap<TWeakObjectPtr<const AController>, float>& GetDamagedControllers() const = 0;
+
+	// Patrol Radius 범위를 반환.
+	virtual float GetMaxPatrolRadius() const = 0;
 };

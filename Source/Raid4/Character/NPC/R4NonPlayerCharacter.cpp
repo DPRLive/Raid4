@@ -12,6 +12,8 @@ AR4NonPlayerCharacter::AR4NonPlayerCharacter( const FObjectInitializer& InObject
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	MaxPatrolRadius = 800.f;
+	
 	// AI Controller 지정
 	AIControllerClass = AR4AIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -40,6 +42,6 @@ void AR4NonPlayerCharacter::OnAICharacterDamaged( const AActor* InInstigator, fl
 	if( !IsValid( instigatorController ) )
 		return;
 
-	float& totalDamage = DamagedControllerList.FindOrAdd( instigatorController );
+	float& totalDamage = CachedDamagedControllers.FindOrAdd( instigatorController );
 	totalDamage += InDamage;
 }

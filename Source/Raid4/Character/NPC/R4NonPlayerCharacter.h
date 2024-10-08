@@ -22,12 +22,18 @@ protected:
 
 public:
 	// ~ Begin IR4CharacterAIInterface
-	virtual const TMap<TWeakObjectPtr<const AController>, float>& GetDamagedControllers() const override { return DamagedControllerList; }
+	virtual const TMap<TWeakObjectPtr<const AController>, float>& GetDamagedControllers() const override { return CachedDamagedControllers; }
+	virtual float GetMaxPatrolRadius() const override { return MaxPatrolRadius; }
 	// ~ End IR4CharacterAIInterface
 
 	UFUNCTION( )
 	void OnAICharacterDamaged( const AActor* InInstigator, float InDamage );
+	
 private:
+	// 정찰 시 최대 이동 범위.
+	UPROPERTY( EditAnywhere, Category = "AI" )
+	float MaxPatrolRadius;
+	
 	// Damage를 입힌 Actor들의 List를 Caching
-	TMap<TWeakObjectPtr<const AController>, float> DamagedControllerList;
+	TMap<TWeakObjectPtr<const AController>, float> CachedDamagedControllers;
 };
