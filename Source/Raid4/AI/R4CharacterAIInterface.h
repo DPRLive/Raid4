@@ -29,4 +29,10 @@ public:
 
 	// Patrol Radius 범위를 반환.
 	virtual float GetMaxPatrolRadius() const = 0;
+
+	// 스킬 사용 요청
+	virtual void ActivateAISkill( uint8 InSkillIndex ) = 0;
+
+	// 사용 가능한 스킬 중, ActivateSkillMinDist가 가장 큰 Skill Index를 반환
+	virtual int32 GetAvailableMaxDistSkillIndex( float& OutDist ) const = 0;
 };

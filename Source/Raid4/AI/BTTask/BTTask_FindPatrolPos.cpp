@@ -24,7 +24,8 @@ UBTTask_FindPatrolPos::UBTTask_FindPatrolPos()
  */
 EBTNodeResult::Type UBTTask_FindPatrolPos::ExecuteTask( UBehaviorTreeComponent& InOwnerComp, uint8* InNodeMemory )
 {
-	EBTNodeResult::Type Result = Super::ExecuteTask(InOwnerComp, InNodeMemory);
+	if ( Super::ExecuteTask( InOwnerComp, InNodeMemory ) == EBTNodeResult::Failed )
+		return EBTNodeResult::Failed;
 
 	APawn* controllingPawn = InOwnerComp.GetAIOwner()->GetPawn();
 	if ( !IsValid( controllingPawn ) )
@@ -33,8 +34,8 @@ EBTNodeResult::Type UBTTask_FindPatrolPos::ExecuteTask( UBehaviorTreeComponent& 
 	UNavigationSystemV1* navSystem = UNavigationSystemV1::GetNavigationSystem( controllingPawn->GetWorld() );
 	if ( !IsValid( navSystem ) )
 		return EBTNodeResult::Failed;
-	
-	IR4CharacterAIInterface* aiPawn = Cast< IR4CharacterAIInterface >( controllingPawn );
+
+	IR4CharacterAIInterface* aiPawn = Cast<IR4CharacterAIInterface>( controllingPawn );
 	if ( aiPawn == nullptr )
 		return EBTNodeResult::Failed;
 
