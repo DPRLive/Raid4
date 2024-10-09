@@ -50,11 +50,11 @@ protected:
 	
 protected:
 	// 버프 해제 시 Deactivate (버프가 한 짓 되돌리기)가 가능하고, 필요한 경우 사용
-	UPROPERTY( EditDefaultsOnly, Category = "Deactivate", meta = ( AllowPrivateAccess = true ) )
+	UPROPERTY( EditDefaultsOnly, Category = "Deactivate" )
 	uint8 bDeactivate:1;
 
 	// Buff를 Tag로 식별하고자 하는 경우 Tag 설정
-	UPROPERTY( EditDefaultsOnly, Category = "Tag", meta = ( Categories = "Buff", AllowPrivateAccess = true ) )
+	UPROPERTY( EditDefaultsOnly, Category = "Tag", meta = ( Categories = "Buff" ) )
 	FGameplayTag BuffTag;
 	
 	// 시전자가 누군지 캐싱

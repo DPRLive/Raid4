@@ -74,6 +74,7 @@ void UR4BuffManageComponent::AddBuff( AActor* InInstigator, const TSubclassOf<UR
 	if ( buffInfo.BuffInstance->GetBuffTag().MatchesAny( BlockingBuffTags_Match ) ||
 		buffInfo.BuffInstance->GetBuffTag().MatchesAnyExact( BlockingBuffTags_MatchExact ) )
 	{
+		OBJECT_POOL( GetWorld() )->ReturnPoolObject( buffInfo.BuffInstance );
 		LOG_N( R4Data, TEXT("[%s], Buff blocked."), *InBuffClass->GetName() );
 		return;
 	}
@@ -85,7 +86,7 @@ void UR4BuffManageComponent::AddBuff( AActor* InInstigator, const TSubclassOf<UR
 		OBJECT_POOL( GetWorld() )->ReturnPoolObject( buffInfo.BuffInstance );
 		return;
 	}
-	
+
 	// 추가 정보 설정
 	buffInfo.BuffClass = InBuffClass;
 	buffInfo.BuffSettingDesc = InBuffSettingDesc;
