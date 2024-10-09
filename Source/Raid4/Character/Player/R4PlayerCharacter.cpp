@@ -22,6 +22,8 @@ AR4PlayerCharacter::AR4PlayerCharacter(const FObjectInitializer& InObjectInitial
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	bUseControllerRotationYaw = false;
+	
 	// Input Component
 	PlayerInputComp = CreateDefaultSubobject<UR4PlayerInputComponent>(TEXT("PlayerInputComp"));
 
