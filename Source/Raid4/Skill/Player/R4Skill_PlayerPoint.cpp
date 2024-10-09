@@ -107,15 +107,37 @@ FTransform UR4Skill_PlayerPoint::GetOrigin( const UObject* InRequestObj, const A
 void UR4Skill_PlayerPoint::OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, float InStartServerTime )
 {
 	Super::OnBeginSkillAnim( InSkillAnimInfo, InStartServerTime );
-
-	// server & autonomous only
-	if( GetOwnerRole() == ROLE_SimulatedProxy )
-		return;
 	
 	// Player Point Skill의 경우 Attack Anim Play 시점을 Skill 사용으로 판정
 	// Anim Play 성공 = 스킬 사용으로 판단 및 쿨타임 적용
 	if ( InSkillAnimInfo.SkillAnimServerKey == AttackSkillAnimInfo.SkillAnimServerKey )
+	{
+		// Skill 사용 시작 판정
+		if( OnBeginSkill.IsBound() )
+			OnBeginSkill.Broadcast();
+		
+		// server & autonomous only
+		if( GetOwnerRole() == ROLE_SimulatedProxy )
+			return;
+		
 		SetSkillCoolDownTime( GetSkillCoolDownTime( false ) );
+	}
+}
+
+/**
+ *  Anim 종료 시 호출.
+ * @param InSkillAnimInfo : End된 Skill Anim 정보
+ */
+void UR4Skill_PlayerPoint::OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted )
+{
+	Super::OnEndSkillAnim( InSkillAnimInfo, InIsInterrupted );
+
+	// Point Skill의 경우 Attack Anim End 시점을 Skill End로 판정
+	if ( InSkillAnimInfo.SkillAnimServerKey == AttackSkillAnimInfo.SkillAnimServerKey )
+	{
+		if ( OnEndSkill.IsBound() )
+			OnEndSkill.Broadcast();
+	}
 }
 
 /**

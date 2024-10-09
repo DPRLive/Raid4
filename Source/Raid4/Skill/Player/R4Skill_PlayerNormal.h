@@ -32,6 +32,9 @@ protected:
 	// Anim을 Play시작 시 호출.
 	virtual void OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, float InStartServerTime ) override;
 
+	// Anim 종료 시 호출.
+	virtual void OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted ) override;
+
 private:
 	// 발동할 스킬 애니메이션, 누르면 바로 작동
 	UPROPERTY( Replicated, EditAnywhere, Category = "Skill|Anim" )

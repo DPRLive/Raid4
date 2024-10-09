@@ -84,7 +84,10 @@ public:
 protected:
 	// Anim을 Play시작 시 호출.
 	virtual void OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, float InStartServerTime ) override;
-	
+
+	// Anim 종료 시 호출.
+	virtual void OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted ) override;
+
 	// 현재 Tick이 필요한 상태인지 return.
 	virtual bool IsNeedTick() const override;
 

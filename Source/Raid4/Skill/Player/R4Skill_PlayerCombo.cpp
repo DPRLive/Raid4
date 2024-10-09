@@ -124,13 +124,19 @@ void UR4Skill_PlayerCombo::OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnim
 {
 	Super::OnBeginSkillAnim( InSkillAnimInfo, InStartServerTime );
 
-	// server & autonomous only
-	if( GetOwnerRole() == ROLE_SimulatedProxy )
-		return;
-	
 	// Anim Play 시작 성공 시 Combo Skill 사용중으로 판단, Combo Input 가능
 	if ( InSkillAnimInfo.SkillAnimServerKey == ComboSkillAnimInfo.SkillAnimServerKey )
+	{
+		// Skill 사용 시작 판정
+		if( OnBeginSkill.IsBound() )
+			OnBeginSkill.Broadcast();
+		
+		// server & autonomous only
+		if( GetOwnerRole() == ROLE_SimulatedProxy )
+			return;
+	
 		CachedCanComboInput = true;
+	}
 }
 
 /**
@@ -199,12 +205,16 @@ void UR4Skill_PlayerCombo::OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimIn
 {
 	Super::OnEndSkillAnim( InSkillAnimInfo, InIsInterrupted );
 
-	// server & autonomous only
-	if( GetOwnerRole() == ROLE_SimulatedProxy )
-		return;
-	
 	if ( InSkillAnimInfo.SkillAnimServerKey == ComboSkillAnimInfo.SkillAnimServerKey )
 	{
+		// Skill 종료 판정
+		if ( OnEndSkill.IsBound() )
+			OnEndSkill.Broadcast();
+		
+		// server & autonomous only
+		if( GetOwnerRole() == ROLE_SimulatedProxy )
+			return;
+	
 		CachedCanComboInput = false;
 		CachedOnComboInput = false;
 
