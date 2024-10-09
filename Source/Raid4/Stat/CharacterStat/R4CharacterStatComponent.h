@@ -45,7 +45,6 @@ public:
 	R4STAT_STAT_ACCESSORS( Armor );
 	R4STAT_STAT_ACCESSORS( CoolDownReduction );
 	R4STAT_STAT_ACCESSORS( CriticalChance );
-	R4STAT_STAT_ACCESSORS( BaseAttackSpeed );
 	R4STAT_STAT_ACCESSORS( MovementSpeed );
 	R4STAT_STAT_ACCESSORS( ApplyDamageMultiplier );
 	R4STAT_STAT_ACCESSORS( ReceiveDamageMultiplier );
@@ -74,10 +73,6 @@ private:
 	// 치명타 확률 ( 백분율 )
 	UPROPERTY( ReplicatedUsing = _OnRep_CriticalChance, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
 	FR4StatInfo CriticalChance;
-
-	// 기본 공격 속도
-	UPROPERTY( ReplicatedUsing = _OnRep_BaseAttackSpeed, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
-	FR4StatInfo BaseAttackSpeed;
 
 	// 이동 속도
 	UPROPERTY( ReplicatedUsing = _OnRep_MovementSpeed, VisibleAnywhere, BlueprintReadOnly, Category = "Stat", meta = (AllowPrivateAccess = true) )
@@ -112,9 +107,6 @@ private:
 
 	UFUNCTION()
 	void _OnRep_CriticalChance(const FR4StatInfo& InPrevCriticalChance);
-
-	UFUNCTION()
-	void _OnRep_BaseAttackSpeed(const FR4StatInfo& InPrevBaseAttackSpeed);
 
 	UFUNCTION()
 	void _OnRep_MovementSpeed(const FR4StatInfo& InPrevMovementSpeed);

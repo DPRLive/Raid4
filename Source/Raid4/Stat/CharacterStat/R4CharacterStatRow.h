@@ -18,7 +18,6 @@ struct FR4CharacterStatRow : public FR4RowBase
 	, Armor({TAG_STAT_NORMAL_Armor, 0.f})
 	, CoolDownReduction({TAG_STAT_NORMAL_CoolDownReduction, 0.f})
 	, CriticalChance({TAG_STAT_NORMAL_CriticalChance, 0.f})
-	, BaseAttackSpeed({TAG_STAT_NORMAL_BaseAttackSpeed, 0.f})
 	, MovementSpeed({TAG_STAT_NORMAL_MovementSpeed, 0.f}) {}
 	
 	// 기본 체력
@@ -44,10 +43,6 @@ struct FR4CharacterStatRow : public FR4RowBase
 	// 치명타 확률 ( 백분율 )
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
 	FR4TagValue CriticalChance;
-
-	// 공격 속도
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
-	FR4TagValue BaseAttackSpeed;
 	
 	// 이동 속도
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )

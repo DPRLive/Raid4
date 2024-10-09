@@ -49,7 +49,6 @@ void UR4CharacterStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME_CONDITION(UR4CharacterStatComponent, Armor, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UR4CharacterStatComponent, CoolDownReduction, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UR4CharacterStatComponent, CriticalChance, COND_OwnerOnly);
-	DOREPLIFETIME_CONDITION(UR4CharacterStatComponent, BaseAttackSpeed, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UR4CharacterStatComponent, MovementSpeed, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UR4CharacterStatComponent, ApplyDamageMultiplier, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UR4CharacterStatComponent, ReceiveDamageMultiplier, COND_OwnerOnly);
@@ -71,7 +70,6 @@ void UR4CharacterStatComponent::ResetStat()
 		SetAddModifierArmor(0.f); SetMultiplyModifierArmor(1.f);
 		SetAddModifierCoolDownReduction(0.f); SetMultiplyModifierCoolDownReduction(1.f);
 		SetAddModifierCriticalChance(0.f); SetMultiplyModifierCriticalChance(1.f);
-		SetAddModifierBaseAttackSpeed(0.f); SetMultiplyModifierBaseAttackSpeed(1.f);
 		SetAddModifierMovementSpeed(0.f); SetMultiplyModifierMovementSpeed(1.f);
 		SetAddModifierApplyDamageMultiplier(0.f); SetMultiplyModifierApplyDamageMultiplier(1.f);
 		SetAddModifierReceiveDamageMultiplier(0.f); SetMultiplyModifierReceiveDamageMultiplier(1.f);
@@ -99,7 +97,6 @@ void UR4CharacterStatComponent::PushDTData(FPriKey InPk)
 		SetBaseArmor(statPtr->Armor.Value);
 		SetBaseCoolDownReduction(statPtr->CoolDownReduction.Value);
 		SetBaseCriticalChance(statPtr->CriticalChance.Value);
-		SetBaseBaseAttackSpeed(statPtr->BaseAttackSpeed.Value);
 		SetBaseMovementSpeed(statPtr->MovementSpeed.Value);
 
 		// Meta Stat
@@ -115,7 +112,6 @@ void UR4CharacterStatComponent::PushDTData(FPriKey InPk)
 	BindTagToStat(statPtr->Armor.Tag, Armor);
 	BindTagToStat(statPtr->CoolDownReduction.Tag, CoolDownReduction);
 	BindTagToStat(statPtr->CriticalChance.Tag, CriticalChance);
-	BindTagToStat(statPtr->BaseAttackSpeed.Tag, BaseAttackSpeed);
 	BindTagToStat(statPtr->MovementSpeed.Tag, MovementSpeed);
 
 	// Meta Stat
@@ -155,11 +151,6 @@ void UR4CharacterStatComponent::_OnRep_CoolDownReduction(const FR4StatInfo& InPr
 void UR4CharacterStatComponent::_OnRep_CriticalChance(const FR4StatInfo& InPrevCriticalChance)
 {
 	R4STAT_STAT_OnRep(CriticalChance, InPrevCriticalChance);
-}
-
-void UR4CharacterStatComponent::_OnRep_BaseAttackSpeed(const FR4StatInfo& InPrevBaseAttackSpeed)
-{
-	R4STAT_STAT_OnRep(BaseAttackSpeed, InPrevBaseAttackSpeed);
 }
 
 void UR4CharacterStatComponent::_OnRep_MovementSpeed(const FR4StatInfo& InPrevMovementSpeed)
