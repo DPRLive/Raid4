@@ -81,6 +81,9 @@ public:
 	// ~ Begin IR4OriginProviderInterface
 	virtual FTransform GetOrigin( const UObject* InRequestObj, const AActor* InActor ) const override;
 	// ~ End IR4OriginProviderInterface
+	
+	// 스킬을 Disable / Enable.
+	virtual void SetSkillEnable( bool InIsEnable ) override;
 protected:
 	// Anim을 Play시작 시 호출.
 	virtual void OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, float InStartServerTime ) override;

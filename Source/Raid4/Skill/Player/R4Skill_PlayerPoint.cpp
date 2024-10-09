@@ -49,8 +49,11 @@ void UR4Skill_PlayerPoint::TickComponent( float DeltaTime, ELevelTick TickType, 
  */
 void UR4Skill_PlayerPoint::OnInputStarted()
 {
+	if ( !CanActivateSkill() )
+		return;
+	
 	// 스킬이 사용 가능 하고, 지점 선택 중이 아닐 시
-	if ( CanActivateSkill() && !CachedNowPointing )
+	if ( !CachedNowPointing )
 	{
 		// 지점 선택 로직 실행
 		CachedNowPointing = true;
@@ -97,6 +100,23 @@ FTransform UR4Skill_PlayerPoint::GetOrigin( const UObject* InRequestObj, const A
 	}
 
 	return retTrans;
+}
+
+/**
+ * 스킬을 Disable / Enable.
+ */
+void UR4Skill_PlayerPoint::SetSkillEnable( bool InIsEnable )
+{
+	Super::SetSkillEnable( InIsEnable );
+
+	// Targeting 중 Disable 되는 경우 teardown 
+	if( !InIsEnable )
+	{
+		CachedNowPointing = false;
+
+		// Decal 정리
+		_TearDownPointingDecal();
+	}
 }
 
 /**
