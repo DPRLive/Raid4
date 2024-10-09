@@ -88,9 +88,12 @@ void UR4Skill_PlayerCombo::GetLifetimeReplicatedProps( TArray<class FLifetimePro
  */
 void UR4Skill_PlayerCombo::OnInputStarted()
 {
-	// 스킬이 사용 가능하고, Combo Input Check가 불가능할 때 ( Combo Anim이 활성화 되지 않았다는 뜻 )
+	if ( !CanActivateSkill() )
+		return;
+	
+	// Combo Input Check가 불가능할 때 ( Combo Anim이 활성화 되지 않았다는 뜻 )
 	// Combo Skill 시작
-	if ( CanActivateSkill() && !CachedCanComboInput )
+	if ( !CachedCanComboInput )
 	{
 		// Anim Play.
 		PlaySkillAnim( ComboSkillAnimInfo );
@@ -104,15 +107,6 @@ void UR4Skill_PlayerCombo::OnInputStarted()
 		CachedOnComboInput = true;
 		_ServerRPC_RequestComboInput();
 	}
-}
-
-/**
- * 스킬 사용이 가능한지 판단
- */
-bool UR4Skill_PlayerCombo::CanActivateSkill() const
-{
-	// Combo input test를 받을 수 있는 상태이면, 사용중 인 것
-	return Super::CanActivateSkill() && !CachedCanComboInput;
 }
 
 /**

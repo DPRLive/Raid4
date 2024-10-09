@@ -71,7 +71,6 @@ void UR4SkillBase::BeginPlay()
 
 /**
  *  스킬 사용이 가능한지 판단
- *  TODO : 현재 스킬 사용중인지 판단 추가
  */
 bool UR4SkillBase::CanActivateSkill() const
 {

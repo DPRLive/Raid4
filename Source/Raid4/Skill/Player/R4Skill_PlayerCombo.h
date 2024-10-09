@@ -76,9 +76,6 @@ public:
 	virtual void OnInputCompleted() override {}
 	// ~ End IR4PlayerInputableInterface
 
-	// 스킬 사용이 가능한지 판단
-	virtual bool CanActivateSkill() const override;
-	
 protected:
 	// Anim을 Play시작 시 호출.
 	virtual void OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, float InStartServerTime ) override;
