@@ -76,7 +76,7 @@ private:
 	TArray<FR4SkillBuffInfo> OnEndSkillBuffs;
 
 	// 스킬이 Enable / Disable 되었는지 여부.
-	UPROPERTY( EditAnywhere )
+	UPROPERTY( VisibleInstanceOnly )
 	uint8 bEnableSkill:1;
 	
 	// 해당 스킬의 쿨타임. 몇초마다 사용이 가능한지?

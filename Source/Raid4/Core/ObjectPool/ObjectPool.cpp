@@ -135,6 +135,9 @@ bool FObjectPool::ReturnPoolObject(UObject* InPoolObject)
  */
 UObject* FObjectPool::_TryGetValidPoolObject(FName InClassName)
 {
+	if ( !InClassName.IsValid() )
+		return nullptr;
+	
 	auto it = PoolIters.Find(InClassName);
 	if(it == nullptr || !(*it))
 	{

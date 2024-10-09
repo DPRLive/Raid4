@@ -55,10 +55,6 @@ void AR4CharacterBase::PostInitializeComponents()
 	BindStatComponent();
 	
 	OnCharacterDeadDelegate.AddDynamic(this, &AR4CharacterBase::Dead);
-
-	// TODO : 데이터 집어넣는건 PlayerController가 Character PK를 들고 있다가 OnPossess 와 OnRep_Owner 되면 넣는걸로 하면 될 듯
-	// Character 테스트를 위한 Aurora 데이터 임시 로드
-	PushDTData(1);
 }
 
 /**
@@ -67,7 +63,11 @@ void AR4CharacterBase::PostInitializeComponents()
 void AR4CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
+	// TODO : 데이터 집어넣는건 PlayerController가 Character PK를 들고 있다가 OnPossess 와 OnRep_Owner 되면 넣는걸로 하면 될 듯
+	// Character 테스트를 위한 Aurora 데이터 임시 로드
+	PushDTData(1);
+	
 	// test
 	if(HasAuthority())
 	{
