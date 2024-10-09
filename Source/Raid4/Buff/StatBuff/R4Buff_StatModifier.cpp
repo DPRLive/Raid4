@@ -51,10 +51,11 @@ bool UR4Buff_StatModifier::SetupBuff(AActor* InInstigator, AActor* InVictim)
 {
 	bool bReady = Super::SetupBuff(InInstigator, InVictim);
 
-
 	if(!InVictim->GetClass())
 		return false;
-	
+
+	CachedDeltaValue = ( ModifierType == EOperatorType::Add ? 0.f : 1.f );
+		
 	// R4TagStatQueryInterface 구현이 되었는지 확인
 	return bReady && InVictim->GetClass()->ImplementsInterface(UR4TagStatQueryInterface::StaticClass());
 }
