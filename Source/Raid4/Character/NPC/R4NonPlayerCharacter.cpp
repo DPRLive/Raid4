@@ -38,11 +38,14 @@ void AR4NonPlayerCharacter::BeginPlay()
 
 /**
  *  스킬 사용 요청 처리
+ *  @return : Skill 사용 성공 시, Skill의 종료를 알리는 Delegate
  */
-void AR4NonPlayerCharacter::ActivateAISkill( uint8 InSkillIndex )
+FSimpleMulticastDelegate* AR4NonPlayerCharacter::ActivateAISkill( uint8 InSkillIndex )
 {
 	if ( UR4NonPlayerSkillComponent* skillComp = Cast<UR4NonPlayerSkillComponent>( SkillComp ) )
-		skillComp->ActivateAISkill( InSkillIndex );
+		return skillComp->ActivateAISkill( InSkillIndex );
+	
+	return nullptr;
 }
 
 /**

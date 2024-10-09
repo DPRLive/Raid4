@@ -35,9 +35,17 @@ EBTNodeResult::Type UBTTask_ActivateAISkill::ExecuteTask( UBehaviorTreeComponent
 	if( aiPawn == nullptr )
 		return EBTNodeResult::Failed;
 	
-	// TODO : Skill 완료 시점 체크 필요
 	int32 skillIndex = blackboard->GetValue<UBlackboardKeyType_Int>( BlackboardKey.GetSelectedKeyID() );
-	aiPawn->ActivateAISkill( skillIndex );
+	FSimpleMulticastDelegate* onEndSkill = aiPawn->ActivateAISkill( skillIndex );
+
+	if ( onEndSkill == nullptr )
+		return EBTNodeResult::Failed;
+
+	// this capture, use weak lambda
+	onEndSkill->AddWeakLambda( this, [this, &InOwnerComp]()
+	{
+		FinishLatentTask( InOwnerComp, EBTNodeResult::Succeeded );
+	} );
 	
-	return EBTNodeResult::Succeeded;
+	return EBTNodeResult::InProgress;
 }

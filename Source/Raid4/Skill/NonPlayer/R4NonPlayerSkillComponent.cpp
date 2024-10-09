@@ -9,14 +9,20 @@
 
 /**
  *  스킬 사용 요청 처리
+ *  @return : Skill의 종료를 알리는 Delegate
  */
-void UR4NonPlayerSkillComponent::ActivateAISkill( uint8 InSkillIndex )
+FSimpleMulticastDelegate* UR4NonPlayerSkillComponent::ActivateAISkill( uint8 InSkillIndex )
 {
 	if ( SkillInstancePtrs.IsValidIndex( InSkillIndex ) )
 	{
 		if ( IR4NonPlayerSkillInterface* aiSkill = Cast<IR4NonPlayerSkillInterface>( SkillInstancePtrs[InSkillIndex] ) )
+		{
 			aiSkill->ActivateAISkill();
+			return &SkillInstancePtrs[InSkillIndex]->OnEndSkill;
+		}
 	}
+
+	return nullptr;
 }
 
 /**

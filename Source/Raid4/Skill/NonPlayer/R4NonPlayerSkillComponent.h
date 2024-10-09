@@ -15,7 +15,7 @@ class RAID4_API UR4NonPlayerSkillComponent : public UR4SkillComponent
 
 public:
 	// 스킬 사용 요청 처리
-	void ActivateAISkill( uint8 InSkillIndex );
+	FSimpleMulticastDelegate* ActivateAISkill( uint8 InSkillIndex );
 
 	// 사용 가능한 스킬 중, ActivateSkillMinDist가 가장 큰 Skill Index를 반환
 	int32 GetAvailableMaxDistSkillIndex( float& OutDist ) const;
