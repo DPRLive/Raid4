@@ -17,17 +17,19 @@ struct FR4DetectResult;
  * < 상속하여 클래스를 제작 시 주의할 점 >
  * ( Skill 타이밍 체크 )
  * - Skill 사용을 적절히 체크하여 Skill CoolDownTime을 체크 및 설정 (SetSkillCoolDownTime())
+ * - Skill 사용을 적절히 체크하여 시작 및 종료를 알려야 함! (OnBeginSkill, OnEndSkill)
  */
 UCLASS( Abstract, HideCategories = (ComponentTick, Tags, Replication, ComponentReplication, Activation, Variable, Navigation, AssetUserData) )
 class RAID4_API UR4SkillBase : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	UR4SkillBase();
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
+	virtual void BeginPlay() override;
 public:
 	// 스킬 사용이 가능한지 판단
 	virtual bool CanActivateSkill() const;
@@ -54,7 +56,23 @@ private:
 	// 특정한 버프들을 적용. Detect Buff는 Server Only.
 	void _Server_ApplyDetectBuffs( AActor* InVictim, const TArray<FR4SkillDetectBuffInfo>& InSkillBuffInfos ) const;
 
+public:
+	// TODO : 각 스킬들의 Begin, End 타이밍 확장?
+	// Skill의 시작을 알림
+	FSimpleMulticastDelegate OnBeginSkill;
+
+	// Skill의 종료를 알림
+	FSimpleMulticastDelegate OnEndSkill;
+
 private:
+	// Skill 시작 시 적용할 Buff.
+	UPROPERTY( EditAnywhere )
+	TArray<FR4SkillBuffInfo> OnBeginSkillBuffs;
+	
+	// Skill 종료 시 적용할 Buff.
+	UPROPERTY( EditAnywhere )
+	TArray<FR4SkillBuffInfo> OnEndSkillBuffs;
+	
 	// 해당 스킬의 쿨타임. 몇초마다 사용이 가능한지?
 	UPROPERTY( EditAnywhere, meta = (UIMin = 0.f, ClampMin = 0.f, AllowPrivateAccess = true) )
 	float BaseCoolDownTime;

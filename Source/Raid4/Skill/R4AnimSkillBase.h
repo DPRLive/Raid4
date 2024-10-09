@@ -73,6 +73,7 @@ struct FAnimPlayServerStateInfo
  * (OnBeginSkillAnim(), OnEndSkillAnim(), PlaySkillAnim_Validate(), PlaySkillAnim_Ignore() 등 활용)
  * ( Skill 타이밍 체크 )
  * - Skill 사용을 적절히 체크하여 Skill CoolDownTime을 체크 및 설정 (SetSkillCoolDownTime())
+ * - Skill 사용을 적절히 체크하여 시작 및 종료를 알려야 함! (OnBeginSkill, OnEndSkill)
  */
 UCLASS( Abstract, ClassGroup=(Skill) )
 class RAID4_API UR4AnimSkillBase : public UR4SkillBase

@@ -216,7 +216,7 @@ void UR4AnimSkillBase::AddBuffExecute( int32 InSkillAnimKey, const FR4SkillTimeB
 	}
 
 	// Net Flag가 일치하지 않으면 추가하지 않음.
-	if ( !IsMatchNetFlag( InTimeBuffInfo.BuffNetFlag ) )
+	if ( !IsMatchNetFlag( InTimeBuffInfo.SkillBuffInfo.BuffNetFlag ) )
 		return;
 	
 	AddExecute( InSkillAnimKey, [thisPtr = TWeakObjectPtr<UR4AnimSkillBase>(this), &InTimeBuffInfo]()
@@ -225,7 +225,7 @@ void UR4AnimSkillBase::AddBuffExecute( int32 InSkillAnimKey, const FR4SkillTimeB
 		{
 			// 나에게 버프 적용
 			if ( IR4BuffReceiveInterface* victim = Cast<IR4BuffReceiveInterface>( thisPtr->GetOwner() ) )
-				victim->ReceiveBuff( thisPtr->GetOwner(), InTimeBuffInfo.BuffClass, InTimeBuffInfo.BuffSetting );
+				victim->ReceiveBuff( thisPtr->GetOwner(), InTimeBuffInfo.SkillBuffInfo.BuffInfo.BuffClass, InTimeBuffInfo.SkillBuffInfo.BuffInfo.BuffSetting );
 		}
 	}, InTimeBuffInfo.DelayTime, InDelayRate );
 }

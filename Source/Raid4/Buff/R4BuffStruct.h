@@ -61,6 +61,27 @@ struct RAID4_API FR4BuffSettingDesc
 	float Duration;
 };
 
+/**
+ * Buff Class + Buff Setting Desc Wrapper
+ */
+USTRUCT()
+struct FR4BuffWrapper
+{
+	GENERATED_BODY()
+
+	FR4BuffWrapper()
+	: BuffClass( nullptr )
+	, BuffSetting( FR4BuffSettingDesc() )
+	{ }
+	
+	// 적용할 버프 클래스
+	UPROPERTY( EditAnywhere )
+	TSubclassOf<UR4BuffBase> BuffClass;
+
+	// 적용할 버프의 세팅
+	UPROPERTY( EditAnywhere )
+	FR4BuffSettingDesc BuffSetting;
+};
 
 /**
  * '걸린 버프' 정보를 관리.

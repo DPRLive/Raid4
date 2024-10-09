@@ -33,6 +33,41 @@ void UR4SkillBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& O
 	DOREPLIFETIME_CONDITION(UR4SkillBase, CachedNextActivationServerTime, COND_OwnerOnly);
 }
 
+void UR4SkillBase::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// 스킬 시작 / 종료 시 버프 적용
+	// this capture, use weak lambda
+	OnBeginSkill.AddWeakLambda( this, [this]()
+	{
+		// 나에게 버프 적용
+		for( const auto& [netFlag, buffDesc] : OnBeginSkillBuffs )
+		{
+			// Check Net Flag
+			if ( !IsMatchNetFlag( netFlag ) )
+				continue;
+			
+			if ( IR4BuffReceiveInterface* victim = Cast<IR4BuffReceiveInterface>( GetOwner() ) )
+				victim->ReceiveBuff( GetOwner(), buffDesc.BuffClass, buffDesc.BuffSetting );
+		}
+	} );
+
+	OnEndSkill.AddWeakLambda( this, [this]()
+	{
+		// 나에게 버프 적용
+		for( const auto& [netFlag, buffDesc] : OnEndSkillBuffs )
+		{
+			// Check Net Flag
+			if ( !IsMatchNetFlag( netFlag ) )
+				continue;
+			
+			if ( IR4BuffReceiveInterface* victim = Cast<IR4BuffReceiveInterface>( GetOwner() ) )
+				victim->ReceiveBuff( GetOwner(), buffDesc.BuffClass, buffDesc.BuffSetting );
+		}	
+	} );
+}
+
 /**
  *  스킬 사용이 가능한지 판단
  *  TODO : 현재 스킬 사용중인지 판단 추가
@@ -216,6 +251,6 @@ void UR4SkillBase::_Server_ApplyDetectBuffs( AActor* InVictim, const TArray<FR4S
 
 		// 버프 적용
 		if ( IR4BuffReceiveInterface* victim = Cast< IR4BuffReceiveInterface >( target ) )
-			victim->ReceiveBuff( GetOwner(), buffInfo.BuffClass, buffInfo.BuffSetting );
+			victim->ReceiveBuff( GetOwner(), buffInfo.BuffInfo.BuffClass, buffInfo.BuffInfo.BuffSetting );
 	}
 }

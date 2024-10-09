@@ -54,6 +54,28 @@ struct FR4SkillDetectInfo
 };
 
 /**
+ * Skill에서 사용할 Buff에 대한 정보.
+ */
+USTRUCT()
+struct FR4SkillBuffInfo
+{
+	GENERATED_BODY()
+
+	FR4SkillBuffInfo()
+	: BuffNetFlag ( 0 )
+	, BuffInfo( FR4BuffWrapper() )
+	{}
+	
+	// Buff를 적용할 Network 정책을 설정
+	UPROPERTY( EditAnywhere, meta = ( Bitmask, BitmaskEnum = "/Script/Raid4.ER4NetworkFlag" ) )
+	uint8 BuffNetFlag;
+	
+	// 적용할 버프 정보
+	UPROPERTY( EditAnywhere )
+	FR4BuffWrapper BuffInfo;
+};
+
+/**
  * Skill이 Detect시 줄 버프 대한 정보. ( Server 에서만 적용 )
  * 데미지도 버프로 적용 시키면 됨
  */
@@ -64,21 +86,16 @@ struct FR4SkillDetectBuffInfo
 
 	FR4SkillDetectBuffInfo()
 	: Target( ETargetType::Victim )
-	, BuffClass( nullptr )
-	, BuffSetting ( FR4BuffSettingDesc() )
+	, BuffInfo( FR4BuffWrapper() )
 	{}
 	
 	// 버프를 적용할 타겟. Instigator : 나. Victim : Detect 된 Actor
 	UPROPERTY( EditAnywhere )
 	ETargetType Target;
 	
-	// 적용할 버프 클래스
+	// 적용할 버프 정보
 	UPROPERTY( EditAnywhere )
-	TSubclassOf<UR4BuffBase> BuffClass;
-
-	// 적용할 버프의 세팅
-	UPROPERTY( EditAnywhere )
-	FR4BuffSettingDesc BuffSetting;
+	FR4BuffWrapper BuffInfo;
 };
 
 /**
@@ -134,26 +151,16 @@ struct FR4SkillTimeBuffWrapper
 
 	FR4SkillTimeBuffWrapper()
 	: DelayTime( 0.f )
-	, BuffNetFlag ( 0 )
-	, BuffClass( nullptr )
-	, BuffSetting( FR4BuffSettingDesc() )
+	, SkillBuffInfo( FR4SkillBuffInfo() )
 	{}
 	
 	// Delay Time
 	UPROPERTY( EditAnywhere )
 	float DelayTime;
-
-	// Buff를 적용할 Network 정책을 설정
-	UPROPERTY( EditAnywhere, meta = ( Bitmask, BitmaskEnum = "/Script/Raid4.ER4NetworkFlag" ) )
-	uint8 BuffNetFlag;
 	
-	// 해당 Notify가 적용할 버프 클래스
+	// 적용할 버프 정보
 	UPROPERTY( EditAnywhere )
-	TSubclassOf<UR4BuffBase> BuffClass;
-
-	// 해당 Notify가 버프의 세팅
-	UPROPERTY( EditAnywhere )
-	FR4BuffSettingDesc BuffSetting;
+	FR4SkillBuffInfo SkillBuffInfo;
 };
 
 USTRUCT()
