@@ -36,7 +36,9 @@ public:
 
 	// 현재 남은 Skill CoolDown Time을 반환.
 	float GetSkillCooldownRemaining() const;
-	
+
+	// 스킬을 Disable / Enable.
+	FORCEINLINE virtual void SetSkillEnable( bool InIsEnable ) { bEnableSkill = InIsEnable; }
 protected:
 	// Skill CoolDown Time을 적용. 
 	void SetSkillCoolDownTime( float InCoolDownTime );
@@ -72,6 +74,10 @@ private:
 	// Skill 종료 시 적용할 Buff.
 	UPROPERTY( EditAnywhere )
 	TArray<FR4SkillBuffInfo> OnEndSkillBuffs;
+
+	// 스킬이 Enable / Disable 되었는지 여부.
+	UPROPERTY( EditAnywhere )
+	uint8 bEnableSkill:1;
 	
 	// 해당 스킬의 쿨타임. 몇초마다 사용이 가능한지?
 	UPROPERTY( EditAnywhere, meta = (UIMin = 0.f, ClampMin = 0.f, AllowPrivateAccess = true) )

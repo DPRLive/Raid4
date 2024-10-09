@@ -24,6 +24,7 @@ UR4SkillBase::UR4SkillBase()
 
 	BaseCoolDownTime = 0.f;
 	CachedNextActivationServerTime = 0.f;
+	bEnableSkill = true;
 }
 
 void UR4SkillBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -74,8 +75,8 @@ void UR4SkillBase::BeginPlay()
  */
 bool UR4SkillBase::CanActivateSkill() const
 {
-	// CoolDown Time 체크
-	return ( FMath::IsNearlyZero( GetSkillCooldownRemaining() ) );
+	// CoolDown Time , Enable 여부 체크
+	return ( bEnableSkill && FMath::IsNearlyZero( GetSkillCooldownRemaining() ) );
 }
 
 /**

@@ -13,12 +13,12 @@
  */
 FSimpleMulticastDelegate* UR4NonPlayerSkillComponent::ActivateAISkill( uint8 InSkillIndex )
 {
-	if ( SkillInstancePtrs.IsValidIndex( InSkillIndex ) )
+	if ( SkillInstances.IsValidIndex( InSkillIndex ) )
 	{
-		if ( IR4NonPlayerSkillInterface* aiSkill = Cast<IR4NonPlayerSkillInterface>( SkillInstancePtrs[InSkillIndex] ) )
+		if ( IR4NonPlayerSkillInterface* aiSkill = Cast<IR4NonPlayerSkillInterface>( SkillInstances[InSkillIndex] ) )
 		{
 			aiSkill->ActivateAISkill();
-			return &SkillInstancePtrs[InSkillIndex]->OnEndSkill;
+			return &SkillInstances[InSkillIndex]->OnEndSkill;
 		}
 	}
 
@@ -34,10 +34,10 @@ int32 UR4NonPlayerSkillComponent::GetAvailableMaxDistSkillIndex( float& OutDist 
 {
 	int32 maxIdx = INDEX_NONE; float maxDist = 0.f;
 	
-	for ( int32 idx = 0; idx < SkillInstancePtrs.Num(); idx++ )
+	for ( int32 idx = 0; idx < SkillInstances.Num(); idx++ )
 	{
-		IR4NonPlayerSkillInterface* aiSkill = Cast<IR4NonPlayerSkillInterface>( SkillInstancePtrs[idx] );
-		if ( aiSkill == nullptr || !SkillInstancePtrs[idx]->CanActivateSkill() )
+		IR4NonPlayerSkillInterface* aiSkill = Cast<IR4NonPlayerSkillInterface>( SkillInstances[idx] );
+		if ( aiSkill == nullptr || !SkillInstances[idx]->CanActivateSkill() )
 			continue;
 
 		float nowDist = aiSkill->GetActivateSkillMinDist();

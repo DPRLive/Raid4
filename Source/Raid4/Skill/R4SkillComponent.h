@@ -24,15 +24,24 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 protected:
-	// BeginPlay
 	virtual void BeginPlay() override;
 
 public:
 	// 스킬을 추가한다. (서버)
-	void Server_AddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill );
+	virtual void Server_AddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill );
 
 protected:
+	// 스킬이 등록 된 후 호출.
+	virtual void PostAddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill ) {}
+
+	// 스킬이 등록 해제 되기 전 호출
+	virtual void PreRemoveSkill( uint8 InSkillIndex, UR4SkillBase* InSkill ) {}
+private:
+	UFUNCTION()
+	virtual void _OnRep_SkillInstances( const TArray<UR4SkillBase*>& InPrev );
+	
+protected:
 	// 인스턴스화된 스킬 배열
-	UPROPERTY( Replicated, Transient, VisibleAnywhere )
-	TArray<TObjectPtr<UR4SkillBase>> SkillInstancePtrs;
+	UPROPERTY( ReplicatedUsing = _OnRep_SkillInstances, Transient, VisibleAnywhere )
+	TArray<UR4SkillBase*> SkillInstances;
 };
