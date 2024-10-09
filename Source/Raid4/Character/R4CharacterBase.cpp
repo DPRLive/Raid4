@@ -55,6 +55,10 @@ void AR4CharacterBase::PostInitializeComponents()
 	BindStatComponent();
 	
 	OnCharacterDeadDelegate.AddDynamic(this, &AR4CharacterBase::Dead);
+
+	// TODO : 데이터 집어넣는건 PlayerController가 Character PK를 들고 있다가 OnPossess 와 OnRep_Owner 되면 넣는걸로 하면 될 듯
+	// Character 테스트를 위한 Aurora 데이터 임시 로드
+	PushDTData(1);
 }
 
 /**
@@ -63,10 +67,6 @@ void AR4CharacterBase::PostInitializeComponents()
 void AR4CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// TODO : 데이터 집어넣는건 PlayerController가 Character PK를 들고 있다가 OnPossess 와 OnRep_Owner 되면 넣는걸로 하면 될 듯
-	// Character 테스트를 위한 Aurora 데이터 임시 로드
-	PushDTData(1);
 
 	// test
 	if(HasAuthority())
@@ -176,12 +176,12 @@ void AR4CharacterBase::PushDTData(FPriKey InPk)
 
 	// 스킬 컴포넌트에 스킬을 적용.
 	// TODO : 배열 주면 Skill Comp에서 읽어가게 하는게 좋을거 같단말이야
-	for (const TPair<EPlayerSkillIndex, TSubclassOf<UR4SkillBase>>& skill : characterData->Skills)
+	for ( int32 idx = 0; idx < characterData->Skills.Num(); idx++ )
 	{
-		if (UR4SkillBase* instanceSkill = NewObject<UR4SkillBase>(this, skill.Value); IsValid(instanceSkill))
+		if (UR4SkillBase* instanceSkill = NewObject<UR4SkillBase>(this, characterData->Skills[idx]); IsValid(instanceSkill))
 		{
 			instanceSkill->RegisterComponent();
-			SkillComp->Server_AddSkill( static_cast<uint8>(skill.Key), instanceSkill);
+			SkillComp->Server_AddSkill( idx, instanceSkill);
 		}
 	}
 }

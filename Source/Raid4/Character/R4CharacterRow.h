@@ -29,9 +29,10 @@ struct FR4CharacterRow : public FR4RowBase
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
 	int32 BaseStatRowPK;
 
-	// 해당 캐릭터가 사용할 스킬들
+	// 해당 캐릭터가 사용할 Skill Set.
+	// 순서대로 Skill Comp에 등록되므로, Player Skill 등록 시 순서에 주의.
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Skill" )
-	TMap<EPlayerSkillIndex, TSubclassOf<UR4SkillBase>> Skills;
+	TArray<TSubclassOf<UR4SkillBase>> Skills;
 };
 
 GENERATE_DT_PTR_H( FR4CharacterRow );

@@ -88,12 +88,12 @@ void AR4NonPlayerCharacter::PushDTData( FPriKey InPk )
 
 	// 스킬 컴포넌트에 스킬을 적용.
 	// TODO : 배열 주면 Skill Comp에서 읽어가게 하는게 좋을거 같단말이야
-	for (const TPair<EPlayerSkillIndex, TSubclassOf<UR4SkillBase>>& skill : characterData->Skills)
+	for ( int32 idx = 0; idx < characterData->Skills.Num(); idx++ )
 	{
-		if (UR4SkillBase* instanceSkill = NewObject<UR4SkillBase>(this, skill.Value); IsValid(instanceSkill))
+		if (UR4SkillBase* instanceSkill = NewObject<UR4SkillBase>(this, characterData->Skills[idx]); IsValid(instanceSkill))
 		{
 			instanceSkill->RegisterComponent();
-			SkillComp->Server_AddSkill( static_cast<uint8>(skill.Key), instanceSkill);
+			SkillComp->Server_AddSkill( idx, instanceSkill);
 		}
 	}
 }
