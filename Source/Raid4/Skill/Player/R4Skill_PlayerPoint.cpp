@@ -58,8 +58,8 @@ void UR4Skill_PlayerPoint::OnInputStarted()
 		// 지점 선택 로직 실행
 		CachedNowPointing = true;
 
-		// Decal 생성
-		_SetupPointingDecal();
+		// Pointing Setup
+		_SetupPointing();
 		
 		// 지점 선택 Anim이 있다면 실행
 		if( PointingSkillAnimInfo.SkillAnim != nullptr )
@@ -75,8 +75,8 @@ void UR4Skill_PlayerPoint::OnInputStarted()
 	{
 		CachedNowPointing = false;
 
-		// Decal 정리
-		_TearDownPointingDecal();
+		// Pointing 정리
+		_TearDownPointing();
 		
 		// 서버로 선택한 위치 전송
 		_ServerRPC_SendTargetPoint( CachedTargetWorldPoint_Client );
@@ -114,8 +114,8 @@ void UR4Skill_PlayerPoint::SetSkillEnable( bool InIsEnable )
 	{
 		CachedNowPointing = false;
 
-		// Decal 정리
-		_TearDownPointingDecal();
+		// Pointing 정리
+		_TearDownPointing();
 	}
 }
 
@@ -242,7 +242,7 @@ void UR4Skill_PlayerPoint::_TracePointing()
 /**
  *  Decal 생성
  */
-void UR4Skill_PlayerPoint::_SetupPointingDecal()
+void UR4Skill_PlayerPoint::_SetupPointing()
 {
 	if ( IsValid( GetOwner() ) )
 	{
@@ -255,18 +255,26 @@ void UR4Skill_PlayerPoint::_SetupPointingDecal()
 		float pointAOESize = AOEInfo.PointAOE.GetDecalSizeByActualRadius( AOEInfo.PointRadius );
 		AOEInfo.PointAOEInstance = UGameplayStatics::SpawnDecalAtLocation( GetWorld(), AOEInfo.PointAOE.AOEDecal, FVector( pointAOESize ), GetOwner()->GetActorLocation() );
 	}
+
+	// 나에게 버프 적용
+	for( const auto& buff : OnBeginPointingBuffs )
+		ApplySkillBuff( buff );
 }
 
 /**
  *  Decal 정리
  */
-void UR4Skill_PlayerPoint::_TearDownPointingDecal() const
+void UR4Skill_PlayerPoint::_TearDownPointing() const
 {
 	if ( IsValid( AOEInfo.RangeAOEInstance ) )
 		AOEInfo.RangeAOEInstance->DestroyComponent();
 	
 	if ( IsValid( AOEInfo.PointAOEInstance ) )
 		AOEInfo.PointAOEInstance->DestroyComponent();
+
+	// 나에게 버프 적용
+	for( const auto& buff : OnEndPointingBuffs )
+		ApplySkillBuff( buff );
 }
 
 /**

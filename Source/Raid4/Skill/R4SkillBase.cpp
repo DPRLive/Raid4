@@ -43,29 +43,15 @@ void UR4SkillBase::BeginPlay()
 	OnBeginSkill.AddWeakLambda( this, [this]()
 	{
 		// 나에게 버프 적용
-		for( const auto& [netFlag, buffDesc] : OnBeginSkillBuffs )
-		{
-			// Check Net Flag
-			if ( !IsMatchNetFlag( netFlag ) )
-				continue;
-			
-			if ( IR4BuffReceiveInterface* victim = Cast<IR4BuffReceiveInterface>( GetOwner() ) )
-				victim->ReceiveBuff( GetOwner(), buffDesc.BuffClass, buffDesc.BuffSetting );
-		}
+		for( const auto& buff : OnBeginSkillBuffs )
+			ApplySkillBuff(buff);
 	} );
 
 	OnEndSkill.AddWeakLambda( this, [this]()
 	{
 		// 나에게 버프 적용
-		for( const auto& [netFlag, buffDesc] : OnEndSkillBuffs )
-		{
-			// Check Net Flag
-			if ( !IsMatchNetFlag( netFlag ) )
-				continue;
-			
-			if ( IR4BuffReceiveInterface* victim = Cast<IR4BuffReceiveInterface>( GetOwner() ) )
-				victim->ReceiveBuff( GetOwner(), buffDesc.BuffClass, buffDesc.BuffSetting );
-		}	
+		for( const auto& buff : OnEndSkillBuffs )
+			ApplySkillBuff(buff);
 	} );
 }
 
@@ -159,6 +145,20 @@ bool UR4SkillBase::IsMatchNetFlag( uint8 InNetFlag ) const
 	bool bSimulatedMatch = (InNetFlag & static_cast<uint8>( ER4NetworkFlag::Simulated ) ) && ( GetOwnerRole() == ROLE_SimulatedProxy );
 
 	return ( bLocalMatch || bServerMatch || bSimulatedMatch );
+}
+
+/**
+ *  Owner에게 Skill Buff 적용
+ *  @param InSkillBuff : 적용 할 SkillBuff 정보
+ */
+void UR4SkillBase::ApplySkillBuff( const FR4SkillBuffInfo& InSkillBuff ) const
+{
+	// Check Net Flag
+	if ( !IsMatchNetFlag( InSkillBuff.BuffNetFlag ) )
+		return;
+			
+	if ( IR4BuffReceiveInterface* victim = Cast<IR4BuffReceiveInterface>( GetOwner() ) )
+		victim->ReceiveBuff( GetOwner(), InSkillBuff.BuffInfo.BuffClass, InSkillBuff.BuffInfo.BuffSetting );
 }
 
 /**

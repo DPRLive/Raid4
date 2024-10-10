@@ -98,11 +98,11 @@ private:
 	// 지점 선택 Trace
 	void _TracePointing();
 
-	// Decal 생성
-	void _SetupPointingDecal();
+	// Pointing Setup
+	void _SetupPointing();
 	
-	// Decal 정리
-	void _TearDownPointingDecal() const;
+	// Pointing 정리
+	void _TearDownPointing() const;
 	
 	// 지점 지정, Decal도 유효하다면 같이 이동.
 	void _SetTargetPointAndDecal( const FVector& InWorldLoc );
@@ -123,6 +123,14 @@ private:
 	// 지점 선택 관련 정보
 	UPROPERTY( EditAnywhere, Category = "Skill|Anim" )
 	FR4PointSkillAOEInfo AOEInfo;
+	
+	// 지점 선택 시 적용할 버프
+	UPROPERTY( EditAnywhere )
+	TArray<FR4SkillBuffInfo> OnBeginPointingBuffs;
+	
+	// 지점 선택 종료 시 적용할 Buff.
+	UPROPERTY( EditAnywhere )
+	TArray<FR4SkillBuffInfo> OnEndPointingBuffs;
 	
 	// 공격 스킬 애니메이션, 지점 선택 완료 시 바로 작동
 	UPROPERTY( Replicated, EditAnywhere, Category = "Skill|Anim" )

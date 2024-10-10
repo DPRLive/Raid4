@@ -4,7 +4,6 @@
 #include "R4AnimSkillBase.h"
 
 #include "../Animation/R4AnimationInterface.h"
-#include "../Buff/R4BuffReceiveInterface.h"
 #include "../Util/UtilAnimation.h"
 
 #include <Net/UnrealNetwork.h>
@@ -235,8 +234,7 @@ void UR4AnimSkillBase::AddBuffExecute( int32 InSkillAnimKey, const FR4SkillTimeB
 		if ( thisPtr.IsValid() )
 		{
 			// 나에게 버프 적용
-			if ( IR4BuffReceiveInterface* victim = Cast<IR4BuffReceiveInterface>( thisPtr->GetOwner() ) )
-				victim->ReceiveBuff( thisPtr->GetOwner(), InTimeBuffInfo.SkillBuffInfo.BuffInfo.BuffClass, InTimeBuffInfo.SkillBuffInfo.BuffInfo.BuffSetting );
+			thisPtr->ApplySkillBuff( InTimeBuffInfo.SkillBuffInfo );
 		}
 	}, InTimeBuffInfo.DelayTime, InDelayRate );
 }

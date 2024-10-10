@@ -53,6 +53,10 @@ protected:
 
 	// NetFlag와 현재 Comp의 Net 상태를 비교 ( ER4NetworkFlag )
 	bool IsMatchNetFlag( uint8 InNetFlag ) const;
+
+	// Owner에게 Skill Buff 적용
+	void ApplySkillBuff( const FR4SkillBuffInfo& InSkillBuff ) const;
+	
 private:
 	// Spawn Detector
 	void _SpawnDetector( const FR4SkillDetectBuffWrapper& InDetectBuffInfo );
