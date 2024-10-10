@@ -25,6 +25,14 @@ void UR4ShieldComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(UR4ShieldComponent, TotalShield);
 }
 
+void UR4ShieldComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	OnChangeTotalShieldDelegate.Clear();
+	Shields.Empty();
+	
+	Super::EndPlay( EndPlayReason );
+}
+
 /**
  *	InValue 만큼의 Shield를 추가. InProvideObj에 따라서 방어막을 부여한 객체를 구분 가능
  *	@param InProvideObj : 방어막을 부여할 객체

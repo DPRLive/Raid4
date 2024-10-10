@@ -16,6 +16,7 @@ class RAID4_API UR4PlayerSkillComponent : public UR4SkillComponent
 public:
 	UR4PlayerSkillComponent();
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 public:
 	// 스킬 입력 처리
 	virtual void OnInputSkillStarted( EPlayerSkillIndex InSkillIndex );

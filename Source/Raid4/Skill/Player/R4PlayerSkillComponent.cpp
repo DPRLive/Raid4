@@ -11,6 +11,13 @@ UR4PlayerSkillComponent::UR4PlayerSkillComponent()
 {
 }
 
+void UR4PlayerSkillComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	SkillDelegateHandles.Empty();
+	
+	Super::EndPlay( EndPlayReason );
+}
+
 /**
  *  입력 연결
  */

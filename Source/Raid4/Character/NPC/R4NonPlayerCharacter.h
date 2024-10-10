@@ -21,6 +21,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	virtual void EndPlay( const EEndPlayReason::Type EndPlayReason ) override;
+public:
 	// ~ Begin IR4CharacterAIInterface
 	virtual const TMap<TWeakObjectPtr<const AController>, float>& GetDamagedControllers() const override { return CachedDamagedControllers; }
 	virtual float GetMaxPatrolRadius() const override { return MaxPatrolRadius; }

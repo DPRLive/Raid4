@@ -16,6 +16,14 @@ void UR4TagStatBaseComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
+void UR4TagStatBaseComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	TagStats.Empty();
+	TagCurrentStats.Empty();
+	
+	Super::EndPlay( EndPlayReason );
+}
+
 /**
  *	Tag <-> Stat 바인드용 함수. Bind가 된 상태이어야 Tag로 쿼리가 가능
  */

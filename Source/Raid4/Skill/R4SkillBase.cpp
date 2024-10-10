@@ -70,6 +70,17 @@ void UR4SkillBase::BeginPlay()
 }
 
 /**
+ *  End Play 시 Delegate Clear
+ */
+void UR4SkillBase::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	OnBeginSkill.Clear();
+	OnEndSkill.Clear();
+	
+	Super::EndPlay( EndPlayReason );
+}
+
+/**
  *  스킬 사용이 가능한지 판단
  */
 bool UR4SkillBase::CanActivateSkill() const

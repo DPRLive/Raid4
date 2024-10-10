@@ -77,6 +77,17 @@ void AR4CharacterBase::BeginPlay()
 }
 
 /**
+ *  Delegate Clear
+ */
+void AR4CharacterBase::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	OnCharacterDeadDelegate.Clear();
+	OnCharacterDamagedDelegate.Clear();
+	
+	Super::EndPlay( EndPlayReason );
+}
+
+/**
  *  Local에서 Anim Play
  */
 void AR4CharacterBase::PlayAnim_Local( UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate )

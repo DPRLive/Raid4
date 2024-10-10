@@ -253,21 +253,20 @@ void AR4Detector_Trace::_Trace( )
  */
 void AR4Detector_Trace::_TearDownDetect()
 {
+	BP_TearDownDetect();
+
 	if ( HasAuthority() )
 	{
-		BP_TearDownDetect();
-
 		// Attach해서 사용되었다면 Detach
 		if ( GetAttachParentActor() )
 			DetachFromActor( FDetachmentTransformRules::KeepWorldTransform );
 
 		// disable Trace
 		NoAuthTraceEnableInfo.bEnable = false;
-	
-		OnBeginDetectDelegate.Clear();
-		OnEndDetectDelegate.Clear();
 	}
 
+	OnBeginDetectDelegate.Clear();
+	OnEndDetectDelegate.Clear();
 	CachedRequestActor.Reset();
 	GetWorldTimerManager().ClearTimer( LifeTimerHandle );
 	GetWorldTimerManager().ClearTimer( TraceTimerHandle );

@@ -28,7 +28,8 @@ protected:
 	
 public:    
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 public:	
 	// 버프를 추가
 	void AddBuff( AActor* InInstigator, const TSubclassOf<UR4BuffBase>& InBuffClass, const FR4BuffSettingDesc& InBuffSettingDesc );

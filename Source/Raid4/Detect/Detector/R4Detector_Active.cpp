@@ -183,20 +183,19 @@ void AR4Detector_Active::_OnEndShapeOverlap( UPrimitiveComponent* OverlappedComp
  */
 void AR4Detector_Active::_TearDownDetect()
 {
+	BP_TearDownDetect();
+
 	if( HasAuthority() )
 	{
-		BP_TearDownDetect();
-
 		// Attach해서 사용되었다면 Detach
 		if ( GetAttachParentActor() )
 			DetachFromActor( FDetachmentTransformRules::KeepWorldTransform );
 
 		NoAuthCollisionEnableInfo.bEnable = false;
-
-		OnBeginDetectDelegate.Clear();
-		OnEndDetectDelegate.Clear();
 	}
 
+	OnBeginDetectDelegate.Clear();
+	OnEndDetectDelegate.Clear();
 	CachedRequestActor.Reset();
 
 	// disable collision

@@ -30,6 +30,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void BeginPlay() override;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 public:
 	// 스킬 사용이 가능한지 판단
 	virtual bool CanActivateSkill() const;

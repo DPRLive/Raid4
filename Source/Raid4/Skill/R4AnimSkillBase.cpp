@@ -111,6 +111,17 @@ void UR4AnimSkillBase::TickComponent( float DeltaTime, enum ELevelTick TickType,
 		SetComponentTickEnabled( false );
 }
 
+void UR4AnimSkillBase::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	if( GetOwnerRole() == ROLE_Authority )
+		AnimPlayServerStates.Empty();
+	
+	PendingExecutes.Empty();
+	CachedSkillAnimInfos.Empty();
+	
+	Super::EndPlay( EndPlayReason );
+}
+
 /**
  *  Skill Anim Key에 맞는, 특정 시간 뒤에 Execute 예약 추가.
  *  멤버로 등록된 Skill Anim Key만 추가 가능.

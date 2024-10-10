@@ -95,7 +95,9 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	
+
+public:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;	
 protected:
 	// Skill Anim Key에 맞는, 특정 시간 뒤에 Execute 예약 추가
 	void AddExecute( int32 InSkillAnimKey, TFunction<void()>&& InFunc, float InDelay, float InDelayRate = 1.f );

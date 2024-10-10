@@ -57,6 +57,12 @@ void AR4PlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 }
 
+void AR4PlayerCharacter::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	OnSetupPlayerInputDelegate.Clear();
+	Super::EndPlay( EndPlayReason );
+}
+
 /**
  *  SetupPlayerInputComponent, Player Controller가 Pose 할 때 호출
  */

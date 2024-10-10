@@ -51,6 +51,16 @@ void UR4BuffManageComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		SetComponentTickEnabled( false );
 }
 
+void UR4BuffManageComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	UpdatingBuffs.Empty();
+	NonUpdatingBuffs.Empty();
+	BlockingBuffTags_Match.Reset();
+	BlockingBuffTags_MatchExact.Reset();
+	ServerBuffs.Empty();
+	Super::EndPlay( EndPlayReason );
+}
+
 /**
  *	버프를 추가.
  *	서버에서 버프 적용 시, Owner가 Client라면 Owner에게 정보 전송.

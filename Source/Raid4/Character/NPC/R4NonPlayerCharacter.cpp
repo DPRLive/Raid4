@@ -36,6 +36,12 @@ void AR4NonPlayerCharacter::BeginPlay()
 	OnCharacterDamagedDelegate.AddDynamic( this, &AR4NonPlayerCharacter::OnAICharacterDamaged );
 }
 
+void AR4NonPlayerCharacter::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	CachedDamagedControllers.Empty( );
+	Super::EndPlay( EndPlayReason );
+}
+
 /**
  *  스킬 사용 요청 처리
  *  @return : Skill 사용 성공 시, Skill의 종료를 알리는 Delegate

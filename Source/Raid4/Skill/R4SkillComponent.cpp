@@ -43,6 +43,13 @@ void UR4SkillComponent::BeginPlay()
 	
 }
 
+void UR4SkillComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	SkillInstances.Empty();
+	
+	Super::EndPlay( EndPlayReason );
+}
+
 /**
  *  스킬을 추가 (서버)
  */

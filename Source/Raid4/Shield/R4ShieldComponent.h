@@ -18,7 +18,8 @@ public:
 	UR4ShieldComponent();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 public:
 	// InValue 만큼의 Shield를 추가. InProvideObj에 따라서 방어막을 부여한 객체를 구분 가능
 	void AddShield(const UObject* InProvideObj, float InValue);

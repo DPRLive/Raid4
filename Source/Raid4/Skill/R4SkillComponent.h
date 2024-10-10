@@ -27,6 +27,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;	
+public:
 	// 스킬을 추가한다. (서버)
 	virtual void Server_AddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill );
 

@@ -55,6 +55,9 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+public:
 	// ~ Begin IR4AnimationInterface
 	virtual void PlayAnim_Local(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate) override;
 	virtual void JumpToSection_Local( const FName& InStartSectionName ) override;

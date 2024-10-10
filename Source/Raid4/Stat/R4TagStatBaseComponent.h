@@ -22,6 +22,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+public:
 	// Stat 정보를 재설정 (Base Value로 세팅)
 	virtual void ResetStat() PURE_VIRTUAL(UR4StatBaseComponent::ResetStat, );
 	
