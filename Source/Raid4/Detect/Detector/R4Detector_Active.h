@@ -84,7 +84,7 @@ private:
 	// Replicate시, No - Authority (Client) 환경에서도 Detect를 진행할지 설정.
 	UPROPERTY( EditAnywhere, Category = "Replication|Detect" )
 	uint8 bDetectOnNoAuthority:1;
-
+	
 	// Replicate시, No Authority에게 Enable Collision 상태 전송
 	UPROPERTY( Transient, ReplicatedUsing = _OnRep_NoAuthCollisionInfo )
 	FR4NoAuthDetectEnableInfo NoAuthCollisionEnableInfo;
@@ -101,4 +101,11 @@ private:
 	// Request를 요청한 Actor 캐싱.
 	UPROPERTY( Replicated, Transient, VisibleInstanceOnly )
 	TWeakObjectPtr<AActor> CachedRequestActor;
+
+	// 생명 횟수 카운트. 해당 횟수 만큼 hit 시 Life Time이 다 안되어도 삭제. 0일 경우 카운트 하지 않음.
+	UPROPERTY( EditAnywhere, Category = "Detect" )
+	uint32 DetectLifeCount;
+	
+	// Hit count 캐싱
+	uint32 CachedNowDetectLifeCount;
 };

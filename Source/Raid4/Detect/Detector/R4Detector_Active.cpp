@@ -27,6 +27,9 @@ AR4Detector_Active::AR4Detector_Active()
 	// 기본적으로 No Authority 환경에서도 같이 Detect를 진행.
 	bDetectOnNoAuthority = true;
 	NoAuthCollisionEnableInfo = FR4NoAuthDetectEnableInfo();
+
+	DetectLifeCount = 0;
+	CachedNowDetectLifeCount = 0;
 }
 
 void AR4Detector_Active::GetLifetimeReplicatedProps( TArray<FLifetimeProperty>& OutLifetimeProps ) const
@@ -155,6 +158,14 @@ void AR4Detector_Active::_OnBeginShapeOverlap( UPrimitiveComponent* OverlappedCo
 		OnBeginDetectDelegate.Broadcast( result );
 
 	BP_OnBeginDetect( result );
+
+	// Count Life Hit
+	if( HasAuthority() && DetectLifeCount > 0 )
+	{
+		// Detect Life Count만큼 Detect 시, Object Pool에 반납.
+		if( ++CachedNowDetectLifeCount >= DetectLifeCount )
+			OBJECT_POOL( GetWorld() )->ReturnPoolObject( this );
+	}
 }
 
 /**
@@ -197,6 +208,7 @@ void AR4Detector_Active::_TearDownDetect()
 	// disable collision
 	SetActorEnableCollision( false );
 
+	CachedNowDetectLifeCount = 0;
 	OnBeginDetectDelegate.Clear();
 	OnEndDetectDelegate.Clear();
 	CachedRequestActor.Reset();
