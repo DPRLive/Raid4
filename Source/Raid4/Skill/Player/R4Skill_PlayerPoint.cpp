@@ -2,13 +2,12 @@
 
 
 #include "R4Skill_PlayerPoint.h"
+#include "../../Util/UtilAnimation.h"
 
 #include <Net/UnrealNetwork.h>
 #include <Components/DecalComponent.h>
 #include <Kismet/GameplayStatics.h>
 #include <GameFramework/Pawn.h>
-
-#include "Raid4/Util/UtilAnimation.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4Skill_PlayerPoint)
 
@@ -18,6 +17,7 @@ UR4Skill_PlayerPoint::UR4Skill_PlayerPoint()
 
 	bSkipPointing = false;
 	RangeRadius = 0.f;
+	SkillPointingTraceType = ER4SkillPointingTraceType::Visibility;
 	ServerPointingInfo = FR4ServerPointingInfo();
 	CachedNowPointing = false;
 }
@@ -283,8 +283,15 @@ void UR4Skill_PlayerPoint::_TracePointing()
 		FHitResult hitResult;
 		FCollisionQueryParams params;
 
-		// Line Trace TODO : Channel 변경
-		bool bHit = GetWorld()->LineTraceSingleByChannel( hitResult, start, end, SKILL_POINT_TRACE_CHANNEL, params );
+		// Line Trace
+		bool bHit = GetWorld()->LineTraceSingleByChannel
+		(
+			hitResult,
+			start,
+			end,
+			static_cast<ECollisionChannel>( SkillPointingTraceType ),
+			params
+		);
 
 		// Range Limit Check, 넘어가면 보정
 		if( !bHit

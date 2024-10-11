@@ -68,6 +68,17 @@ struct FR4ServerPointingInfo
 };
 
 /**
+ * 지점 선택 Trace 채널 설정.
+ */
+UENUM( BlueprintType )
+enum class ER4SkillPointingTraceType : uint8
+{
+	None										UMETA( Hidden ),
+	Visibility	 = ECC_Visibility				UMETA( DisplayName = "Visibility" ),
+	SkillAOE	 = SKILL_POINT_TRACE_CHANNEL	UMETA( DisplayName = "SkillAOE" ),
+};
+
+/**
  * 플레이어 지점 선택 스킬 ( 첫번째 사용 시 지점 선택, 두번째 사용 시 실제 스킬 사용 )
  * Detector의 Origin으로 UR4OriginCalculator_FromRequestObj를 사용하면, 선택된 지점을 기반 Origin을 제공함.
  * 선택된 지점을 사용 시, Simulated에서는 위치가 보장이 안될 수 있음.
@@ -141,6 +152,10 @@ private:
 	// 선택 가능한 범위. ( Owner Location 기준 )
 	UPROPERTY( EditAnywhere, Category = "Skill|Pointing", meta = ( UIMin = 0.f, ClampMin = 0.f, UIMax = 10000.f, ClampMax = 10000.f ) )
 	float RangeRadius;
+
+	// Pointing Trace Type
+	UPROPERTY( EditAnywhere, Category = "Skill|Pointing" )
+	ER4SkillPointingTraceType SkillPointingTraceType;
 	
 	// 지점 선택 중 애니메이션
 	UPROPERTY( Replicated, EditAnywhere, Category = "Skill|Pointing", meta = ( EditCondition = "!bSkipPointing", EditConditionHides ) )
