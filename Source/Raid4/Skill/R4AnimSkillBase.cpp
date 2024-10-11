@@ -258,6 +258,10 @@ void UR4AnimSkillBase::AddBuffExecute( int32 InSkillAnimKey, const FR4SkillTimeB
 float UR4AnimSkillBase::CalculateDelayRate( float InTotalLength, float InStartTime )
 {
 	float delay = FMath::Max( KINDA_SMALL_NUMBER, ( R4GetServerTimeSeconds( GetWorld() ) - InStartTime ) );
+
+	// Total Length가 음수일 경우, Loop라고 판단, 1로 실행.
+	if( InTotalLength < 0 )
+		return 1.f;
 	
 	// delay가 InTotalLength보다 길면 -1.f return
 	if( delay > InTotalLength )
@@ -641,8 +645,8 @@ void UR4AnimSkillBase::_ParseSkillAnimInfo()
 			continue;
 		
 		const FR4SkillAnimInfo* c_animInfoPtr = static_cast<const FR4SkillAnimInfo*>(value);
-		if ( !ensureMsgf( IsValid(c_animInfoPtr->SkillAnim), TEXT("Skill Anim is invalid.") ) )
-			return;
+		if ( !IsValid(c_animInfoPtr->SkillAnim) )
+			continue;
 
 		// 키값 부여 & 캐싱
 		if ( FR4SkillAnimInfo* animInfoPtr = const_cast<FR4SkillAnimInfo*>(c_animInfoPtr) )

@@ -123,7 +123,7 @@ void APoolableActor::ResetCollisionAndTick()
 	{
 		if ( bControlCollisionByPool )
 			SetActorEnableCollision(cdo->GetActorEnableCollision());
-		SetActorTickEnabled(cdo->IsActorTickEnabled());
+		SetActorTickEnabled(cdo->CanEverTick());
 	}
 
 	TArray<UActorComponent*> comps;
@@ -135,9 +135,7 @@ void APoolableActor::ResetCollisionAndTick()
 			continue;
 		
 		if(const UActorComponent* cdo = compUClass->GetDefaultObject<UActorComponent>(); IsValid(cdo))
-		{
-			comp->SetComponentTickEnabled(cdo->IsComponentTickEnabled());
-		}
+			comp->SetComponentTickEnabled(cdo->PrimaryComponentTick.bCanEverTick);
 	}
 }
 

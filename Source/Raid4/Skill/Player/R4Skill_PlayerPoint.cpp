@@ -283,7 +283,7 @@ void UR4Skill_PlayerPoint::_TracePointing()
 		FHitResult hitResult;
 		FCollisionQueryParams params;
 
-		// Line Trace
+		// Line Trace TODO : Channel 변경
 		bool bHit = GetWorld()->LineTraceSingleByChannel( hitResult, start, end, SKILL_POINT_TRACE_CHANNEL, params );
 
 		// Range Limit Check, 넘어가면 보정
