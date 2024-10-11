@@ -46,10 +46,31 @@ struct FR4PointSkillAOEInfo
 };
 
 /**
+ * Server의 지점 선택 정보.
+ */
+USTRUCT( Atomic )
+struct FR4ServerPointingInfo
+{
+	GENERATED_BODY()
+	
+	FR4ServerPointingInfo()
+	: CachedTargetWorldPoint( FVector::ZeroVector )
+	, CachedTargetPointingServerTime( 0.f )
+	{}
+
+	// Server에서 확정한 지점
+	UPROPERTY( Transient, VisibleInstanceOnly )
+	FVector_NetQuantize CachedTargetWorldPoint;
+
+	// Server에서 지점을 확정한 시간
+	UPROPERTY( Transient, VisibleInstanceOnly )
+	float CachedTargetPointingServerTime;
+};
+
+/**
  * 플레이어 지점 선택 스킬 ( 첫번째 사용 시 지점 선택, 두번째 사용 시 실제 스킬 사용 )
- * Detector의 Origin으로 UR4OriginCalculator_FromRequestObj를 사용하면, 선택된 지점을 기반 Origin을 사용함
+ * Detector의 Origin으로 UR4OriginCalculator_FromRequestObj를 사용하면, 선택된 지점을 기반 Origin을 제공함.
  * 선택된 지점을 사용 시, Simulated에서는 위치가 보장이 안될 수 있음.
- * TODO : 현재 범위 기반 계산만 가능한데, 다른 방식이 더 필요하면 Strategy로 확장?
  */
 UCLASS( Blueprintable, NotBlueprintType, ClassGroup=(Skill) )
 class RAID4_API UR4Skill_PlayerPoint : public UR4AnimSkillBase, public IR4PlayerInputableInterface, public IR4OriginProviderInterface
@@ -91,14 +112,14 @@ protected:
 	virtual bool IsNeedTick() const override;
 
 private:
-	// 지점 선택 Trace
-	void _TracePointing();
-
 	// Pointing Setup
 	void _SetupPointing();
 	
 	// Pointing 정리
 	void _TearDownPointing() const;
+	
+	// 지점 선택 Trace
+	void _TracePointing();
 	
 	// 지점 지정, Decal도 유효하다면 같이 이동.
 	void _SetTargetPointAndDecal( const FVector& InWorldLoc );
@@ -109,7 +130,7 @@ private:
 
 	// Target Point가 Server로 인해 확정 시 호출
 	UFUNCTION()
-	void _OnRep_TargetWorldPoint();
+	void _OnRep_ServerPointingInfo();
 	
 private:
 	// 지점 선택을 Skip할 것인지 선택.
@@ -122,19 +143,19 @@ private:
 	float RangeRadius;
 	
 	// 지점 선택 중 애니메이션
-	UPROPERTY( Replicated, EditAnywhere, Category = "Skill|Pointing", meta = ( EditCondition = "bSkipPointing", EditConditionHides ) )
+	UPROPERTY( Replicated, EditAnywhere, Category = "Skill|Pointing", meta = ( EditCondition = "!bSkipPointing", EditConditionHides ) )
 	FR4SkillAnimInfo PointingSkillAnimInfo;
 
 	// 지점 선택 Decal 관련 정보
-	UPROPERTY( EditAnywhere, Category = "Skill|Pointing", meta = ( EditCondition = "bSkipPointing", EditConditionHides ) )
+	UPROPERTY( EditAnywhere, Category = "Skill|Pointing", meta = ( EditCondition = "!bSkipPointing", EditConditionHides ) )
 	FR4PointSkillAOEInfo AOEInfo;
 
 	// 지점 선택 시 적용할 버프
-	UPROPERTY( EditAnywhere, Category = "Skill|Pointing", meta = ( EditCondition = "bSkipPointing", EditConditionHides ) )
+	UPROPERTY( EditAnywhere, Category = "Skill|Pointing", meta = ( EditCondition = "!bSkipPointing", EditConditionHides ) )
 	TArray<FR4SkillBuffInfo> OnBeginPointingBuffs;
 	
 	// 지점 선택 종료 시 적용할 Buff.
-	UPROPERTY( EditAnywhere, Category = "Skill|Pointing", meta = ( EditCondition = "bSkipPointing", EditConditionHides ) )
+	UPROPERTY( EditAnywhere, Category = "Skill|Pointing", meta = ( EditCondition = "!bSkipPointing", EditConditionHides ) )
 	TArray<FR4SkillBuffInfo> OnEndPointingBuffs;
 	
 	// 공격 스킬 애니메이션, 지점 선택 완료 시 바로 작동
@@ -144,8 +165,8 @@ private:
 	// Caching
 
 	// 선택된 지점 ( Server )
-	UPROPERTY( ReplicatedUsing = _OnRep_TargetWorldPoint, Transient, VisibleInstanceOnly )
-	FVector_NetQuantize CachedTargetWorldPoint_Server;
+	UPROPERTY( ReplicatedUsing = _OnRep_ServerPointingInfo, Transient, VisibleInstanceOnly )
+	FR4ServerPointingInfo ServerPointingInfo;
 	
 	// 선택된 지점 ( Client )
 	FVector CachedTargetWorldPoint_Client;

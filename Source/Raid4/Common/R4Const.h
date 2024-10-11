@@ -61,6 +61,6 @@ namespace Skill
 	constexpr static int32 G_InvalidSkillAnimKey = INDEX_NONE;
 
 	// Point 선택시 Trace할 길이 (넉넉하게)
-	constexpr static float G_PointSkillTraceLength = 5000.f;
+	constexpr static float G_PointSkillTraceLength = 20000.f;
 	
 }
