@@ -193,14 +193,14 @@ void AR4Detector_Active::_TearDownDetect()
 
 		NoAuthCollisionEnableInfo.bEnable = false;
 	}
+	
+	// disable collision
+	SetActorEnableCollision( false );
 
 	OnBeginDetectDelegate.Clear();
 	OnEndDetectDelegate.Clear();
 	CachedRequestActor.Reset();
-
-	// disable collision
-	SetActorEnableCollision( false );
-
+	
 	// clear
 	GetWorldTimerManager().ClearTimer( LifeTimerHandle );
 }
