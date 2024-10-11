@@ -18,9 +18,8 @@ struct FR4PointSkillAOEInfo
 	
 	FR4PointSkillAOEInfo()
 	: RangeAOE( FR4AreaOfEffect() )
-	, RangeRadius( 0.f )
 	, PointAOE( FR4AreaOfEffect() )
-	, PointRadius( 0.f )
+	, PointDecalRadius( 0.f )
 	, RangeAOEInstance( nullptr )
 	, PointAOEInstance( nullptr )
 	{}
@@ -28,18 +27,14 @@ struct FR4PointSkillAOEInfo
 	// 범위 표시 Decal
 	UPROPERTY( EditAnywhere )
 	FR4AreaOfEffect RangeAOE;
-
-	// 범위 반지름
-	UPROPERTY( EditAnywhere )
-	float RangeRadius;
 	
 	// 지점 표시 Decal
 	UPROPERTY( EditAnywhere )
 	FR4AreaOfEffect PointAOE;
 
-	// Point 반지름
+	// Point Decal의 반지름
 	UPROPERTY( EditAnywhere )
-	float PointRadius;
+	float PointDecalRadius;
 	
 	// 범위 표시 Decal Comp Instance
 	UPROPERTY( Transient, VisibleInstanceOnly )
@@ -53,6 +48,7 @@ struct FR4PointSkillAOEInfo
 /**
  * 플레이어 지점 선택 스킬 ( 첫번째 사용 시 지점 선택, 두번째 사용 시 실제 스킬 사용 )
  * Detector의 Origin으로 UR4OriginCalculator_FromRequestObj를 사용하면, 선택된 지점을 기반 Origin을 사용함
+ * 선택된 지점을 사용 시, Simulated에서는 위치가 보장이 안될 수 있음.
  * TODO : 현재 범위 기반 계산만 가능한데, 다른 방식이 더 필요하면 Strategy로 확장?
  */
 UCLASS( Blueprintable, NotBlueprintType, ClassGroup=(Skill) )
@@ -86,10 +82,10 @@ public:
 	virtual void SetSkillEnable( bool InIsEnable ) override;
 protected:
 	// Anim을 Play시작 시 호출.
-	virtual void OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, float InStartServerTime ) override;
+	virtual void OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, const FName& InStartSectionName, float InStartServerTime ) override;
 
 	// Anim 종료 시 호출.
-	virtual void OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted ) override;
+	virtual void OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo ) override;
 
 	// 현재 Tick이 필요한 상태인지 return.
 	virtual bool IsNeedTick() const override;
@@ -116,20 +112,29 @@ private:
 	void _OnRep_TargetWorldPoint();
 	
 private:
+	// 지점 선택을 Skip할 것인지 선택.
+	// Skip 시 바로 Trace 1회 실행 후 Point를 확정.
+	UPROPERTY( EditAnywhere, Category = "Skill|Pointing" )
+	uint8 bSkipPointing:1;
+
+	// 선택 가능한 범위. ( Owner Location 기준 )
+	UPROPERTY( EditAnywhere, Category = "Skill|Pointing", meta = ( UIMin = 0.f, ClampMin = 0.f, UIMax = 10000.f, ClampMax = 10000.f ) )
+	float RangeRadius;
+	
 	// 지점 선택 중 애니메이션
-	UPROPERTY( Replicated, EditAnywhere, Category = "Skill|Anim" )
+	UPROPERTY( Replicated, EditAnywhere, Category = "Skill|Pointing", meta = ( EditCondition = "bSkipPointing", EditConditionHides ) )
 	FR4SkillAnimInfo PointingSkillAnimInfo;
 
-	// 지점 선택 관련 정보
-	UPROPERTY( EditAnywhere, Category = "Skill|Anim" )
+	// 지점 선택 Decal 관련 정보
+	UPROPERTY( EditAnywhere, Category = "Skill|Pointing", meta = ( EditCondition = "bSkipPointing", EditConditionHides ) )
 	FR4PointSkillAOEInfo AOEInfo;
-	
+
 	// 지점 선택 시 적용할 버프
-	UPROPERTY( EditAnywhere )
+	UPROPERTY( EditAnywhere, Category = "Skill|Pointing", meta = ( EditCondition = "bSkipPointing", EditConditionHides ) )
 	TArray<FR4SkillBuffInfo> OnBeginPointingBuffs;
 	
 	// 지점 선택 종료 시 적용할 Buff.
-	UPROPERTY( EditAnywhere )
+	UPROPERTY( EditAnywhere, Category = "Skill|Pointing", meta = ( EditCondition = "bSkipPointing", EditConditionHides ) )
 	TArray<FR4SkillBuffInfo> OnEndPointingBuffs;
 	
 	// 공격 스킬 애니메이션, 지점 선택 완료 시 바로 작동

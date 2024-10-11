@@ -24,27 +24,24 @@ class RAID4_API IR4AnimationInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	// Local에서 Anim Play
-	virtual void PlayAnim_Local( UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate ) = 0;
-
-	// Local에서 Anim Section Jump
-	virtual void JumpToSection_Local( const FName& InStartSectionName ) = 0;
-	
-	// Local에서 Anim Stop
-	virtual void StopAnim_Local() = 0;
-	
-	// Server에서, Autonomous Proxy를 제외하고 AnimPlay를 명령. ServerTime 조정으로 동기화 가능.
-	virtual void Server_PlayAnim_WithoutAutonomous( UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, bool InIsWithServer, float InServerTime = -1 ) = 0;
-
-	// Server에서, Autonomous Proxy를 제외하고 Section Jump를 명령. ServerTime 조정으로 동기화 가능.
-	virtual void Server_JumpToSection_WithoutAutonomous( const FName& InSectionName, bool InIsWithServer, float InServerTime = -1 ) = 0;
-
-	// Server에서, Autonomous Proxy를 제외하고 AnimStop을 명령.
-	virtual void Server_StopAnim_WithoutAutonomous( bool InIsWithServer ) = 0;
+	/**
+ 	*  ServerTime을 통한 동기화된 Animation Play를 지원. ( InServerTime 기준으로 보정 )
+ 	*  <Start ServerTime과의 Delay의 처리 방식>
+ 	*  Loop Animation의 경우 : Delay 된 StartPos에서 시작
+ 	*  일반 Animation의 경우 : PlayRate를 보정하여 동일 시점에 끝나도록 보정, ( delay > anim length인 경우 : Skip play )
+ 	*  @param InAnimMontage : Play할 Anim Montage
+ 	*  @param InStartSectionName : Play할 Anim Section의 Name
+ 	*  @param InPlayRate : PlayRate, 현재 음수의 play rate는 처리하지 않음.
+ 	*  @param InStartServerTime : 이 Animation을 Play한 서버 시작 시간 
+ 	*/
+	virtual void PlayAnimSync( UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, float InStartServerTime ) = 0;
 
 	// 주어진 Montage의 FAnimMontageInstance를 반환, 현재 해당 Montage가 Play되고 있지 않다면 nullptr return
 	// ( 주의 )
 	// GetInstanceForMontage( InMontage ) -> Blend Out 상태도 return함
 	// GetActiveInstanceForMontage( InMontage ) -> 실제 Active된 경우만 return..
 	virtual FAnimMontageInstance* GetActiveInstanceForMontage( const UAnimMontage* InMontage ) const = 0;
+
+	// Montage Instance가 사라지는 타이밍을 반환.
+	virtual FOnClearMontageInstance* OnClearMontageInstance() = 0;
 };

@@ -13,6 +13,9 @@
 UR4Skill_PlayerPoint::UR4Skill_PlayerPoint()
 {
 	CachedNowPointing = false;
+
+	bSkipPointing = false;
+	RangeRadius = 0.f;
 }
 
 void UR4Skill_PlayerPoint::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -62,8 +65,8 @@ void UR4Skill_PlayerPoint::OnInputStarted()
 		_SetupPointing();
 		
 		// 지점 선택 Anim이 있다면 실행
-		if( PointingSkillAnimInfo.SkillAnim != nullptr )
-			PlaySkillAnim( PointingSkillAnimInfo );
+		//if( PointingSkillAnimInfo.SkillAnim != nullptr )
+		//	PlaySkillAnim( PointingSkillAnimInfo );
 		
 		// Tick on
 		SetComponentTickEnabled( true );
@@ -122,11 +125,12 @@ void UR4Skill_PlayerPoint::SetSkillEnable( bool InIsEnable )
 /**
  * Anim을 Play시작 시 호출
  * @param InSkillAnimInfo : Play된 Skill Anim 정보
+ * @param InStartSectionName : 시작 된 Section Name.
  * @param InStartServerTime : Skill Anim이 시작된 Server Time
  */
-void UR4Skill_PlayerPoint::OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, float InStartServerTime )
+void UR4Skill_PlayerPoint::OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, const FName& InStartSectionName, float InStartServerTime )
 {
-	Super::OnBeginSkillAnim( InSkillAnimInfo, InStartServerTime );
+	Super::OnBeginSkillAnim( InSkillAnimInfo, InStartSectionName, InStartServerTime );
 	
 	// Player Point Skill의 경우 Attack Anim Play 시점을 Skill 사용으로 판정
 	// Anim Play 성공 = 스킬 사용으로 판단 및 쿨타임 적용
@@ -148,9 +152,9 @@ void UR4Skill_PlayerPoint::OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnim
  *  Anim 종료 시 호출.
  * @param InSkillAnimInfo : End된 Skill Anim 정보
  */
-void UR4Skill_PlayerPoint::OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted )
+void UR4Skill_PlayerPoint::OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
 {
-	Super::OnEndSkillAnim( InSkillAnimInfo, InIsInterrupted );
+	Super::OnEndSkillAnim( InSkillAnimInfo );
 
 	// Point Skill의 경우 Attack Anim End 시점을 Skill End로 판정
 	if ( InSkillAnimInfo.SkillAnimServerKey == AttackSkillAnimInfo.SkillAnimServerKey )
@@ -208,35 +212,35 @@ void UR4Skill_PlayerPoint::_TracePointing()
 	FVector2D screenCenter( viewportXSize * 0.5f, viewportYSize * 0.5f );
 	
 	// screenCenter -> world
-	FVector worldLoc, worldDir;
-	if ( CachedPlayerController->DeprojectScreenPositionToWorld( screenCenter.X, screenCenter.Y, worldLoc, worldDir ) )
-	{
-		// Trace 시작과 끝 설정
-		FVector start = worldLoc;
-		FVector end = start + ( worldDir * Skill::G_PointSkillTraceLength );
-
-		FHitResult hitResult;
-		FCollisionQueryParams params;
-
-		// Line Trace
-		bool bHit = GetWorld()->LineTraceSingleByChannel( hitResult, start, end, SKILL_POINT_TRACE_CHANNEL, params );
-
-		// Range Limit Check, 넘어가면 보정
-		if( !bHit
-			|| ( FVector::DistSquared( hitResult.Location, ownerLoc ) > ( AOEInfo.RangeRadius * AOEInfo.RangeRadius ) ) )
-		{
-			FVector traceEnd = bHit ? hitResult.Location : end;
-			FVector ownerToTraceEndDir = ( traceEnd - ownerLoc ).GetSafeNormal();
-			
-			// Actor의 중점에서 trace end 방향으로, 가장 Range Limit안 가장 먼 지점으로 이동
-			hitResult.Location = ownerLoc + ownerToTraceEndDir * AOEInfo.RangeRadius;
-		}
-
-		// Trace에 맞은 지점에 Decal 이동 및 지점 Caching
-		_SetTargetPointAndDecal( hitResult.Location );
-	}
-	else
-		_SetTargetPointAndDecal( ownerLoc );
+	//FVector worldLoc, worldDir;
+	//if ( CachedPlayerController->DeprojectScreenPositionToWorld( screenCenter.X, screenCenter.Y, worldLoc, worldDir ) )
+	//{
+	//	// Trace 시작과 끝 설정
+	//	FVector start = worldLoc;
+	//	FVector end = start + ( worldDir * Skill::G_PointSkillTraceLength );
+//
+	//	FHitResult hitResult;
+	//	FCollisionQueryParams params;
+//
+	//	// Line Trace
+	//	bool bHit = GetWorld()->LineTraceSingleByChannel( hitResult, start, end, SKILL_POINT_TRACE_CHANNEL, params );
+//
+	//	// Range Limit Check, 넘어가면 보정
+	//	if( !bHit
+	//		|| ( FVector::DistSquared( hitResult.Location, ownerLoc ) > ( AOEInfo.RangeRadius * AOEInfo.RangeRadius ) ) )
+	//	{
+	//		FVector traceEnd = bHit ? hitResult.Location : end;
+	//		FVector ownerToTraceEndDir = ( traceEnd - ownerLoc ).GetSafeNormal();
+	//		
+	//		// Actor의 중점에서 trace end 방향으로, 가장 Range Limit안 가장 먼 지점으로 이동
+	//		hitResult.Location = ownerLoc + ownerToTraceEndDir * AOEInfo.RangeRadius;
+	//	}
+//
+	//	// Trace에 맞은 지점에 Decal 이동 및 지점 Caching
+	//	_SetTargetPointAndDecal( hitResult.Location );
+	//}
+	//else
+	//	_SetTargetPointAndDecal( ownerLoc );
 }
 
 /**
@@ -248,12 +252,12 @@ void UR4Skill_PlayerPoint::_SetupPointing()
 	{
 		// TODO : Decal Response 조정
 		// Range AOE 생성
-		float rangeAOESize = AOEInfo.RangeAOE.GetDecalSizeByActualRadius( AOEInfo.RangeRadius );
-		AOEInfo.RangeAOEInstance = UGameplayStatics::SpawnDecalAtLocation( GetWorld(), AOEInfo.RangeAOE.AOEDecal, FVector( rangeAOESize ), GetOwner()->GetActorLocation() );
-
-		// Point AOE 생성
-		float pointAOESize = AOEInfo.PointAOE.GetDecalSizeByActualRadius( AOEInfo.PointRadius );
-		AOEInfo.PointAOEInstance = UGameplayStatics::SpawnDecalAtLocation( GetWorld(), AOEInfo.PointAOE.AOEDecal, FVector( pointAOESize ), GetOwner()->GetActorLocation() );
+		//float rangeAOESize = AOEInfo.RangeAOE.GetDecalSizeByActualRadius( AOEInfo.RangeRadius );
+		//AOEInfo.RangeAOEInstance = UGameplayStatics::SpawnDecalAtLocation( GetWorld(), AOEInfo.RangeAOE.AOEDecal, FVector( rangeAOESize ), GetOwner()->GetActorLocation() );
+//
+		//// Point AOE 생성
+		//float pointAOESize = AOEInfo.PointAOE.GetDecalSizeByActualRadius( AOEInfo.PointRadius );
+		//AOEInfo.PointAOEInstance = UGameplayStatics::SpawnDecalAtLocation( GetWorld(), AOEInfo.PointAOE.AOEDecal, FVector( pointAOESize ), GetOwner()->GetActorLocation() );
 	}
 
 	// 나에게 버프 적용
@@ -311,8 +315,9 @@ bool UR4Skill_PlayerPoint::_ServerRPC_SendTargetPoint_Validate( const FVector_Ne
 	if ( !GetOwner() )
 		return false;
 	
-	float acceptLength = AOEInfo.RangeRadius + Validation::G_AcceptMinLength;
-	return ( FVector::DistSquared( GetOwner()->GetActorLocation(), InWorldLoc ) < ( acceptLength * acceptLength ) );
+	//float acceptLength = AOEInfo.RangeRadius + Validation::G_AcceptMinLength;
+	//return ( FVector::DistSquared( GetOwner()->GetActorLocation(), InWorldLoc ) < ( acceptLength * acceptLength ) );
+	return true;
 }
 
 /**
@@ -321,6 +326,6 @@ bool UR4Skill_PlayerPoint::_ServerRPC_SendTargetPoint_Validate( const FVector_Ne
 void UR4Skill_PlayerPoint::_OnRep_TargetWorldPoint()
 {
 	// Locally control 상태가 받았으면, 공격 anim play
-	if( CachedPlayerController.IsValid() && CachedPlayerController->IsLocalPlayerController() )
-		PlaySkillAnim( AttackSkillAnimInfo );
+	//if( CachedPlayerController.IsValid() && CachedPlayerController->IsLocalPlayerController() )
+		//PlaySkillAnim( AttackSkillAnimInfo );
 }

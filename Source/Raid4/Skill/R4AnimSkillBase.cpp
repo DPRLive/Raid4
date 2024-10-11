@@ -165,9 +165,19 @@ void UR4AnimSkillBase::AddExecute( int32 InSkillAnimKey, TFunction<void()>&& InF
 
 		return;
 	}
-
+	
 	// 아니면 Update 대기열에 넣고 Tick On
-	PendingExecutes.Emplace( FR4AnimSkillExecuteInfo( InSkillAnimKey, R4GetServerTimeSeconds( GetWorld() ) + InDelay, MoveTemp(InFunc) ) );
+	PendingExecutes.Emplace
+	(
+		FR4AnimSkillExecuteInfo
+		(
+			InSkillAnimKey,
+			_GetNowMontageInstanceID( InSkillAnimKey ),
+			R4GetServerTimeSeconds( GetWorld() ) + InDelay,
+			MoveTemp(InFunc)
+		)
+	);
+	
 	SetComponentTickEnabled( true );
 }
 
@@ -240,27 +250,6 @@ void UR4AnimSkillBase::AddBuffExecute( int32 InSkillAnimKey, const FR4SkillTimeB
 }
 
 /**
- *  Skill Anim Key에 맞는, 특정 시간 뒤의 Execute 예약 모두 제거.
- *  StateFlag를 변경해두었다가, 발견되면 삭제. 다음 Tick에 삭제될 수 있으나, Update는 되지 않음.
- *  @param InSkillAnimKey : 멤버로 등록된, Play할 Skill Anim Info
- */
-void UR4AnimSkillBase::RemoveAllExecute( int32 InSkillAnimKey )
-{
-	if ( !IsValidSkillAnimKey( InSkillAnimKey ) )
-	{
-		LOG_WARN( R4Skill, TEXT("Skill Anim Key [%d] Is Invalid"), InSkillAnimKey );
-		return;
-	}
-	
-	for( auto it = PendingExecutes.CreateIterator(); it; ++it )
-	{
-		// State Flag 변경
-		if ( it->SkillAnimKey == InSkillAnimKey )
-			it->StateFlag = FR4AnimSkillExecuteInfo::PendingKill;
-	}
-}
-
-/**
  *  Section의 Length와, 시작 시간이 주어졌을 때, 현재 서버타임과 비교하여 얼마나 빠르게 실행해야 서버와 동일하게 끝낼 수 있는지 delay 계산
  *  @param InTotalLength : 실행 시간 ( ex ) Anim Section의 Length
  *  @param InStartTime : 현재 ServerTime과 비교할 시작 시간
@@ -279,12 +268,14 @@ float UR4AnimSkillBase::CalculateDelayRate( float InTotalLength, float InStartTi
 }
 
 /**
- *  Skill Animation을 Play.
+ *  Skill Animation을 Local에서 Play. InStartServerTime으로 동기화 가능.
  *  멤버로 등록된 Skill Anim만 Server에서 Play 가능.
  *  @param InSkillAnimInfo : 멤버로 등록된, Play할 Skill Anim Info
+ *  @param InStartSectionName : 시작 된 Section Name.
+ *  @param InStartServerTime : Skill Anim이 시작 된 Server Time.
  *  @return : Play Anim 성공 여부
  */
-bool UR4AnimSkillBase::PlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
+bool UR4AnimSkillBase::PlaySkillAnimSync_Local( const FR4SkillAnimInfo& InSkillAnimInfo, const FName& InStartSectionName, float InStartServerTime )
 {
 	if ( !IsValidSkillAnimKey( InSkillAnimInfo.SkillAnimServerKey ) )
 	{
@@ -295,49 +286,118 @@ bool UR4AnimSkillBase::PlaySkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
 	if ( !ensureMsgf( IsValid( InSkillAnimInfo.SkillAnim ), TEXT("Skill Anim is nullptr.") ) )
 		return false;
 	
-	// ROLE_AutonomousProxy인 경우 로컬에서 플레이 후 Server RPC 전송
-	if( GetOwnerRole() == ROLE_AutonomousProxy )
+	IR4AnimationInterface* owner = Cast<IR4AnimationInterface>( GetOwner() );
+	if ( owner == nullptr )
 	{
-		IR4AnimationInterface* owner = Cast<IR4AnimationInterface>( GetOwner() );
-		if ( owner == nullptr )
-		{
-			LOG_WARN( R4Skill, TEXT("Can only play Skill Animations if the IR4AnimationInterface is inherited.") )
-			return false;
-		}
+		LOG_WARN( R4Skill, TEXT("Can only play Skill Animations if the IR4AnimationInterface is inherited.") )
+		return false;
+	}
 
-		// Local에서 Play
-		owner->PlayAnim_Local( InSkillAnimInfo.SkillAnim, NAME_None, 1.f );
-		FAnimMontageInstance* montageInstance = owner->GetActiveInstanceForMontage( InSkillAnimInfo.SkillAnim );
-		if ( montageInstance == nullptr )
-		{
-			LOG_ERROR( R4Skill, TEXT("FAnimMontageInstance is nullptr.") )
-			return false;
-		}
+	// 같은 Anim을 두번 사용하면, Blend Out 시점을 End Play Anim으로 판정하더라도
+	// Begin 2 () -> End 1 () 순서로 로직이 진행되어 문제가 생김. ( Montage Instance는 파괴되지만, Anim은 queue에서 대기 )
+	// 그래서 Montage Instance 파괴 시점을 Get
+	FOnClearMontageInstance* montageInstanceDelegate = owner->OnClearMontageInstance();
+	if( montageInstanceDelegate == nullptr )
+	{
+		LOG_WARN( R4Skill, TEXT("montageInstanceDelegate is nullptr.") )
+		return false;
+	}
+	
+	// Start Section Name이 invalid하면, 시작 Section으로 설정
+	FName startSectionName = InStartSectionName;
+	if( !InSkillAnimInfo.SkillAnim->IsValidSectionName( startSectionName ) )
+		startSectionName = InSkillAnimInfo.SkillAnim->GetSectionName( 0 );
+		
+	// Local에서 Play
+	owner->PlayAnimSync( InSkillAnimInfo.SkillAnim, startSectionName, 1.f, InStartServerTime );
+	FAnimMontageInstance* montageInstance = owner->GetActiveInstanceForMontage( InSkillAnimInfo.SkillAnim );
+	if ( montageInstance == nullptr )
+	{
+		LOG_ERROR( R4Skill, TEXT("FAnimMontageInstance is nullptr.") )
+		return false;
+	}
 
-		// Anim Play End시 로직 설정, blend out 시작 시 anim 종료로 판정.
-		// this capture, use weak lambda
-		montageInstance->OnMontageBlendingOutStarted.BindWeakLambda( this,
-			[this, &InSkillAnimInfo]
-			( UAnimMontage* InMontage, bool InIsInterrupted )
+	// Anim Play End시 로직 설정, 
+	// this capture, use weak lambda
+	FDelegateHandle handle = montageInstanceDelegate->AddWeakLambda( this,
+		[this, &InSkillAnimInfo, mID = montageInstance->GetInstanceID()]
+		( FAnimMontageInstance& InStoppedMontageInstance )
 			{
-				if ( IsValidSkillAnimKey( InSkillAnimInfo.SkillAnimServerKey ) )
-					OnEndSkillAnim( InSkillAnimInfo, InIsInterrupted );
+				if( InStoppedMontageInstance.GetInstanceID() != mID )
+					return;
+				
+				IR4AnimationInterface* ownerInterface = Cast<IR4AnimationInterface>( GetOwner() );
+				if ( ownerInterface == nullptr )
+					return;
+			
+				FOnClearMontageInstance* mIDelegate = ownerInterface->OnClearMontageInstance();
+				if( mIDelegate == nullptr )
+					return;
+	
+				// UnBind Delegates..
+				FDelegateHandle dHandle;
+				CachedClearMontageHandles.RemoveAndCopyValue( mID, dHandle );
+				mIDelegate->Remove( dHandle );
+	
+				// END
+				OnEndSkillAnim( InSkillAnimInfo );
 			} );
 
-		OnBeginSkillAnim( InSkillAnimInfo, R4GetServerTimeSeconds( GetWorld() ) );
+	// Add DelegateHandle
+	CachedClearMontageHandles.Emplace( montageInstance->GetInstanceID(), MoveTemp( handle ) );
+	OnBeginSkillAnim( InSkillAnimInfo, startSectionName, R4GetServerTimeSeconds( GetWorld() ) );
+
+	return true;
+}
+
+/**
+ *  Skill Animation을 Play 후 Server RPC 전송을 통해 동기화.
+ *  멤버로 등록된 Skill Anim만 Server에서 Play 가능.
+ *  @param InSkillAnimInfo : 멤버로 등록된, Play할 Skill Anim Info
+ *  @param InStartSectionName : 시작 된 Section Name.
+ *  @return : Play Anim 성공 여부
+ */
+bool UR4AnimSkillBase::PlaySkillAnim_WithServerRPC( const FR4SkillAnimInfo& InSkillAnimInfo, const FName& InStartSectionName )
+{
+	if ( !IsValidSkillAnimKey( InSkillAnimInfo.SkillAnimServerKey ) )
+	{
+		LOG_WARN( R4Skill, TEXT("Skill Anim Key [%d] Is Invalid. Check SkillAnim Replicate State."), InSkillAnimInfo.SkillAnimServerKey );
+		return false;
+	}
+
+	if ( !ensureMsgf( IsValid( InSkillAnimInfo.SkillAnim ), TEXT("Skill Anim is nullptr.") ) )
+		return false;
+
+	// 현재 서버 시간.
+	float nowServerTime = R4GetServerTimeSeconds( GetWorld() );
+
+	// Start Section Name이 invalid하면, 시작 Section으로 설정
+	FName startSectionName = InStartSectionName;
+	if( !InSkillAnimInfo.SkillAnim->IsValidSectionName( startSectionName ) )
+		startSectionName = InSkillAnimInfo.SkillAnim->GetSectionName( 0 );
+	
+	// ROLE_AutonomousProxy인 경우 로컬에서 먼저 플레이 후 Server RPC 전송
+	if( GetOwnerRole() == ROLE_AutonomousProxy )
+	{
+		bool bPlayAnim = PlaySkillAnimSync_Local( InSkillAnimInfo, startSectionName, nowServerTime );
+
+		if ( !bPlayAnim )
+			return false;
 	}
 
 	// Server로 Play 요청
-	_ServerRPC_PlaySkillAnim( InSkillAnimInfo.SkillAnimServerKey, R4GetServerTimeSeconds( GetWorld() ) );
+	int32 startIndex = InSkillAnimInfo.SkillAnim->GetSectionIndex( startSectionName );
+	_ServerRPC_PlaySkillAnim( InSkillAnimInfo.SkillAnimServerKey, startIndex, nowServerTime );
 	return true;
 }
 
 /**
  * Anim을 Play시작 시 호출.
  * @param InSkillAnimInfo : Play된 Skill Anim 정보
+ * @param InStartSectionName : 시작 된 Section Name.
  * @param InStartServerTime : Skill Anim이 시작된 Server Time
  */
-void UR4AnimSkillBase::OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, float InStartServerTime )
+void UR4AnimSkillBase::OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, const FName& InStartSectionName, float InStartServerTime )
 {
 	if ( !IsValidSkillAnimKey( InSkillAnimInfo.SkillAnimServerKey ) )
 	{
@@ -351,75 +411,38 @@ void UR4AnimSkillBase::OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo
 		return;
 	}
 	
+	int32 sectionIndex = InSkillAnimInfo.SkillAnim->GetSectionIndex( InStartSectionName );
+	sectionIndex = ( sectionIndex == INDEX_NONE ) ? 0 : sectionIndex;
+	
 	if( GetOwnerRole() == ROLE_Authority )
 	{
-		// Skill Anim 사용 상태 설정
-		// TODO: 일단 Name_None index, Start 시 Section 지정 기능 추가되면 변경해야함
-		AnimPlayServerStates[InSkillAnimInfo.SkillAnimServerKey].SectionIndex = 0; 
+		// Server Skill Anim 사용 상태 설정
+		AnimPlayServerStates[InSkillAnimInfo.SkillAnimServerKey].SectionIndex = sectionIndex; 
 		AnimPlayServerStates[InSkillAnimInfo.SkillAnimServerKey].AnimStartServerTime = InStartServerTime;
+		AnimPlayServerStates[InSkillAnimInfo.SkillAnimServerKey].MontageInstanceID = _GetNowMontageInstanceID( InSkillAnimInfo.SkillAnimServerKey );
 	}
 
-	// 시작 시에도 Section Index 로직 처리를 위해 호출
-	OnChangeSkillAnimSection( InSkillAnimInfo, InSkillAnimInfo.SkillAnim->GetSectionName( 0 ), InStartServerTime );
-}
-
-/**
- * Anim Section Change시 호출
- * @param InSkillAnimInfo : Section이 변경 된 Play Skill Anim 정보
- * @param InSectionName : 변경된 Section Name
- * @param InStartChangeTime : 변경이 된 Server Time
- */
-void UR4AnimSkillBase::OnChangeSkillAnimSection( const FR4SkillAnimInfo& InSkillAnimInfo, FName InSectionName, float InStartChangeTime )
-{
-	if ( !IsValidSkillAnimKey( InSkillAnimInfo.SkillAnimServerKey ) )
-	{
-		LOG_WARN( R4Skill, TEXT("Skill Anim Key [%d] Is Invalid. Check SkillAnim Replicate State."), InSkillAnimInfo.SkillAnimServerKey );
-		return;
-	}
-
-	if ( !IsValid( InSkillAnimInfo.SkillAnim ) )
-	{
-		LOG_WARN( R4Skill, TEXT("Skill Anim is Invalid. Check SkillAnim Replicate State.") );
-		return;
-	}
-
-	int32 sectionIndex = InSkillAnimInfo.SkillAnim->GetSectionIndex( InSectionName );
-	if ( sectionIndex == INDEX_NONE )
-	{
-		LOG_WARN( R4Skill, TEXT("Skill Anim [%s] section index [%s] is Invalid. Check SkillAnim State."), *InSkillAnimInfo.SkillAnim->GetName( ), *InSectionName.ToString() );
-		return;
-	}
-	
-	if( GetOwnerRole() == ROLE_Authority )
-	{
-		// Section 변경
-		AnimPlayServerStates[InSkillAnimInfo.SkillAnimServerKey].AnimStartServerTime = InStartChangeTime;
-		AnimPlayServerStates[InSkillAnimInfo.SkillAnimServerKey].SectionIndex = sectionIndex;
-	}
-
-	// 기존 execute 제거
-	RemoveAllExecute( InSkillAnimInfo.SkillAnimServerKey );
-
+	// Add executes
 	// Execute Delay Rate는 Anim과 동기화
 	float sectionLength = UtilAnimation::GetCompositeAnimLength( InSkillAnimInfo.SkillAnim, sectionIndex );
-	float executeDelayRate = CalculateDelayRate( sectionLength, InStartChangeTime );
-		
+	float executeDelayRate = CalculateDelayRate( sectionLength, InStartServerTime );
+	
 	// delay가 너무 길어졌으면 Skip
 	if( executeDelayRate < 0.f )
 	{
-		LOG_N( R4Skill, TEXT("Execute delay is too late. Anim Section Length : [%f], delay : [%f]"), sectionLength, R4GetServerTimeSeconds( GetWorld() ) - InStartChangeTime );
+		LOG_N( R4Skill, TEXT("Execute delay is too late. Anim Section Length : [%f], delay : [%f]"), sectionLength, R4GetServerTimeSeconds( GetWorld() ) - InStartServerTime );
 		return;
 	}
 
 	// Add Execute Detect
-	if ( auto it = InSkillAnimInfo.DetectExecutes.Find( InSectionName ) )
+	if ( auto it = InSkillAnimInfo.DetectExecutes.Find( InStartSectionName ) )
 	{
 		for ( const auto& detect : it->DetectEffects )
 			AddDetectExecute( InSkillAnimInfo.SkillAnimServerKey, detect, executeDelayRate );
 	}
 
 	// Add Execute Buffs
-	if ( auto it = InSkillAnimInfo.BuffExecutes.Find( InSectionName ) )
+	if ( auto it = InSkillAnimInfo.BuffExecutes.Find( InStartSectionName ) )
 	{
 		for ( const auto& buff : it->Buffs )
 			AddBuffExecute( InSkillAnimInfo.SkillAnimServerKey, buff, executeDelayRate );
@@ -430,7 +453,7 @@ void UR4AnimSkillBase::OnChangeSkillAnimSection( const FR4SkillAnimInfo& InSkill
  *  Anim 종료 시 호출.
  * @param InSkillAnimInfo : End된 Skill Anim 정보
  */
-void UR4AnimSkillBase::OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted )
+void UR4AnimSkillBase::OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
 {
 	if ( !IsValidSkillAnimKey( InSkillAnimInfo.SkillAnimServerKey ) )
 	{
@@ -449,9 +472,6 @@ void UR4AnimSkillBase::OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, 
 		// Skill Anim 사용 상태 해제
 		AnimPlayServerStates[InSkillAnimInfo.SkillAnimServerKey].AnimStartServerTime = -1.f;
 	}
-
-	// 해당 key로 등록되어 있던 execute 제거
-	RemoveAllExecute( InSkillAnimInfo.SkillAnimServerKey );
 }
 
 /**
@@ -527,17 +547,10 @@ void UR4AnimSkillBase::_UpdateExecute( float InNowServerTime )
 {
 	for( auto it = PendingExecutes.CreateIterator(); it; ++it )
 	{
-		// Pending Kill이거나, Invalid한 Func를 들고 있으면 제거 
-		if ( (it->StateFlag == FR4AnimSkillExecuteInfo::PendingKill) || !( it->Func ) )
+		// 현재 Skill Anim montage의 Active Montage Instance ID와 일치하지 않으면, 제거
+		if ( it->MontageInstanceID != _GetNowMontageInstanceID( it->SkillAnimKey ) )
 		{
 			it.RemoveCurrentSwap();
-			continue;
-		}
-
-		// New 상태이면, 다음 Tick에 업데이트 할 수 있도록 Update Flag로 변경
-		if ( it->StateFlag == FR4AnimSkillExecuteInfo::New )
-		{
-			it->StateFlag = FR4AnimSkillExecuteInfo::CanUpdate;
 			continue;
 		}
 		
@@ -553,11 +566,42 @@ void UR4AnimSkillBase::_UpdateExecute( float InNowServerTime )
 }
 
 /**
+ *  InSkillAnimKey의 Montage를 현재 Play 시키고 있는 Montage Instance ID를 Get
+ *  @param InSkillAnimKey : Server에서 부여받은 FR4SkillAnimInfo의 Key.
+ */
+int32 UR4AnimSkillBase::_GetNowMontageInstanceID( int32 InSkillAnimKey ) const
+{
+	if ( !IsValidSkillAnimKey( InSkillAnimKey ) )
+	{
+		LOG_WARN( R4Skill, TEXT("InSkillAnimKey is invalid.") );
+		return INDEX_NONE;
+	}
+
+	const FR4SkillAnimInfo* skillAnimInfo = GetSkillAnimInfo( InSkillAnimKey );
+	if( skillAnimInfo == nullptr )
+		return INDEX_NONE;
+	
+	IR4AnimationInterface* owner = Cast<IR4AnimationInterface>( GetOwner() );
+	if ( owner == nullptr )
+	{
+		LOG_WARN( R4Skill, TEXT("Can only play Skill Animations if the IR4AnimationInterface is inherited.") )
+		return INDEX_NONE;
+	}
+	
+	FAnimMontageInstance* montageInstance = owner->GetActiveInstanceForMontage( skillAnimInfo->SkillAnim );
+	if ( montageInstance == nullptr )
+		return INDEX_NONE;
+
+	return montageInstance->GetInstanceID();
+}
+
+/**
  *  Server로 Animation Play를 요청.
  *  @param InSkillAnimKey : Server에서 부여받은 FR4SkillAnimInfo의 Key.
+ *  @param InStartSectionIndex : 시작한 Section Index
  *  @param InStartServerTime : Anim을 Play 시작한 ServerTime.
  */
-void UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Implementation( int32 InSkillAnimKey, float InStartServerTime )
+void UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Implementation( int32 InSkillAnimKey, int32 InStartSectionIndex, float InStartServerTime )
 {
 	// 특정 경우 요청을 무시.
 	if ( PlaySkillAnim_Ignore( InSkillAnimKey ) )
@@ -567,43 +611,20 @@ void UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Implementation( int32 InSkillAni
 	if ( ( skillAnimInfo == nullptr )
 		|| ( !ensureMsgf( IsValid( skillAnimInfo->SkillAnim ), TEXT("Skill Anim is nullptr.") ) ) )
 		return;
-
-	IR4AnimationInterface* owner = Cast<IR4AnimationInterface>( GetOwner() );
-	if ( owner == nullptr )
-	{
-		LOG_WARN( R4Skill, TEXT("Can only play Skill Animations if the IR4AnimationInterface is inherited.") )
-		return;
-	}
 	
-	// Autonomous 제외한 나머지 Animation Play.
-	owner->Server_PlayAnim_WithoutAutonomous( skillAnimInfo->SkillAnim, NAME_None, 1.f, true, InStartServerTime );
-	FAnimMontageInstance* montageInstance = owner->GetActiveInstanceForMontage( skillAnimInfo->SkillAnim );
-	if ( montageInstance == nullptr )
-	{
-		LOG_WARN( R4Skill, TEXT("FAnimMontageInstance is nullptr. Failed to play anim.") )
-		return;
-	}
-
-	// Anim Play End시 로직 설정, Blend out시 종료로 판정
-	// this capture, use weak lambda
-	montageInstance->OnMontageBlendingOutStarted.BindWeakLambda( this,
-		[this, &InSkillAnimInfo = *skillAnimInfo]
-		( UAnimMontage* InMontage, bool InIsInterrupted )
-		{
-			if ( IsValidSkillAnimKey( InSkillAnimInfo.SkillAnimServerKey ) )
-				OnEndSkillAnim( InSkillAnimInfo, InIsInterrupted );
-		} );
-	
-	OnBeginSkillAnim( *skillAnimInfo, InStartServerTime );
+	// Server Anim Play
+	FName startSectionName = skillAnimInfo->SkillAnim->GetSectionName( InStartSectionIndex );
+	PlaySkillAnimSync_Local( *skillAnimInfo, startSectionName, InStartServerTime );
 }
 
 /**
  *  Server Animation Play를 요청의 유효성을 PlaySkillAnim_Validate로 확인.
  *  PlaySkillAnim_Validate() 을 Override하여 키에 따라 로직 작성
  *  @param InSkillAnimKey : Server에서 부여받은 FR4SkillAnimInfo의 Key.
+ *  @param InStartSectionIndex : 시작한 Section Index
  *  @param InStartServerTime : Anim을 Play 시작한 ServerTime.
  */
-bool UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Validate( int32 InSkillAnimKey, float InStartServerTime )
+bool UR4AnimSkillBase::_ServerRPC_PlaySkillAnim_Validate( int32 InSkillAnimKey, int32 InStartSectionIndex, float InStartServerTime )
 {
 	return PlaySkillAnim_Validate( InSkillAnimKey );
 }
@@ -644,6 +665,7 @@ void UR4AnimSkillBase::_ParseSkillAnimInfo()
  */
 void UR4AnimSkillBase::_OnRep_AnimPlayServerState( const TArray<FAnimPlayServerStateInfo>& InPrevAnimPlayServerStates )
 {
+	// simulated proxy only.
 	if( GetOwnerRole() != ROLE_SimulatedProxy
 		|| InPrevAnimPlayServerStates.Num() != AnimPlayServerStates.Num() )
 		return;
@@ -653,34 +675,22 @@ void UR4AnimSkillBase::_OnRep_AnimPlayServerState( const TArray<FAnimPlayServerS
 	{
 		bool bPrevPlay = InPrevAnimPlayServerStates[idx].AnimStartServerTime > - KINDA_SMALL_NUMBER;
 		bool bNowPlay = AnimPlayServerStates[idx].AnimStartServerTime > - KINDA_SMALL_NUMBER;
-		bool bSectionChange = (InPrevAnimPlayServerStates[idx].SectionIndex != AnimPlayServerStates[idx].SectionIndex);
-
+		bool bSectionChange = ( InPrevAnimPlayServerStates[idx].SectionIndex != AnimPlayServerStates[idx].SectionIndex );
+		bool bMIDChange = ( InPrevAnimPlayServerStates[idx].MontageInstanceID != AnimPlayServerStates[idx].MontageInstanceID );
+		
 		const FR4SkillAnimInfo* animInfo = GetSkillAnimInfo( idx );
-		if ( animInfo == nullptr )
+		if ( animInfo == nullptr || !IsValid( animInfo->SkillAnim ) )
 		{
 			LOG_WARN( R4Skill, TEXT("Skill Anim Key [%d] Is Invalid. Check SkillAnim Replicate State."), idx );
 			continue;
 		}
-		
-		// 새로 Play가 시작된 경우
-		if ( !bPrevPlay && bNowPlay )
-		{
-			OnBeginSkillAnim( *animInfo, AnimPlayServerStates[idx].AnimStartServerTime );
-			continue;
-		}
 
-		// Play가 종료된 경우
-		if ( bPrevPlay && !bNowPlay )
+		FName newSectionName = animInfo->SkillAnim->GetSectionName( AnimPlayServerStates[idx].SectionIndex );
+		// 새로 Play가 시작 된 경우 || Section만 Change된 경우 || override play 인 경우
+		if ( ( !bPrevPlay && bNowPlay )
+			|| ( bPrevPlay && bNowPlay && ( bSectionChange || bMIDChange ) ) )
 		{
-			OnEndSkillAnim( *animInfo, false );
-			continue;
-		}
-		
-		// Section만 Change된 경우
-		if( bPrevPlay && bNowPlay && bSectionChange )
-		{
-			FName newSectionName = IsValid( animInfo->SkillAnim ) ? animInfo->SkillAnim->GetSectionName( AnimPlayServerStates[idx].SectionIndex ) : NAME_None; 
-			OnChangeSkillAnimSection( *animInfo, newSectionName, AnimPlayServerStates[idx].AnimStartServerTime );
+			PlaySkillAnimSync_Local( *animInfo, newSectionName, AnimPlayServerStates[idx].AnimStartServerTime );
 		}
 	}
 }

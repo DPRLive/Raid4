@@ -19,10 +19,17 @@ class RAID4_API UR4AnimInstance : public UAnimInstance
 public:
 	UR4AnimInstance();
 
+	virtual void OnMontageInstanceStopped( FAnimMontageInstance& StoppedMontageInstance ) override;
+
+	
 protected:
 	virtual void NativeInitializeAnimation() override;
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
+public:
+	// Montage Instance가 Clear 되는 타이밍을 반환.
+	FOnClearMontageInstance OnClearMontageInstanceDelegate;
 
 protected:
 	// 바닥에서 움직이는 속도를 체크

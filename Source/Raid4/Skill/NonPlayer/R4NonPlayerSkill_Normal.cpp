@@ -16,17 +16,18 @@ UR4NonPlayerSkill_Normal::UR4NonPlayerSkill_Normal()
 void UR4NonPlayerSkill_Normal::ActivateAISkill()
 {
 	if ( CanActivateSkill() )
-		PlaySkillAnim( SkillAnimInfo );
+		PlaySkillAnim_WithServerRPC( SkillAnimInfo, NAME_None );
 }
 
 /**
  * Anim을 Play시작 시 호출
  * @param InSkillAnimInfo : Play된 Skill Anim 정보
+ * @param InStartSectionName : 시작 된 Section Name.
  * @param InStartServerTime : Skill Anim이 시작된 Server Time
  */
-void UR4NonPlayerSkill_Normal::OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, float InStartServerTime )
+void UR4NonPlayerSkill_Normal::OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, const FName& InStartSectionName, float InStartServerTime )
 {
-	Super::OnBeginSkillAnim( InSkillAnimInfo, InStartServerTime );
+	Super::OnBeginSkillAnim( InSkillAnimInfo, InStartSectionName, InStartServerTime );
 
 	// Anim Play 시점을 Skill 사용으로 판정
 	// Anim Play 성공 = 스킬 사용으로 판단 및 쿨타임 적용
@@ -47,9 +48,9 @@ void UR4NonPlayerSkill_Normal::OnBeginSkillAnim( const FR4SkillAnimInfo& InSkill
  *  Anim 종료 시 호출.
  * @param InSkillAnimInfo : End된 Skill Anim 정보
  */
-void UR4NonPlayerSkill_Normal::OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted )
+void UR4NonPlayerSkill_Normal::OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo )
 {
-	Super::OnEndSkillAnim( InSkillAnimInfo, InIsInterrupted );
+	Super::OnEndSkillAnim( InSkillAnimInfo );
 
 	// Normal Skill의 경우 Anim End 시점을 Skill End로 판정
 	if ( InSkillAnimInfo.SkillAnimServerKey == SkillAnimInfo.SkillAnimServerKey )

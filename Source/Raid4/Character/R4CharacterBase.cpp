@@ -13,10 +13,10 @@
 #include "../Damage/R4DamageStruct.h"
 #include "../Animation/R4AnimationComponent.h"
 #include "../Util/UtilStat.h"
+#include "../Animation/R4AnimInstance.h"
 
 #include <Components/SkeletalMeshComponent.h>
 #include <Engine/SkeletalMesh.h>
-#include <Animation/AnimInstance.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4CharacterBase)
 
@@ -88,56 +88,18 @@ void AR4CharacterBase::EndPlay( const EEndPlayReason::Type EndPlayReason )
 }
 
 /**
- *  Local에서 Anim Play
+ *  ServerTime을 통한 동기화된 Animation Play를 지원. ( InServerTime 기준으로 보정 )
+ *  <Start ServerTime과의 Delay의 처리 방식>
+ *  Loop Animation의 경우 : Delay 된 StartPos에서 시작
+ *  일반 Animation의 경우 : PlayRate를 보정하여 동일 시점에 끝나도록 보정, ( delay > anim length인 경우 : Skip play )
+ *  @param InAnimMontage : Play할 Anim Montage
+ *  @param InStartSectionName : Play할 Anim Section의 Name
+ *  @param InPlayRate : PlayRate, 현재 음수의 play rate는 처리하지 않음.
+ *  @param InStartServerTime : 이 Animation을 Play한 서버 시작 시간 
  */
-void AR4CharacterBase::PlayAnim_Local( UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate )
+void AR4CharacterBase::PlayAnimSync( UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, float InStartServerTime )
 {
-	PlayAnimMontage( InAnimMontage, InPlayRate, InStartSectionName );
-}
-
-/**
- *  Local에서 JumpToSection
- */
-void AR4CharacterBase::JumpToSection_Local( const FName& InStartSectionName )
-{
-	UAnimInstance* anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
-	UAnimMontage* currAnim = anim->GetCurrentActiveMontage();
-	if( !IsValid( anim ) || !IsValid( currAnim ))
-		return;
-	
-	anim->Montage_JumpToSection( InStartSectionName, currAnim );
-}
-
-/**
- *  Local에서 Anim Stop
- */
-void AR4CharacterBase::StopAnim_Local()
-{
-	StopAnimMontage( nullptr );
-}
-
-/**
- *  Server에서, Autonomous Proxy를 제외하고 AnimPlay를 명령. ServerTime 조정으로 동기화 가능.
- */
-void AR4CharacterBase::Server_PlayAnim_WithoutAutonomous( UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, bool InIsWithServer, float InServerTime )
-{
-	AnimComp->Server_PlayAnim_WithoutAutonomous( InAnimMontage, InStartSectionName, InPlayRate, InIsWithServer, InServerTime );
-}
-
-/**
- *  Server에서, Autonomous Proxy를 제외하고 Section Jump를 명령. ServerTime 조정으로 동기화 가능.
- */
-void AR4CharacterBase::Server_JumpToSection_WithoutAutonomous( const FName& InSectionName, bool InIsWithServer, float InServerTime )
-{
-	AnimComp->Server_JumpToSection_WithoutAutonomous( InSectionName, InIsWithServer, InServerTime );
-}
-
-/**
- *  Server에서, Autonomous Proxy를 제외하고 AnimStop을 명령.
- */
-void AR4CharacterBase::Server_StopAnim_WithoutAutonomous(bool InIsWithServer)
-{
-	AnimComp->Server_StopAnim_WithoutAutonomous(InIsWithServer);
+	AnimComp->PlayAnimSync( InAnimMontage, InStartSectionName, InPlayRate, InStartServerTime );
 }
 
 /**
@@ -150,6 +112,18 @@ FAnimMontageInstance* AR4CharacterBase::GetActiveInstanceForMontage( const UAnim
 	UAnimInstance* animInstance = IsValid( GetMesh() ) ? GetMesh()->GetAnimInstance() : nullptr;
 	if ( IsValid( animInstance ) )
 		return animInstance->GetActiveInstanceForMontage( InMontage );
+
+	return nullptr;
+}
+
+/**
+ * Montage Instance Clear 시 알림.
+ */
+FOnClearMontageInstance* AR4CharacterBase::OnClearMontageInstance()
+{
+	UAnimInstance* animInstance = IsValid( GetMesh() ) ? GetMesh()->GetAnimInstance() : nullptr;
+	if ( UR4AnimInstance* r4AnimInstance = Cast<UR4AnimInstance>( animInstance ) )
+		return &r4AnimInstance->OnClearMontageInstanceDelegate;
 
 	return nullptr;
 }

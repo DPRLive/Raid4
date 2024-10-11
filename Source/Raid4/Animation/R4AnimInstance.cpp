@@ -24,6 +24,17 @@ UR4AnimInstance::UR4AnimInstance()
 	PrevRotation = FRotator::ZeroRotator;
 }
 
+/**
+ * Montage Instance가 사라지기 직전 호출. ( Blend Out 보다도 이전, Blend Out 시점엔 Montage Instance가 사라짐 )
+ */
+void UR4AnimInstance::OnMontageInstanceStopped( FAnimMontageInstance& StoppedMontageInstance )
+{
+	if( OnClearMontageInstanceDelegate.IsBound() )
+		OnClearMontageInstanceDelegate.Broadcast( StoppedMontageInstance );
+	
+	Super::OnMontageInstanceStopped( StoppedMontageInstance );
+}
+
 void UR4AnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();

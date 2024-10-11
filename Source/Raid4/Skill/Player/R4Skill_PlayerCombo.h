@@ -78,13 +78,10 @@ public:
 
 protected:
 	// Anim을 Play시작 시 호출.
-	virtual void OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, float InStartServerTime ) override;
-
-	// Anim Section Change 시 호출
-	virtual void OnChangeSkillAnimSection( const FR4SkillAnimInfo& InSkillAnimInfo, FName InSectionName, float InStartChangeTime ) override;
+	virtual void OnBeginSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, const FName& InStartSectionName, float InStartServerTime ) override;
 	
 	// Anim 종료 시 호출.
-	virtual void OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo, bool InIsInterrupted ) override;
+	virtual void OnEndSkillAnim( const FR4SkillAnimInfo& InSkillAnimInfo ) override;
 
 	// Combo Input Test Execute 추가
 	void AddInputTestExecute( int32 InSkillAnimKey, const FR4ComboInputInfo& InComboInputInfo, float InDelayRate = 1.f );
@@ -109,9 +106,12 @@ private:
 
 	//// Caching ////
 	
-	// Combo Skill Input 을 받을 수 있나?
+	// Combo Skill Input 을 받을 수 있는지?
 	uint8 CachedCanComboInput:1;
 	
 	// Combo Input이 입력된 상태인지?
 	uint8 CachedOnComboInput:1;
+
+	// Combo Input Check 성공 여부
+	uint8 CachedIsComboInputTestPassed:1;
 };

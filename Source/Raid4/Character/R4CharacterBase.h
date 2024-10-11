@@ -59,13 +59,9 @@ public:
 
 public:
 	// ~ Begin IR4AnimationInterface
-	virtual void PlayAnim_Local(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate) override;
-	virtual void JumpToSection_Local( const FName& InStartSectionName ) override;
-	virtual void StopAnim_Local() override;
-	virtual void Server_PlayAnim_WithoutAutonomous(UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, bool InIsWithServer, float InServerTime = -1) override;
-	virtual void Server_JumpToSection_WithoutAutonomous( const FName& InSectionName, bool InIsWithServer, float InServerTime ) override;
-	virtual void Server_StopAnim_WithoutAutonomous(bool InIsWithServer) override;
+	virtual void PlayAnimSync( UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, float InStartServerTime ) override;
 	virtual FAnimMontageInstance* GetActiveInstanceForMontage( const UAnimMontage* InMontage ) const override;
+	virtual FOnClearMontageInstance* OnClearMontageInstance() override;
 	// ~ End IR4AnimationInterface
 
 	// ~ Begin IR4DTDataPushable (Character의 데이터를 초기화한다. ( By DT_Character))
