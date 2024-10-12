@@ -5,6 +5,7 @@
 
 #include "../../Controller/R4AIController.h"
 #include "../../Skill/NonPlayer/R4NonPlayerSkillComponent.h"
+#include "../../Damage/R4DamageStruct.h"
 
 #include <Components/CapsuleComponent.h>
 
@@ -24,7 +25,7 @@ AR4NonPlayerCharacter::AR4NonPlayerCharacter( const FObjectInitializer& InObject
 	
 	// Set Profile Enemy
 	if ( GetCapsuleComponent() )
-		GetCapsuleComponent()->SetCollisionProfileName( COLLISION_PROFILE_NAME_ENEMY );
+		GetCapsuleComponent()->SetCollisionProfileName( Collision::G_ProfileEnemy );
 }
 
 void AR4NonPlayerCharacter::BeginPlay()
@@ -34,8 +35,6 @@ void AR4NonPlayerCharacter::BeginPlay()
 	// TODO : 데이터 집어넣는건 PlayerController가 Character PK를 들고 있다가 OnPossess 와 OnRep_Owner 되면 넣는걸로 하면 될 듯
 	// Character 테스트를 위한 Aurora 데이터 임시 로드
 	PushDTData(100);
-	
-	OnCharacterDamagedDelegate.AddDynamic( this, &AR4NonPlayerCharacter::OnAICharacterDamaged );
 }
 
 void AR4NonPlayerCharacter::EndPlay( const EEndPlayReason::Type EndPlayReason )
@@ -70,8 +69,11 @@ int32 AR4NonPlayerCharacter::GetAvailableMaxDistSkillIndex( float& OutDist ) con
 /**
  *	AI Character가 Damage 수신 시 로직
  */
-void AR4NonPlayerCharacter::OnAICharacterDamaged( const AActor* InInstigator, float InDamage )
+void AR4NonPlayerCharacter::ReceiveDamage( AActor* InInstigator, const FR4DamageReceiveInfo& InDamageInfo )
 {
+	Super::ReceiveDamage( InInstigator, InDamageInfo );
+
+	// AI가 받은 Damage와 Damage를 가한 controller를 기억
 	const AController* instigatorController = Cast<AController>( InInstigator );
 	if( !IsValid( instigatorController ) )
 	{
@@ -84,5 +86,5 @@ void AR4NonPlayerCharacter::OnAICharacterDamaged( const AActor* InInstigator, fl
 		return;
 
 	float& totalDamage = CachedDamagedControllers.FindOrAdd( instigatorController );
-	totalDamage += InDamage;
+	totalDamage += InDamageInfo.IncomingDamage;
 }

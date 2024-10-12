@@ -22,6 +22,7 @@ protected:
 
 public:
 	virtual void EndPlay( const EEndPlayReason::Type EndPlayReason ) override;
+	
 public:
 	// ~ Begin IR4CharacterAIInterface
 	virtual const TMap<TWeakObjectPtr<const AController>, float>& GetDamagedControllers() const override { return CachedDamagedControllers; }
@@ -31,10 +32,9 @@ public:
 	virtual float GetAIRotationSpeed() const override { return AIRotationSpeed; } 
 	// ~ End IR4CharacterAIInterface
 
-	// AI 캐릭터 데미지 수신
-	UFUNCTION( )
-	void OnAICharacterDamaged( const AActor* InInstigator, float InDamage );
-	
+	// ~ Begin IR4DamageReceiveInterface
+	virtual void ReceiveDamage(AActor* InInstigator, const FR4DamageReceiveInfo& InDamageInfo) override;
+	// ~ End IR4DamageReceiveInterface
 private:
 	// 정찰 시 최대 이동 범위.
 	UPROPERTY( EditAnywhere, Category = "AI" )

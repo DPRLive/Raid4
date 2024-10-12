@@ -23,13 +23,6 @@ UR4CameraManageComponent::UR4CameraManageComponent()
 void UR4CameraManageComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// Get Camera Comp, Spring Comp
-	if ( IsValid( GetOwner() ) )
-	{
-		SetCameraComp( GetOwner()->FindComponentByClass<UCameraComponent>() );
-		SetSpringArmComp( GetOwner()->FindComponentByClass<USpringArmComponent>() );
-	}
 	
 	// 필요할 때 켜서 사용
 	SetComponentTickEnabled( false );
@@ -74,6 +67,18 @@ void UR4CameraManageComponent::AddSpringArmLength( float InDeltaLength )
 	
 	CachedNewSpringArmLength += InDeltaLength;
 	SetComponentTickEnabled( true );
+}
+
+/**
+ *   UR4CameraManageComponent를 초기화.
+ */
+void UR4CameraManageComponent::Clear()
+{
+	SetComponentTickEnabled( false );
+	CachedCameraComp.Reset();
+	CachedSpringArmComp.Reset();
+	CachedNewSpringArmLength = 0.f;
+	CachedSpringArmResizeSpeed = 0.f;
 }
 
 /**

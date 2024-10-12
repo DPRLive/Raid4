@@ -44,6 +44,12 @@ namespace Collision
 {
 	// NoCollision Profile
 	const static FName G_ProfileNoCollision = TEXT("NoCollision");
+
+	// Enemy Collision Profile
+	const static FName G_ProfileEnemy = TEXT("Enemy");
+
+	// Player Collision Profile
+	const static FName G_ProfilePlayer = TEXT("Player");
 }
 
 namespace Stat
@@ -62,5 +68,13 @@ namespace Skill
 
 	// Point 선택시 Trace할 길이 (넉넉하게)
 	constexpr static float G_PointSkillTraceLength = 20000.f;
-	
+
+	// Point 선택시 Profile
+	constexpr static uint8 G_PointSkillTraceChannel = ECC_GameTraceChannel5;
+}
+
+namespace Socket
+{
+	// Health Bar 부착 시 Socket
+	const static FName G_HealthBarSocket = TEXT( "HealthBar" );
 }

@@ -35,7 +35,7 @@ public:
 
 	// ~ Begin IR4PlayerInputInterface
 	virtual APlayerController* GetPlayerController() override;
-	FORCEINLINE virtual FSetupPlayerInputDelegate& OnSetupPlayerInput() override { return OnSetupPlayerInputDelegate; }
+	FORCEINLINE virtual FOnSetupPlayerInputDelegate& OnSetupPlayerInput() override { return OnSetupPlayerInputDelegate; }
 
 	virtual void OnInputMoveTriggered(const FVector2D& InDirection) override;
 
@@ -48,6 +48,10 @@ public:
 	virtual void OnInputSkillTriggered( EPlayerSkillIndex InSkillIndex ) override;
 	virtual void OnInputSkillCompleted( EPlayerSkillIndex InSkillIndex ) override;
 	// ~ End IR4PlayerInputInterface
+
+protected:
+	// 캐릭터 죽음 처리
+	virtual void Dead() override;
 	
 private:
 	// PlayerCharacter들의 공통된 데이터를 초기화
@@ -55,7 +59,7 @@ private:
 
 private:
 	// 입력 바인딩을 위임
-	FSetupPlayerInputDelegate OnSetupPlayerInputDelegate;
+	FOnSetupPlayerInputDelegate OnSetupPlayerInputDelegate;
 	
 	// PlayerCharacter 들이 사용할 공통 데이터들
 	UPROPERTY( EditAnywhere, Category = "Data", meta = (AllowPrivateAccess = true) )

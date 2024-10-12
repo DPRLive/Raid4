@@ -41,7 +41,7 @@ AR4PlayerCharacter::AR4PlayerCharacter(const FObjectInitializer& InObjectInitial
 
 	// Set Profile Player
 	if ( GetCapsuleComponent() )
-		GetCapsuleComponent()->SetCollisionProfileName( COLLISION_PROFILE_NAME_PLAYER );
+		GetCapsuleComponent()->SetCollisionProfileName( Collision::G_ProfilePlayer );
 }
 
 /**
@@ -61,6 +61,10 @@ void AR4PlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Init CameraManageComp
+	CameraManageComp->SetCameraComp( CameraComp );
+	CameraManageComp->SetSpringArmComp( SpringArmComp );
+	
 	// TODO : 데이터 집어넣는건 PlayerController가 Character PK를 들고 있다가 OnPossess 와 OnRep_Owner 되면 넣는걸로 하면 될 듯
 	// Character 테스트를 위한 Aurora 데이터 임시 로드
 	PushDTData(1);
@@ -165,6 +169,16 @@ void AR4PlayerCharacter::OnInputSkillCompleted( EPlayerSkillIndex InSkillIndex )
 {
 	if ( UR4PlayerSkillComponent* skillComp = Cast<UR4PlayerSkillComponent>( SkillComp ) )
 		skillComp->OnInputSkillCompleted( InSkillIndex );
+}
+
+/**
+ *  캐릭터 죽음 처리
+ */
+void AR4PlayerCharacter::Dead()
+{
+	Super::Dead();
+
+	CameraManageComp->Clear();
 }
 
 /**

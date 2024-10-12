@@ -25,8 +25,8 @@ public:
 	virtual APlayerController* GetPlayerController() = 0;
 
 	// PlayerController 에서의 Input Bind 시 InputComp를 받아오기 위한 delegate getter
-	DECLARE_MULTICAST_DELEGATE_OneParam( FSetupPlayerInputDelegate, UInputComponent* /* InInputComponent */ )
-	virtual FSetupPlayerInputDelegate& OnSetupPlayerInput() = 0;
+	DECLARE_MULTICAST_DELEGATE_OneParam( FOnSetupPlayerInputDelegate, UInputComponent* /* InInputComponent */ )
+	virtual FOnSetupPlayerInputDelegate& OnSetupPlayerInput() = 0;
 
 	// 이동 입력 처리
 	virtual void OnInputMoveTriggered( const FVector2D& InDirection ) {}

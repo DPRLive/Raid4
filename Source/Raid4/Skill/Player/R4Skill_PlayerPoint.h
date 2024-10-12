@@ -73,9 +73,9 @@ struct FR4ServerPointingInfo
 UENUM( BlueprintType )
 enum class ER4SkillPointingTraceType : uint8
 {
-	None										UMETA( Hidden ),
-	Visibility	 = ECC_Visibility				UMETA( DisplayName = "Visibility" ),
-	SkillAOE	 = SKILL_POINT_TRACE_CHANNEL	UMETA( DisplayName = "SkillAOE" ),
+	None											UMETA( Hidden ),
+	Visibility	 = ECC_Visibility					UMETA( DisplayName = "Visibility" ),
+	SkillAOE	 = Skill::G_PointSkillTraceChannel	UMETA( DisplayName = "SkillAOE" ),
 };
 
 /**

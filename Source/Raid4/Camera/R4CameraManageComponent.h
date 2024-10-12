@@ -23,7 +23,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
+	virtual void TickComponent( float DeltaTime, enum ELevelTick TickType,
+	                            FActorComponentTickFunction* ThisTickFunction ) override;
 
 public:
 	// Setter
@@ -39,7 +40,9 @@ public:
 
 	// Spring Arm 길이 조정 속도를 설정
 	void SetSpringArmResizeSpeed( float InSpeed ) { CachedSpringArmResizeSpeed = InSpeed; }
-	
+
+	// UR4CameraManageComponent를 초기화.
+	virtual void Clear();
 private:
 	// Spring Arm을 Update
 	bool _UpdateSpringArmLength( float InDeltaTime ) const;
