@@ -3,6 +3,7 @@
 #include "../Data/R4RowBase.h"
 #include "R4CharacterRow.generated.h"
 
+class UAnimMontage;
 class UUserWidget;
 class USkeletalMesh;
 class UAnimInstance;
@@ -45,6 +46,10 @@ struct FR4CharacterRow : public FR4RowBase
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Anim" )
 	TSubclassOf<UAnimInstance> AnimInstance;
 
+	// 캐릭터 사망 모션. ( Loop로 설정할 것 )
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Anim" )
+	TSoftObjectPtr<UAnimMontage> DeadAnim;
+	
 	// 해당 캐릭터의 기본 스탯 정보를 담은 Data table의 Pk
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
 	int32 BaseStatRowPK;

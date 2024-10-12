@@ -83,3 +83,24 @@ void UR4AnimationComponent::PlayAnimSync( UAnimMontage* InAnimMontage, const FNa
 	// Anim을 Play (Montage Instance가 새로 생성됨)
 	anim->Montage_Play( InAnimMontage, playRate, EMontagePlayReturnType::MontageLength, startPos );
 }
+
+/**
+ *  설정해둔 Dead Animation을 출력.
+ */
+void UR4AnimationComponent::PlayDeadAnim()
+{
+	ACharacter* owner = Cast<ACharacter>( GetOwner() );
+	if ( !IsValid( owner ) )
+		return;
+	
+	UAnimInstance* anim = IsValid( owner->GetMesh() ) ? owner->GetMesh()->GetAnimInstance() : nullptr;
+	if ( !IsValid( anim ) )
+		return;
+	
+	anim->Montage_Play( DeadAnim, 1.f, EMontagePlayReturnType::MontageLength );
+}
+
+void UR4AnimationComponent::Clear()
+{
+	DeadAnim = nullptr;
+}

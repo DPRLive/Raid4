@@ -24,4 +24,15 @@ public:
 public:
 	// ServerTime을 통한 동기화된 Animation Play를 지원. ( InServerTime 기준으로 보정 )
 	void PlayAnimSync( UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, float InStartServerTime ) const;
+
+	// 설정해둔 Dead Animation을 출력.
+	void PlayDeadAnim();
+
+	FORCEINLINE void SetDeadAnim( const TObjectPtr<UAnimMontage>& InDeadAnim ) { DeadAnim = InDeadAnim; }
+
+	virtual void Clear();
+private:
+	// Dead Anim
+	UPROPERTY( EditAnywhere )
+	TObjectPtr<UAnimMontage> DeadAnim;
 };

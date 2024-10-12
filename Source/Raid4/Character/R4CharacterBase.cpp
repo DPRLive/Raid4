@@ -153,6 +153,8 @@ void AR4CharacterBase::PushDTData( FPriKey InPk )
 		
 		// Anim
 		meshComp->SetAnimInstanceClass( characterData->AnimInstance );
+
+		AnimComp->SetDeadAnim( characterData->DeadAnim.LoadSynchronous() );
 	}
 
 	// Set Status Widget
@@ -316,7 +318,7 @@ void AR4CharacterBase::ApplyMovementSpeed( float InPrevMovementSpeed, float InNo
 }
 
 /**
- *  죽음을 처리한다.
+ *  죽음을 처리
  */
 void AR4CharacterBase::Dead()
 {
@@ -325,16 +327,7 @@ void AR4CharacterBase::Dead()
 
 	bDead = true;
 	
-	// Component Clear
-	StatComp->Clear();
-	SkillComp->Clear();
-	BuffManageComp->Clear();
-	ShieldComp->Clear();
-	StatusBarComp->SetHiddenInGame( true );
-
-	// UR4CharacterMovementComponent 사용 시 Clear
-	if( UR4CharacterMovementComponent* moveComp = GetCharacterMovement<UR4CharacterMovementComponent>() )
-		moveComp->Clear();
+	AnimComp->PlayDeadAnim();
 	
 	// 이동 제한
 	if( UCharacterMovementComponent* moveComp = GetCharacterMovement() )
@@ -342,4 +335,16 @@ void AR4CharacterBase::Dead()
 	
 	// not collision, Physics simulate 사용 안해서 바닥으로 안떨어짐.
 	SetActorEnableCollision( false );
+	
+	// Components Clear
+	StatComp->Clear();
+	SkillComp->Clear();
+	BuffManageComp->Clear();
+	ShieldComp->Clear();
+	StatusBarComp->SetHiddenInGame( true );
+	AnimComp->Clear();
+	
+	// UR4CharacterMovementComponent 사용 시 Clear
+	if( UR4CharacterMovementComponent* moveComp = GetCharacterMovement<UR4CharacterMovementComponent>() )
+		moveComp->Clear();
 }

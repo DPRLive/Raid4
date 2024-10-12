@@ -4,7 +4,6 @@
 
 #include "../Data/R4DTDataPushInterface.h"
 #include "../Damage/R4DamageReceiveInterface.h"
-#include "../UI/StatusBar/R4StatusBarInterface.h"
 #include "../Buff/R4BuffReceiveInterface.h"
 #include "../Animation/R4AnimationInterface.h"
 #include "../Stat/R4TagStatQueryInterface.h"
