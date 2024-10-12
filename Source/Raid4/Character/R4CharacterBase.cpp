@@ -41,7 +41,6 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 	AnimComp = CreateDefaultSubobject<UR4AnimationComponent>( TEXT( "AnimComp" ) );
 
 	StatusBarComp = CreateDefaultSubobject<UWidgetComponent>( TEXT( "StatusBarComp" ) );
-	StatusBarComp->SetupAttachment( GetMesh(), Socket::G_HealthBarSocket );
 	StatusBarComp->SetWidgetSpace( EWidgetSpace::Screen );
 	StatusBarComp->SetCollisionProfileName( Collision::G_ProfileNoCollision );
 	StatusBarComp->SetHiddenInGame( true ); // 시작 시 hidden
@@ -148,6 +147,9 @@ void AR4CharacterBase::PushDTData( FPriKey InPk )
 			meshComp->SetSkeletalMesh( skelMesh );
 
 		meshComp->SetRelativeTransform( characterData->MeshTransform );
+		// 이거 해줘야됨!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		BaseTranslationOffset = characterData->MeshTransform.GetLocation();
+		BaseRotationOffset = characterData->MeshTransform.GetRotation();
 		
 		// Anim
 		meshComp->SetAnimInstanceClass( characterData->AnimInstance );
@@ -160,12 +162,12 @@ void AR4CharacterBase::PushDTData( FPriKey InPk )
 		StatusBarComp->SetWidgetClass( characterData->StatusBarClass );
 		StatusBarComp->SetDrawSize( characterData->StatusBarDrawSize );
 		StatusBarComp->SetRelativeLocation( characterData->StatusBarRelativeLocation );
+		StatusBarComp->AttachToComponent( GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, Socket::G_HealthBarSocket );
 	}
 	
 	// Stat Data + Bind Tag
 	if( IsValid( StatComp ) )
 	{
-		StatComp->Clear();
 		BindStatComponent();
 		StatComp->PushDTData( characterData->BaseStatRowPK );
 	}
@@ -322,7 +324,7 @@ void AR4CharacterBase::Dead()
 	LOG_WARN(LogTemp, TEXT("DEAD"));
 
 	bDead = true;
-
+	
 	// Component Clear
 	StatComp->Clear();
 	SkillComp->Clear();
@@ -330,6 +332,14 @@ void AR4CharacterBase::Dead()
 	ShieldComp->Clear();
 	StatusBarComp->SetHiddenInGame( true );
 
+	// UR4CharacterMovementComponent 사용 시 Clear
+	if( UR4CharacterMovementComponent* moveComp = GetCharacterMovement<UR4CharacterMovementComponent>() )
+		moveComp->Clear();
+	
+	// 이동 제한
+	if( UCharacterMovementComponent* moveComp = GetCharacterMovement() )
+		moveComp->SetMovementMode( MOVE_None );
+	
 	// not collision, Physics simulate 사용 안해서 바닥으로 안떨어짐.
 	SetActorEnableCollision( false );
 }

@@ -45,6 +45,8 @@ class RAID4_API UR4CharacterMovementComponent : public UCharacterMovementCompone
 public:
 	UR4CharacterMovementComponent();
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
 protected:
 	virtual class FNetworkPredictionData_Client* GetPredictionData_Client() const override;
 	
@@ -59,8 +61,10 @@ public:
 	void SetForceMovementByCurve_Local( const FVector& InTargetLoc, float InDuration, UCurveVector* InCurveVector, bool InIsReverse );
 
 	// Force Move Type Getter
-	FORCEINLINE ER4ForceMoveType GetForceMoveType() const { return ForceMoveType; }
-	
+	FORCEINLINE ER4ForceMoveType GetForceMoveType() const { return CachedForceMoveType; }
+
+	// Movement Comp 정리
+	virtual void Clear();
 private:
 	// Force Movement 준비
 	void _SetupForceMovement( const FVector& InTargetLoc, float InDuration );
@@ -70,8 +74,8 @@ private:
 
 private:
 	// Force Move시 사용할 타입
-	UPROPERTY( VisibleInstanceOnly )
-	ER4ForceMoveType ForceMoveType;
+	UPROPERTY( Transient, VisibleInstanceOnly )
+	ER4ForceMoveType CachedForceMoveType;
 
 	// Force Move를 시작한 지점
 	FVector CachedForceMoveStartWorldLoc;

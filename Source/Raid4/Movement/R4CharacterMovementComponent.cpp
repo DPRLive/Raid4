@@ -31,13 +31,19 @@ UR4CharacterMovementComponent::UR4CharacterMovementComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	
-	ForceMoveType = ER4ForceMoveType::None;
+	CachedForceMoveType = ER4ForceMoveType::None;
 	CachedForceMoveStartWorldLoc = FVector::ZeroVector;
 	CachedForceMoveElapsedTime = 0.f;
 	CachedForceMoveDuration = 0.f;
 	CachedForceMoveTargetWorldLoc = FVector::ZeroVector;
 	CachedCurveVector = nullptr;
 	CachedIsReverseCurve = false;
+}
+
+void UR4CharacterMovementComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	Clear();
+	Super::EndPlay( EndPlayReason );
 }
 
 class FNetworkPredictionData_Client* UR4CharacterMovementComponent::GetPredictionData_Client() const
@@ -59,7 +65,7 @@ class FNetworkPredictionData_Client* UR4CharacterMovementComponent::GetPredictio
  */
 void UR4CharacterMovementComponent::SetForceMovementByLinear_Local( const FVector& InTargetLoc, float InDuration )
 {
-	ForceMoveType = ER4ForceMoveType::Linear;
+	CachedForceMoveType = ER4ForceMoveType::Linear;
 	_SetupForceMovement( InTargetLoc, InDuration );
 }
 
@@ -82,11 +88,25 @@ void UR4CharacterMovementComponent::SetForceMovementByCurve_Local( const FVector
 		return;
 	}
 
-	ForceMoveType = ER4ForceMoveType::CurveVector;
+	CachedForceMoveType = ER4ForceMoveType::CurveVector;
 	_SetupForceMovement( InTargetLoc, InDuration );
 
 	CachedCurveVector = InCurveVector;
 	CachedIsReverseCurve = InIsReverse;
+}
+
+/**
+ *	Movement Comp 정리
+ */
+void UR4CharacterMovementComponent::Clear()
+{
+	CachedForceMoveType = ER4ForceMoveType::None;
+	CachedForceMoveStartWorldLoc = FVector::ZeroVector;
+	CachedForceMoveTargetWorldLoc = FVector::ZeroVector;
+	CachedForceMoveElapsedTime = 0.f;
+	CachedForceMoveDuration = 0.f;
+	CachedCurveVector = nullptr;
+	CachedIsReverseCurve = false;
 }
 
 /**
@@ -109,7 +129,7 @@ void UR4CharacterMovementComponent::_SetupForceMovement( const FVector& InTarget
  */
 void UR4CharacterMovementComponent::_TearDownForceMovement()
 {
-	ForceMoveType = ER4ForceMoveType::None;
+	CachedForceMoveType = ER4ForceMoveType::None;
 	SetDefaultMovementMode();
 	bIgnoreClientMovementErrorChecksAndCorrection = false;
 }
@@ -121,7 +141,7 @@ void UR4CharacterMovementComponent::OnMovementUpdated( float DeltaSeconds, const
 {
 	Super::OnMovementUpdated( DeltaSeconds, OldLocation, OldVelocity );
 
-	if ( ForceMoveType == ER4ForceMoveType::None || !IsValid( UpdatedComponent ) )
+	if ( CachedForceMoveType == ER4ForceMoveType::None || !IsValid( UpdatedComponent ) )
 		return;
 	
 	// Force Movement가 설정되어 있다면 진행
@@ -135,7 +155,7 @@ void UR4CharacterMovementComponent::OnMovementUpdated( float DeltaSeconds, const
 	
 	// 목표 지점까지 선형이동 시
 	// Curve vector 이용 시
-	if ( ForceMoveType == ER4ForceMoveType::CurveVector )
+	if ( CachedForceMoveType == ER4ForceMoveType::CurveVector )
 	{
 		if ( !CachedCurveVector.IsValid() )
 		{
