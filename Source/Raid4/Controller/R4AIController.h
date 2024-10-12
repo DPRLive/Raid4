@@ -18,15 +18,14 @@ public:
 
 protected:
 	virtual void OnPossess( APawn* InPawn ) override;
-	
-protected:
-	virtual void BeginPlay() override;
 
 public:
 	// AI 구동
+	UFUNCTION()
 	void RunAI();
 
 	// AI 중지
+	UFUNCTION()
 	void StopAI();
 
 private:

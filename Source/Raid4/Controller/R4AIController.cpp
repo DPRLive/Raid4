@@ -2,9 +2,9 @@
 
 
 #include "R4AIController.h"
+#include "../Damage/R4DamageReceiveInterface.h"
 
 #include <BehaviorTree/BehaviorTree.h>
-#include <BehaviorTree/BlackboardData.h>
 #include <BehaviorTree/BlackboardComponent.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4AIController)
@@ -19,12 +19,10 @@ void AR4AIController::OnPossess( APawn* InPawn )
 	Super::OnPossess( InPawn );
 
 	RunAI();
-}
 
-void AR4AIController::BeginPlay()
-{
-	Super::BeginPlay();
-	
+	// Character가 Damage를 받아 사망 시 Stop Tree
+	if ( IR4DamageReceiveInterface* pawn = Cast<IR4DamageReceiveInterface>(	InPawn ) )
+		pawn->OnDead().AddDynamic( this, &AR4AIController::StopAI );
 }
 
 /**
