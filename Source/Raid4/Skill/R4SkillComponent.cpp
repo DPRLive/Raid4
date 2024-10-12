@@ -17,14 +17,6 @@ UR4SkillComponent::UR4SkillComponent()
 }
 
 /**
- *	컴포넌트 초기화
- */
-void UR4SkillComponent::InitializeComponent()
-{
-	Super::InitializeComponent();
-}
-
-/**
  *	GetLifetimeReplicatedProps
  */
 void UR4SkillComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -34,18 +26,9 @@ void UR4SkillComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION(UR4SkillComponent, SkillInstances, COND_OwnerOnly);
 }
 
-/**
- *  begin play
- */
-void UR4SkillComponent::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
 void UR4SkillComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
 {
-	SkillInstances.Empty();
+	Clear();
 	
 	Super::EndPlay( EndPlayReason );
 }
@@ -78,6 +61,20 @@ void UR4SkillComponent::Server_AddSkill( uint8 InSkillIndex, UR4SkillBase* InSki
 
 	SkillInstances[InSkillIndex] = InSkill;
 	PostAddSkill( InSkillIndex, SkillInstances[InSkillIndex] );
+}
+
+/**
+ *  Skill Component 초기화.
+ */
+void UR4SkillComponent::Clear()
+{
+	// Skill Comp 제거는 Server에서
+	if( GetOwnerRole() == ROLE_Authority )
+	{
+		for( auto& skill : SkillInstances )
+			skill->DestroyComponent();
+		SkillInstances.Empty();
+	}
 }
 
 void UR4SkillComponent::_OnRep_SkillInstances( const TArray<UR4SkillBase*>& InPrev )

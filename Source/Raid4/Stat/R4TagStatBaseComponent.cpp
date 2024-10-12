@@ -18,10 +18,18 @@ void UR4TagStatBaseComponent::BeginPlay()
 
 void UR4TagStatBaseComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
 {
-	TagStats.Empty();
-	TagCurrentStats.Empty();
+	Clear();
 	
 	Super::EndPlay( EndPlayReason );
+}
+
+/**
+ *	Stat 정보를 초기화 ( Stat Tag Data Clear )
+ */
+void UR4TagStatBaseComponent::Clear()
+{
+	TagStats.Empty();
+	TagCurrentStats.Empty();
 }
 
 /**
@@ -46,13 +54,4 @@ void UR4TagStatBaseComponent::BindTagToStat(const FGameplayTag& InTag, FR4Curren
 		return;
 
 	TagCurrentStats.Emplace(InTag, &InStatRef);
-}
-
-/**
- *	Tag <-> Stat 바인드 Clear
- */
-void UR4TagStatBaseComponent::ClearTagStats()
-{
-	TagStats.Empty();
-	TagCurrentStats.Empty();
 }

@@ -18,6 +18,7 @@
 #include <Components/SkeletalMeshComponent.h>
 #include <Components/CapsuleComponent.h>
 #include <Engine/SkeletalMesh.h>
+#include <Components/WidgetComponent.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4CharacterBase)
 
@@ -29,16 +30,22 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	StatComp = CreateDefaultSubobject<UR4CharacterStatComponent>(TEXT("StatComp"));
+	StatComp = CreateDefaultSubobject<UR4CharacterStatComponent>( TEXT( "StatComp" ) );
 
-	SkillComp = CreateDefaultSubobject<UR4SkillComponent>(TEXT("SkillComp"));
+	SkillComp = CreateDefaultSubobject<UR4SkillComponent>( TEXT( "SkillComp" ) );
 
-	BuffManageComp = CreateDefaultSubobject<UR4BuffManageComponent>(TEXT("BuffManageComp"));
+	BuffManageComp = CreateDefaultSubobject<UR4BuffManageComponent>( TEXT( "BuffManageComp" ) );
+
+	ShieldComp = CreateDefaultSubobject<UR4ShieldComponent>( TEXT( "ShieldComp" ) );
+
+	AnimComp = CreateDefaultSubobject<UR4AnimationComponent>( TEXT( "AnimComp" ) );
+
+	StatusBarComp = CreateDefaultSubobject<UWidgetComponent>( TEXT( "StatusBarComp" ) );
+	StatusBarComp->SetupAttachment( GetMesh(), Socket::G_HealthBarSocket );
+	StatusBarComp->SetWidgetSpace( EWidgetSpace::Screen );
+	StatusBarComp->SetCollisionProfileName( Collision::G_ProfileNoCollision );
+	StatusBarComp->SetHiddenInGame( true ); // 시작 시 hidden
 	
-	ShieldComp = CreateDefaultSubobject<UR4ShieldComponent>(TEXT("ShieldComp"));
-	
-	AnimComp = CreateDefaultSubobject<UR4AnimationComponent>(TEXT("AnimComp"));
-
 	// Mesh NoCollision
 	if( GetMesh() )
 		GetMesh()->SetCollisionProfileName( Collision::G_ProfileNoCollision );
@@ -59,27 +66,6 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 		GetCapsuleComponent()->SetHiddenInGame( false );
 	}
 #endif WITH_EDITOR
-}
-
-/**
- *  PostInit
- */
-void AR4CharacterBase::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-
-	// 컴포넌트간 연결
-	BindStatComponent();
-	
-	OnCharacterDeadDelegate.AddDynamic(this, &AR4CharacterBase::Dead);
-}
-
-/**
- *  begin play
- */
-void AR4CharacterBase::BeginPlay()
-{
-	Super::BeginPlay();
 }
 
 /**
@@ -167,8 +153,22 @@ void AR4CharacterBase::PushDTData( FPriKey InPk )
 		meshComp->SetAnimInstanceClass( characterData->AnimInstance );
 	}
 
+	// Set Status Widget
+	if ( IsValid( StatusBarComp ) )
+	{
+		StatusBarComp->SetHiddenInGame( false );
+		StatusBarComp->SetWidgetClass( characterData->StatusBarClass );
+		StatusBarComp->SetDrawSize( characterData->StatusBarDrawSize );
+		StatusBarComp->SetRelativeLocation( characterData->StatusBarRelativeLocation );
+	}
+	
 	// Stat Data + Bind Tag
-	StatComp->PushDTData( characterData->BaseStatRowPK );
+	if( IsValid( StatComp ) )
+	{
+		StatComp->Clear();
+		BindStatComponent();
+		StatComp->PushDTData( characterData->BaseStatRowPK );
+	}
 	
 	if ( !HasAuthority() )
 		return;
@@ -212,46 +212,6 @@ void AR4CharacterBase::ReceiveDamage(AActor* InInstigator, const FR4DamageReceiv
 	// 실제 HP 감소, StatComp에 적용
 	float damagedHp = FMath::Max(StatComp->GetCurrentHp() - reducedDamage, 0.f);
 	StatComp->SetCurrentHp(damagedHp);
-
-	// Damage 수신 알림
-	if( OnCharacterDamagedDelegate.IsBound() )
-		OnCharacterDamagedDelegate.Broadcast( InInstigator, reducedDamage );
-	
-	// 죽었다면 죽었다고 알림
-	if(FMath::IsNearlyZero(damagedHp) && OnCharacterDeadDelegate.IsBound())
-		OnCharacterDeadDelegate.Broadcast();
-}
-
-/**
- *  Status bar를 Setup
- */
-void AR4CharacterBase::SetupStatusBarWidget(UUserWidget* InWidget)
-{
-	if(UR4StatusBarWidget* statusBar = Cast<UR4StatusBarWidget>(InWidget); IsValid(statusBar))
-	{
-		// 초기화
-		statusBar->UpdateTotalHp(StatComp->GetTotalHp());
-		statusBar->UpdateCurrentHp(StatComp->GetCurrentHp());
-		statusBar->UpdateCurrentShieldAmount(ShieldComp->GetTotalShield());
-		
-		// 총 체력 변경시 호출
-		StatComp->OnChangeHp().AddWeakLambda(statusBar, [statusBar](float InTotalHp)
-		{
-			statusBar->UpdateTotalHp(InTotalHp);
-		});
-
-		// 현재 체력 변경 시 호출
-		StatComp->OnChangeCurrentHp().AddWeakLambda(statusBar, [statusBar](float InCurrentHp)
-		{
-			statusBar->UpdateCurrentHp(InCurrentHp);
-		});
-
-		// 방어막 변경 시 호출
-		ShieldComp->OnChangeTotalShieldDelegate.AddWeakLambda(statusBar, [statusBar](float InShieldAmount)
-		{
-			statusBar->UpdateCurrentShieldAmount(InShieldAmount);
-		});
-	}
 }
 
 /**
@@ -288,19 +248,69 @@ FR4CurrentStatInfo* AR4CharacterBase::GetCurrentStatByTag(const FGameplayTag& In
 void AR4CharacterBase::BindStatComponent()
 {
 	// Bind Stats
-	StatComp->OnChangeMovementSpeed().AddUObject(this, &AR4CharacterBase::ApplyMovementSpeed); // 이동속도 설정 바인드
+	StatComp->OnChangeMovementSpeed().AddUObject( this, &AR4CharacterBase::ApplyMovementSpeed ); // 이동속도 설정 바인드
+
+	// Dead Bind
+	StatComp->OnChangeCurrentHp().AddWeakLambda(this, 
+[this]( float InPrevHp, float InNowHp )
+		{
+			if ( InNowHp < KINDA_SMALL_NUMBER )
+			{
+				if ( OnCharacterDeadDelegate.IsBound() )
+					OnCharacterDeadDelegate.Broadcast();
+				Dead();
+			}
+		});
+
+	// Damage Delegate Bind
+	StatComp->OnChangeCurrentHp().AddWeakLambda(this, 
+[this]( float InPrevHp, float InNowHp )
+	{
+		if ( InNowHp < InPrevHp )
+		{
+			if ( OnCharacterDamagedDelegate.IsBound() )
+				OnCharacterDamagedDelegate.Broadcast( ( InPrevHp - InNowHp ) );
+		}
+	});
+
+	// Bind Status bar
+	UUserWidget* statusBarObj = StatusBarComp->GetWidget();
+	if ( IR4StatusBarInterface* statusBar = Cast<IR4StatusBarInterface>( statusBarObj ) )
+	{
+		// 초기화
+		statusBar->Clear();
+		statusBar->SetTotalHp( StatComp->GetTotalHp() );
+		statusBar->SetCurrentHp( StatComp->GetCurrentHp() );
+		statusBar->SetCurrentShieldAmount( ShieldComp->GetTotalShield() );
+
+		// 총 체력 변경시 호출
+		StatComp->OnChangeHp().AddWeakLambda( statusBarObj, [statusBar]( float InPrevTotalHp, float InNowTotalHp )
+		{
+			statusBar->SetTotalHp( InNowTotalHp );
+		} );
+
+		// 현재 체력 변경 시 호출
+		StatComp->OnChangeCurrentHp().AddWeakLambda( statusBarObj, [statusBar]( float InPrevCurrentHp, float InNowCurrentHp )
+		{
+			statusBar->SetCurrentHp( InNowCurrentHp );
+		} );
+
+		// 방어막 변경 시 호출
+		ShieldComp->OnChangeTotalShieldDelegate.AddWeakLambda( statusBarObj, [statusBar]( float InNowShieldAmount )
+		{
+			statusBar->SetCurrentShieldAmount( InNowShieldAmount );
+		} );
+	}
 }
 
 /**
- *  이동 속도를 적용한다.
+ *  이동 속도를 적용
  */
-void AR4CharacterBase::ApplyMovementSpeed(float InMovementSpeed) const
+void AR4CharacterBase::ApplyMovementSpeed( float InPrevMovementSpeed, float InNowMovementSpeed ) const
 {
-	// 이동 속도를 변경한다.
-	if(UR4CharacterMovementComponent* moveComp = GetCharacterMovement<UR4CharacterMovementComponent>(); IsValid(moveComp))
-	{
-		moveComp->MaxWalkSpeed = InMovementSpeed;
-	}
+	// 이동 속도를 변경
+	if ( UR4CharacterMovementComponent* moveComp = GetCharacterMovement<UR4CharacterMovementComponent>() )
+		moveComp->MaxWalkSpeed = InNowMovementSpeed;
 }
 
 /**
@@ -312,4 +322,14 @@ void AR4CharacterBase::Dead()
 	LOG_WARN(LogTemp, TEXT("DEAD"));
 
 	bDead = true;
+
+	// Component Clear
+	StatComp->Clear();
+	SkillComp->Clear();
+	BuffManageComp->Clear();
+	ShieldComp->Clear();
+	StatusBarComp->SetHiddenInGame( true );
+
+	// not collision, Physics simulate 사용 안해서 바닥으로 안떨어짐.
+	SetActorEnableCollision( false );
 }

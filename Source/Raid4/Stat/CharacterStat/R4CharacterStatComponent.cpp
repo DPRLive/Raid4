@@ -16,24 +16,6 @@ UR4CharacterStatComponent::UR4CharacterStatComponent()
 }
 
 /**
- *	컴포넌트 초기화
- */
-void UR4CharacterStatComponent::InitializeComponent()
-{
-	Super::InitializeComponent();
-
-	SetIsReplicated(true);
-}
-
-/**
- *  begin play
- */
-void UR4CharacterStatComponent::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-/**
  *  Replicate 설정
  */
 void UR4CharacterStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -55,25 +37,21 @@ void UR4CharacterStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 }
 
 /**
- *  Stat을 재설정 (Current Value = Base Value, Modifier Value = 0.f 로 밀어버림)
+ *  Stat을 초기화 (Current Value = Base Value, Modifier Value = 0.f, Delegate Clear )
  */
-void UR4CharacterStatComponent::ResetStat()
+void UR4CharacterStatComponent::Clear()
 {
-	Super::ResetStat();
+	Super::Clear();
 
-	// 데이터 설정은 서버에서
-	if(GetOwnerRole() == ROLE_Authority)
-	{
-		SetAddModifierHp(0.f); SetMultiplyModifierHp(1.f); SetCurrentHp(Hp.GetTotalValue());
-		SetAddModifierHpRegenPerSec(0.f); SetMultiplyModifierHpRegenPerSec(1.f);
-		SetAddModifierAttackPower(0.f); SetMultiplyModifierAttackPower(1.f);
-		SetAddModifierArmor(0.f); SetMultiplyModifierArmor(1.f);
-		SetAddModifierCoolDownReduction(0.f); SetMultiplyModifierCoolDownReduction(1.f);
-		SetAddModifierCriticalChance(0.f); SetMultiplyModifierCriticalChance(1.f);
-		SetAddModifierMovementSpeed(0.f); SetMultiplyModifierMovementSpeed(1.f);
-		SetAddModifierApplyDamageMultiplier(0.f); SetMultiplyModifierApplyDamageMultiplier(1.f);
-		SetAddModifierReceiveDamageMultiplier(0.f); SetMultiplyModifierReceiveDamageMultiplier(1.f);
-	}
+	Hp.InitStatData();
+	HpRegenPerSec.InitStatData();
+	AttackPower.InitStatData();
+	Armor.InitStatData();
+	CoolDownReduction.InitStatData();
+	CriticalChance.InitStatData();
+	MovementSpeed.InitStatData();
+	ApplyDamageMultiplier.InitStatData();
+	ReceiveDamageMultiplier.InitStatData();
 }
 
 /**
@@ -105,7 +83,6 @@ void UR4CharacterStatComponent::PushDTData(FPriKey InPk)
 	}
 	
 	// Bind Tag and stat
-	ClearTagStats();
 	BindTagToStat(statPtr->Hp.Tag, Hp);
 	BindTagToStat(statPtr->HpRegenPerSec.Tag, HpRegenPerSec);
 	BindTagToStat(statPtr->AttackPower.Tag, AttackPower);

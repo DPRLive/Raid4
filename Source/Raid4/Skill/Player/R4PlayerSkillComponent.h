@@ -16,13 +16,13 @@ class RAID4_API UR4PlayerSkillComponent : public UR4SkillComponent
 public:
 	UR4PlayerSkillComponent();
 
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 public:
 	// 스킬 입력 처리
 	virtual void OnInputSkillStarted( EPlayerSkillIndex InSkillIndex );
 	virtual void OnInputSkillTriggered( EPlayerSkillIndex InSkillIndex );
 	virtual void OnInputSkillCompleted( EPlayerSkillIndex InSkillIndex );
 
+	virtual void Clear();
 protected:
 	// 스킬이 등록 된 후 호출.
 	virtual void PostAddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill ) override;

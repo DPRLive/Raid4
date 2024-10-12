@@ -51,7 +51,9 @@ public:
 
 	// 무시할 버프로 관리하던 태그들을 제거
 	void RemoveBlockingBuffTags( const FGameplayTagContainer& InTagContainer, EGameplayTagQueryType InQueryType );
-	
+
+	// Buff Component 초기화.
+	virtual void Clear();
 private:
 	// 버프 세팅에 맞춰 버프를 등록
 	void _RegisterBuffBySetting( FAppliedBuffInfo&& InBuffAppliedInfo );

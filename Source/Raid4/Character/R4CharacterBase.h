@@ -18,6 +18,7 @@ class UR4CharacterStatComponent;
 class UR4SkillComponent;
 class UR4BuffManageComponent;
 class UR4AnimationComponent;
+class UWidgetComponent;
 
 /**
  * (NPC, PlayerCharacter 등) 캐릭터에 베이스가 되는 클래스
@@ -25,20 +26,13 @@ class UR4AnimationComponent;
 UCLASS()
 class RAID4_API AR4CharacterBase : public ACharacter, public IR4DTDataPushInterface,
 									public IR4DamageReceiveInterface, public IR4BuffReceiveInterface,
-									public IR4TagStatQueryInterface,
-									public IR4StatusBarInterface, public IR4AnimationInterface
+									public IR4TagStatQueryInterface, public IR4AnimationInterface
 {
 	GENERATED_BODY()
 
 public:
 	AR4CharacterBase(const FObjectInitializer& InObjectInitializer);
-	
-	virtual void PostInitializeComponents() override;
 
-protected:
-	virtual void BeginPlay() override;
-
-public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
@@ -54,12 +48,10 @@ public:
 
 	// ~ Begin IR4DamageReceiveInterface
 	virtual void ReceiveDamage(AActor* InInstigator, const FR4DamageReceiveInfo& InDamageInfo) override;
+	FORCEINLINE virtual FOnDeadDelegate& OnDead() override { return OnCharacterDeadDelegate; }
+	FORCEINLINE virtual FOnDamagedDelegate& OnDamage() override { return OnCharacterDamagedDelegate; }
 	// ~ End IR4DamageReceiveInterface
 
-	// ~ Begin IR4StatusBarInterface
-	virtual void SetupStatusBarWidget(UUserWidget* InWidget) override;
-	// ~ End IR4StatusBarInterface
-	
 	// ~ Begin IR4BuffReceiveInterface
 	virtual void ReceiveBuff(AActor* InInstigator, const TSubclassOf<UR4BuffBase>& InBuffClass, const FR4BuffSettingDesc& InBuffSettingDesc) override;
 	// ~ End IR4BuffReceiveInterface
@@ -76,8 +68,8 @@ protected:
 	// StatComp와 필요한 바인딩을 진행
 	virtual void BindStatComponent();
 	
-	// 이동 속도를 적용한다.
-	virtual void ApplyMovementSpeed(float InMovementSpeed) const;
+	// 이동 속도를 적용
+	virtual void ApplyMovementSpeed( float InPrevMovementSpeed, float InNowMovementSpeed ) const;
 
 	// 캐릭터 죽음 처리
 	UFUNCTION()
@@ -85,14 +77,12 @@ protected:
 	
 public:
 	// 캐릭터 죽음을 알리는 Delegate
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE( FOnCharacterDeadDelegate );
 	UPROPERTY( BlueprintAssignable, VisibleAnywhere )
-	FOnCharacterDeadDelegate OnCharacterDeadDelegate;
+	FOnDeadDelegate OnCharacterDeadDelegate;
 
 	// Damage 피해 알림
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams( FOnCharacterDamaged, const AActor*, InInstigator, float, InDamage );
 	UPROPERTY( BlueprintAssignable, VisibleAnywhere )
-	FOnCharacterDamaged OnCharacterDamagedDelegate;
+	FOnDamagedDelegate OnCharacterDamagedDelegate;
 protected:
 	// 스탯 기능을 부여해주는 Stat Component
 	UPROPERTY( VisibleAnywhere, Category = "Stat" )
@@ -114,6 +104,9 @@ protected:
 	UPROPERTY( VisibleAnywhere, Category = "Anim" )
 	TObjectPtr<UR4AnimationComponent> AnimComp;
 
+	// Status Bar Widget Component
+	UPROPERTY( VisibleAnywhere, Category = "Widget" )
+	TObjectPtr<UWidgetComponent> StatusBarComp;
 private:
 	// 죽은 상태인지 여부.
 	uint8 bDead:1;

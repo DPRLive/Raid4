@@ -11,13 +11,6 @@ UR4PlayerSkillComponent::UR4PlayerSkillComponent()
 {
 }
 
-void UR4PlayerSkillComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
-{
-	SkillDelegateHandles.Empty();
-	
-	Super::EndPlay( EndPlayReason );
-}
-
 /**
  *  입력 연결
  */
@@ -49,6 +42,12 @@ void UR4PlayerSkillComponent::OnInputSkillCompleted( EPlayerSkillIndex InSkillIn
 		if ( IR4PlayerInputableInterface* playerSkill = Cast<IR4PlayerInputableInterface>( SkillInstances[realIdx] ) )
 			playerSkill->OnInputCompleted();
 	}
+}
+
+void UR4PlayerSkillComponent::Clear()
+{
+	Super::Clear();
+	SkillDelegateHandles.Empty();
 }
 
 /**

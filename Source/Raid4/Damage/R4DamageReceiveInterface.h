@@ -7,6 +7,10 @@
 
 struct FR4DamageReceiveInfo;
 
+// 죽음을 알림, Damage 피해 알림 Delegate
+DECLARE_DYNAMIC_MULTICAST_DELEGATE( FOnDeadDelegate );
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam( FOnDamagedDelegate, float, InDamage );
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UR4DamageReceiveInterface : public UInterface
@@ -29,4 +33,10 @@ public:
  	*  @param InDamageInfo : 데미지에 관한 정보.
  	*/
 	virtual void ReceiveDamage(AActor* InInstigator, const FR4DamageReceiveInfo& InDamageInfo) = 0;
+
+	// 죽음 알림 delegate return
+	virtual FOnDeadDelegate& OnDead() = 0;
+
+	// Damage 피해 알림 Delegate return
+	virtual FOnDamagedDelegate& OnDamage() = 0;
 };

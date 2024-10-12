@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "R4StatusBarInterface.h"
 #include "../R4UserWidget.h"
 #include "R4StatusBarWidget.generated.h"
 
@@ -11,26 +12,25 @@ class UR4StackProgressBar;
  * 이름과 HP를 표기해주는 상태바.
  */
 UCLASS()
-class RAID4_API UR4StatusBarWidget : public UR4UserWidget
+class RAID4_API UR4StatusBarWidget : public UR4UserWidget, public IR4StatusBarInterface
 {
 	GENERATED_BODY()
 
 public:
 	UR4StatusBarWidget(const FObjectInitializer& ObjectInitializer);
 
-protected:
-	virtual void NativeConstruct() override;
-
 public:
-	// 현재 체력을 업데이트
-	void UpdateCurrentHp(float InCurrentHp);
-
-	// 현재 쉴드량을 업데이트
-	void UpdateCurrentShieldAmount(float InCurrentShieldAmount);
+	// 최대 체력을 설정
+	virtual void SetTotalHp( float InTotalHp ) override;
 	
-	// 최대 체력을 업데이트
-	void UpdateTotalHp(float InTotalHp);
+	// 현재 체력을 설정
+	virtual void SetCurrentHp( float InCurrentHp ) override;
 
+	// 현재 쉴드량을 설정
+	virtual void SetCurrentShieldAmount( float InCurrentShieldAmount ) override;
+
+	// status bar를 초기화.
+	virtual void Clear() override;
 private:
 	// HpBar를 업데이트.
 	void _UpdateHpBar() const;

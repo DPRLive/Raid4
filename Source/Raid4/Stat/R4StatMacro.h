@@ -62,16 +62,16 @@
  * Shadow data와 비교해서 바뀐것만 broadcast
  */
 #define R4STAT_STAT_OnRep( Now, Prev ) \
-    if(!FMath::IsNearlyEqual(Now.GetTotalValue(), Prev.GetTotalValue()) )    \
-    {                                                                        \
-        if(Now.OnChangeStatDataDelegate.IsBound())                           \
-            Now.OnChangeStatDataDelegate.Broadcast(Now.GetTotalValue());     \
+    if(!FMath::IsNearlyEqual(Now.GetTotalValue(), Prev.GetTotalValue()) )                           \
+    {                                                                                               \
+        if(Now.OnChangeStatDataDelegate.IsBound())                                                  \
+            Now.OnChangeStatDataDelegate.Broadcast(Prev.GetTotalValue(), Now.GetTotalValue());      \
     }
 
 #define R4STAT_CURRENT_STAT_OnRep( Now, Prev ) \
-    R4STAT_STAT_OnRep( Now, Prev )                                              \
-    if(!FMath::IsNearlyEqual(Now.GetCurrentValue(), Prev.GetCurrentValue()))    \
-    {                                                                           \
-        if(Now.OnChangeCurrentValueDelegate.IsBound())                          \
-            Now.OnChangeCurrentValueDelegate.Broadcast(Now.GetCurrentValue());  \
+    R4STAT_STAT_OnRep( Now, Prev )                                                                    \
+    if(!FMath::IsNearlyEqual(Now.GetCurrentValue(), Prev.GetCurrentValue()))                          \
+    {                                                                                                 \
+        if(Now.OnChangeCurrentValueDelegate.IsBound())                                                \
+            Now.OnChangeCurrentValueDelegate.Broadcast(Prev.GetTotalValue(), Now.GetCurrentValue());  \
     }

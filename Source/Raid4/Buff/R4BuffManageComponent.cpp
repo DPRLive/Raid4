@@ -53,11 +53,7 @@ void UR4BuffManageComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UR4BuffManageComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
 {
-	UpdatingBuffs.Empty();
-	NonUpdatingBuffs.Empty();
-	BlockingBuffTags_Match.Reset();
-	BlockingBuffTags_MatchExact.Reset();
-	ServerBuffs.Empty();
+	Clear();
 	Super::EndPlay( EndPlayReason );
 }
 
@@ -229,6 +225,28 @@ void UR4BuffManageComponent::RemoveBlockingBuffTags( const FGameplayTagContainer
 		BlockingBuffTags_Match.RemoveTags( InTagContainer );
 	else if ( InQueryType == EGameplayTagQueryType::MatchExact )
 		BlockingBuffTags_MatchExact.RemoveTags( InTagContainer );
+}
+
+/**
+ *	Buff Component 초기화.
+ */
+void UR4BuffManageComponent::Clear()
+{
+	auto& objectPool = OBJECT_POOL( GetWorld() );
+	if ( objectPool.IsValid() )
+	{
+		for( auto& buff : UpdatingBuffs )
+			objectPool->ReturnPoolObject( buff.BuffInstance );
+
+		for( auto& buff : NonUpdatingBuffs )
+			objectPool->ReturnPoolObject( buff.BuffInstance );
+	}
+	
+	UpdatingBuffs.Empty();
+	NonUpdatingBuffs.Empty();
+	BlockingBuffTags_Match.Reset();
+	BlockingBuffTags_MatchExact.Reset();
+	ServerBuffs.Empty();
 }
 
 /**

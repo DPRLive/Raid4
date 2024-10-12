@@ -3,7 +3,7 @@
 #include "R4StatStruct.generated.h"
 
 // Stat Change Delegate Type
-DECLARE_MULTICAST_DELEGATE_OneParam( FOnChangeStatDataDelegate, float /* Value */ )
+DECLARE_MULTICAST_DELEGATE_TwoParams( FOnChangeStatDataDelegate, float /* InPrevValue */, float /* InNowValue */ )
 
 /**
  * Stat 정의시 사용할 구조체.
@@ -37,23 +37,29 @@ public:
 	// Setter
 	FORCEINLINE virtual void SetBaseValue(float InBaseValue)
 	{
+		float prevValue = GetTotalValue();
 		BaseValue = InBaseValue;
+		
 		if( OnChangeStatDataDelegate.IsBound() )
-			OnChangeStatDataDelegate.Broadcast( GetTotalValue() );
+			OnChangeStatDataDelegate.Broadcast( prevValue, GetTotalValue() );
 	}
 	
 	FORCEINLINE virtual void SetAddModifierValue(float InAddModifierValue)
 	{
+		float prevValue = GetTotalValue();
 		AddModifierValue = InAddModifierValue;
+		
 		if( OnChangeStatDataDelegate.IsBound() )
-			OnChangeStatDataDelegate.Broadcast( GetTotalValue() );
+			OnChangeStatDataDelegate.Broadcast( prevValue, GetTotalValue() );
 	}
 
 	FORCEINLINE virtual void SetMultiplyModifierValue(float InMultiplyModifierValue)
 	{
+		float prevValue = GetTotalValue();
 		MultiplyModifierValue = InMultiplyModifierValue;
+		
 		if( OnChangeStatDataDelegate.IsBound() )
-			OnChangeStatDataDelegate.Broadcast( GetTotalValue() );
+			OnChangeStatDataDelegate.Broadcast( prevValue, GetTotalValue() );
 	}
 	
 	// Stat 변경 delegate, Total Stat을 broadcast
@@ -101,9 +107,12 @@ public:
 	
 	FORCEINLINE void SetCurrentValue(float InCurrentValue)
 	{
+		float prevValue = CurrentValue;
+		
 		CurrentValue = InCurrentValue;
+		
 		if( OnChangeCurrentValueDelegate.IsBound() )
-			OnChangeCurrentValueDelegate.Broadcast( CurrentValue );
+			OnChangeCurrentValueDelegate.Broadcast( prevValue, CurrentValue );
 	}
 
 	// Current Value 변경 delegate

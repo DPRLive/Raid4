@@ -19,19 +19,13 @@ class RAID4_API UR4CharacterStatComponent : public UR4TagStatBaseComponent, publ
 public:	
 	UR4CharacterStatComponent();
 
-	// 컴포넌트 초기화
-	virtual void InitializeComponent() override;
-
 protected:
-	// BeginPlay
-	virtual void BeginPlay() override;
-
 	// Replicate 설정
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
-	// Stat을 재설정 (Current Value = Base Value, Add Modifier Value = 0.f, Multiply Modifier Value = 1.f 로 밀어버림)
-	virtual void ResetStat() override;
+	//  Stat을 초기화 (Current Value = Base Value, Modifier Value = 0.f, Delegate Clear )
+	virtual void Clear() override;
 	
 	// ~ Begin IR4DTDataPushable (주어진 Pk로 스탯 데이터를 채운다. ( By DT_Stat))
 	virtual void PushDTData(FPriKey InPk) override; 

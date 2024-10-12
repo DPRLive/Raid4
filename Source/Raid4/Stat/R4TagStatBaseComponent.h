@@ -24,8 +24,8 @@ protected:
 public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 public:
-	// Stat 정보를 재설정 (Base Value로 세팅)
-	virtual void ResetStat() PURE_VIRTUAL(UR4StatBaseComponent::ResetStat, );
+	// Stat 정보를 초기화 ( Stat Tag Data Clear )
+	virtual void Clear();
 	
 	// Tag <-> Stat Getter, Tag와 Stat이 Bind가 된 상태이어야 쿼리 가능,
 	// 해당 Stat Comp가 Tag에 맞는 스탯을 들고 있을지 없을지 명확하지 않을때, 유용하게 사용 가능
@@ -36,9 +36,6 @@ protected:
 	// Tag <-> Stat 바인드용 함수. Bind가 된 상태이어야 Tag로 쿼리가 가능
 	void BindTagToStat(const FGameplayTag& InTag, FR4StatInfo& InStatRef);
 	void BindTagToStat(const FGameplayTag& InTag, FR4CurrentStatInfo& InStatRef);
-	
-	// Tag <-> Stat 바인드 Clear
-	void ClearTagStats();
 
 private:
 	// 일반 Stat Tag 쿼리용 TMap

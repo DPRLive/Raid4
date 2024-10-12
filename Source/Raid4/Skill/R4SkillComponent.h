@@ -17,21 +17,18 @@ class RAID4_API UR4SkillComponent : public UActorComponent
 
 public:	
 	UR4SkillComponent();
-
-	// 컴포넌트 초기화
-	virtual void InitializeComponent() override;
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-protected:
-	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;	
+
 public:
 	// 스킬을 추가한다. (서버)
 	virtual void Server_AddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill );
 
+	// Skill Component 초기화.
+	virtual void Clear();
 protected:
 	// 스킬이 등록 된 후 호출.
 	virtual void PostAddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill ) {}

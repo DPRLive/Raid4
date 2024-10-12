@@ -3,6 +3,7 @@
 #include "../Data/R4RowBase.h"
 #include "R4CharacterRow.generated.h"
 
+class UUserWidget;
 class USkeletalMesh;
 class UAnimInstance;
 class UR4SkillBase;
@@ -52,6 +53,18 @@ struct FR4CharacterRow : public FR4RowBase
 	// 순서대로 Skill Comp에 등록되므로, Player Skill 등록 시 순서에 주의.
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Skill" )
 	TArray<TSubclassOf<UR4SkillBase>> Skills;
+
+	// 해당 캐릭터가 사용할 Status Bar Widget Class
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Widget" )
+	TSubclassOf<UUserWidget> StatusBarClass;
+
+	// 해당 캐릭터가 사용할 Status Bar의 Draw Size.
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Widget" )
+	FVector2D StatusBarDrawSize;
+
+	// 해당 캐릭터가 사용할 Status Bar의 Relative Location.
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Widget" )
+	FVector StatusBarRelativeLocation;
 };
 
 GENERATE_DT_PTR_H( FR4CharacterRow );
