@@ -16,6 +16,7 @@
 #include "../Animation/R4AnimInstance.h"
 
 #include <Components/SkeletalMeshComponent.h>
+#include <Components/CapsuleComponent.h>
 #include <Engine/SkeletalMesh.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4CharacterBase)
@@ -39,9 +40,25 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 	AnimComp = CreateDefaultSubobject<UR4AnimationComponent>(TEXT("AnimComp"));
 
 	// Mesh NoCollision
-	GetMesh()->SetCollisionProfileName(Collision::G_ProfileNoCollision);
+	if( GetMesh() )
+		GetMesh()->SetCollisionProfileName( Collision::G_ProfileNoCollision );
 
+	// Requested Move Acceleration
+	if( GetCharacterMovement() )
+		GetCharacterMovement()->bRequestedMoveUseAcceleration = true;
+	
+	// Capsule
 	bDead = false;
+
+#if WITH_EDITOR
+	if ( GetCapsuleComponent() )
+	{
+		// DEBUG
+		GetCapsuleComponent()->ShapeColor = FColor::Turquoise;
+		GetCapsuleComponent()->SetLineThickness( 3.f );
+		GetCapsuleComponent()->SetHiddenInGame( false );
+	}
+#endif WITH_EDITOR
 }
 
 /**
@@ -63,17 +80,6 @@ void AR4CharacterBase::PostInitializeComponents()
 void AR4CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	// TODO : 데이터 집어넣는건 PlayerController가 Character PK를 들고 있다가 OnPossess 와 OnRep_Owner 되면 넣는걸로 하면 될 듯
-	// Character 테스트를 위한 Aurora 데이터 임시 로드
-	PushDTData(1);
-	
-	// test
-	if(HasAuthority())
-	{
-		for(auto& [buffClass, desc] : TestingBuffs)
-			BuffManageComp->AddBuff(this, buffClass, desc);
-	}
 }
 
 /**
@@ -129,44 +135,54 @@ FOnClearMontageInstance* AR4CharacterBase::OnClearMontageInstance()
 }
 
 /**
- *  주어진 Character Data PK로 데이터를 읽어 초기화한다.
+ *  주어진 Character Data PK로 데이터를 읽어 초기화
  *  @param InPk : Character DT의 primary key
  */
-void AR4CharacterBase::PushDTData(FPriKey InPk)
+void AR4CharacterBase::PushDTData( FPriKey InPk )
 {
-	const FR4CharacterRowPtr characterData(InPk);
-	if(!characterData.IsValid())
+	const FR4CharacterRowPtr characterData( InPk );
+	if ( !characterData.IsValid() )
 	{
-		LOG_ERROR(R4Data, TEXT("CharacterData is Invalid. PK : [%d]"), InPk);
+		LOG_ERROR( R4Data, TEXT("CharacterData is Invalid. PK : [%d]"), InPk );
 		return;
 	}
-	
-	if(USkeletalMeshComponent* meshComp = GetMesh(); IsValid(meshComp))
-	{
-		// 스켈레탈 메시 설정
-		if(USkeletalMesh* skelMesh = characterData->SkeletalMesh.LoadSynchronous(); IsValid(skelMesh))
-			meshComp->SetSkeletalMesh(skelMesh);
 
-		// 애니메이션 설정
-		meshComp->SetAnimInstanceClass(characterData->AnimInstance);
+	// Capsule
+	if( UCapsuleComponent* capsuleComp = GetCapsuleComponent() )
+	{
+		capsuleComp->SetCapsuleHalfHeight( characterData->CapsuleHalfHeight );
+		capsuleComp->SetCapsuleRadius( characterData->CapsuleRadius );
 	}
 
-	// 스탯 컴포넌트에 데이터 입력
-	StatComp->PushDTData(characterData->BaseStatRowPK);
+	// Mesh & Anim
+	if ( USkeletalMeshComponent* meshComp = GetMesh() )
+	{
+		// Skeletal Mesh
+		if ( USkeletalMesh* skelMesh = characterData->SkeletalMesh.LoadSynchronous(); IsValid( skelMesh ) )
+			meshComp->SetSkeletalMesh( skelMesh );
+
+		meshComp->SetRelativeTransform( characterData->MeshTransform );
+		
+		// Anim
+		meshComp->SetAnimInstanceClass( characterData->AnimInstance );
+	}
+
+	// Stat Data + Bind Tag
+	StatComp->PushDTData( characterData->BaseStatRowPK );
 	
-	if (!HasAuthority())
+	if ( !HasAuthority() )
 		return;
 	
 	///// Only Server /////
-
-	// 스킬 컴포넌트에 스킬을 적용.
-	// TODO : 배열 주면 Skill Comp에서 읽어가게 하는게 좋을거 같단말이야
+	
+	// Add Skills
 	for ( int32 idx = 0; idx < characterData->Skills.Num(); idx++ )
 	{
-		if (UR4SkillBase* instanceSkill = NewObject<UR4SkillBase>(this, characterData->Skills[idx]); IsValid(instanceSkill))
+		if ( UR4SkillBase* instanceSkill = NewObject<UR4SkillBase>( this, characterData->Skills[idx] );
+			IsValid( instanceSkill ) )
 		{
 			instanceSkill->RegisterComponent();
-			SkillComp->Server_AddSkill( idx, instanceSkill);
+			SkillComp->Server_AddSkill( idx, instanceSkill );
 		}
 	}
 }

@@ -15,12 +15,31 @@ struct FR4CharacterRow : public FR4RowBase
 {
 	GENERATED_BODY()
 
-	FR4CharacterRow() : BaseStatRowPK(DTConst::G_InvalidPK) {}
+	FR4CharacterRow()
+	: CapsuleHalfHeight( 88.f )
+	, CapsuleRadius ( 34.f )
+	, SkeletalMesh( nullptr )
+	, MeshTransform( FTransform::Identity )
+	, AnimInstance( nullptr )
+	, BaseStatRowPK( DTConst::G_InvalidPK )
+	{}
 
+	// Capsule Half Height
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Collision" )
+	float CapsuleHalfHeight;
+	
+	// Capsule Size
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Collision" )
+	float CapsuleRadius;
+	
 	// 캐릭터에 사용할 Skeletal Mesh 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Mesh" )
 	TSoftObjectPtr<USkeletalMesh> SkeletalMesh;
 
+	// Skeletal Mesh Transform
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Mesh" )
+	FTransform MeshTransform;
+	
 	// 캐릭터에 사용할 Anim Instance
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Anim" )
 	TSubclassOf<UAnimInstance> AnimInstance;

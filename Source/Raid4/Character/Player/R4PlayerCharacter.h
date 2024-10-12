@@ -50,7 +50,7 @@ public:
 	// ~ End IR4PlayerInputInterface
 	
 private:
-	// PlayerCharacter들의 공통된 데이터를 초기화한다.  
+	// PlayerCharacter들의 공통된 데이터를 초기화
 	void _InitPlayerCharacterCommonData();
 
 private:

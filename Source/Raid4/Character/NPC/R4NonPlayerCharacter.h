@@ -31,10 +31,6 @@ public:
 	virtual float GetAIRotationSpeed() const override { return AIRotationSpeed; } 
 	// ~ End IR4CharacterAIInterface
 
-	// ~ Begin IR4DTDataPushable (Character의 데이터를 초기화한다. ( By DT_Character))
-	virtual void PushDTData(FPriKey InPk) override; 
-	// ~ End IR4DTDataPushable
-	
 	// AI 캐릭터 데미지 수신
 	UFUNCTION( )
 	void OnAICharacterDamaged( const AActor* InInstigator, float InDamage );

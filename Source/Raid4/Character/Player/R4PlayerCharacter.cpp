@@ -7,6 +7,7 @@
 #include "../../Skill/Player/R4PlayerSkillComponent.h"
 #include "../../Data/DataAsset/R4DataAsset_PCCommonData.h"
 
+#include <Components/CapsuleComponent.h>
 #include <Camera/CameraComponent.h>
 #include <GameFramework/SpringArmComponent.h>
 #include <GameFramework/CharacterMovementComponent.h>
@@ -37,6 +38,10 @@ AR4PlayerCharacter::AR4PlayerCharacter(const FObjectInitializer& InObjectInitial
 
 	// Camera Manage Comp
 	CameraManageComp = CreateDefaultSubobject<UR4CameraManageComponent>(TEXT("CameraManageComp"));
+
+	// Set Profile Player
+	if ( GetCapsuleComponent() )
+		GetCapsuleComponent()->SetCollisionProfileName( COLLISION_PROFILE_NAME_PLAYER );
 }
 
 /**
@@ -55,6 +60,10 @@ void AR4PlayerCharacter::PostInitializeComponents()
 void AR4PlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// TODO : 데이터 집어넣는건 PlayerController가 Character PK를 들고 있다가 OnPossess 와 OnRep_Owner 되면 넣는걸로 하면 될 듯
+	// Character 테스트를 위한 Aurora 데이터 임시 로드
+	PushDTData(1);
 }
 
 void AR4PlayerCharacter::EndPlay( const EEndPlayReason::Type EndPlayReason )
@@ -159,16 +168,16 @@ void AR4PlayerCharacter::OnInputSkillCompleted( EPlayerSkillIndex InSkillIndex )
 }
 
 /**
- *  PlayerCharacter들의 공통된 데이터를 초기화한다.  
+ *  PlayerCharacter들의 공통된 데이터를 초기화
  */
 void AR4PlayerCharacter::_InitPlayerCharacterCommonData()
 {
-	if(!ensureMsgf(IsValid(PlayerCharacterCommonData), TEXT("PlayerCharacterCommonData is nullptr.")))
+	if ( !ensureMsgf( IsValid(PlayerCharacterCommonData), TEXT("PlayerCharacterCommonData is nullptr.") ) )
 		return;
 
 	bUseControllerRotationYaw = PlayerCharacterCommonData->bUseControllerRotationYaw;
-	
-	if (UCharacterMovementComponent* moveComp = GetCharacterMovement(); IsValid(moveComp))
+
+	if ( UCharacterMovementComponent* moveComp = GetCharacterMovement() )
 	{
 		moveComp->bOrientRotationToMovement = PlayerCharacterCommonData->bOrientRotationToMovement;
 		moveComp->bUseControllerDesiredRotation = PlayerCharacterCommonData->bUseControllerDesiredRotation;

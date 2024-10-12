@@ -11,7 +11,6 @@
 
 #include <GameFramework/Character.h>
 
-#include "Raid4/Buff/R4BuffStruct.h"
 #include "R4CharacterBase.generated.h"
 
 class UR4ShieldComponent;
@@ -19,19 +18,6 @@ class UR4CharacterStatComponent;
 class UR4SkillComponent;
 class UR4BuffManageComponent;
 class UR4AnimationComponent;
-
-// TEST
-USTRUCT(BlueprintType)
-struct FBuffTest
-{
-	GENERATED_BODY()
-
-	UPROPERTY( EditAnywhere )
-	TSubclassOf<UR4BuffBase> BuffClass;
-
-	UPROPERTY( EditAnywhere )
-	FR4BuffSettingDesc BuffDesc;
-};
 
 /**
  * (NPC, PlayerCharacter 등) 캐릭터에 베이스가 되는 클래스
@@ -49,8 +35,6 @@ public:
 	
 	virtual void PostInitializeComponents() override;
 
-	UPROPERTY(EditAnywhere)
-	TArray<FBuffTest> TestingBuffs;
 protected:
 	virtual void BeginPlay() override;
 
@@ -65,7 +49,7 @@ public:
 	// ~ End IR4AnimationInterface
 
 	// ~ Begin IR4DTDataPushable (Character의 데이터를 초기화한다. ( By DT_Character))
-	virtual void PushDTData(FPriKey InPk) override; 
+	virtual void PushDTData( FPriKey InPk ) override; 
 	// ~ End IR4DTDataPushable
 
 	// ~ Begin IR4DamageReceiveInterface

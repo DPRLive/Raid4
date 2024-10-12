@@ -5,14 +5,8 @@
 
 #include "../../Controller/R4AIController.h"
 #include "../../Skill/NonPlayer/R4NonPlayerSkillComponent.h"
-// test..
-#include "Animation/AnimInstance.h"
-#include "Components/SkeletalMeshComponent.h"
-#include "Raid4/Character/R4CharacterRow.h"
-#include "Raid4/Skill/R4SkillBase.h"
-#include "Raid4/Stat/CharacterStat/R4CharacterStatComponent.h"
-#include "Engine/SkeletalMesh.h"
-//
+
+#include <Components/CapsuleComponent.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4NonPlayerCharacter)
 
@@ -27,12 +21,20 @@ AR4NonPlayerCharacter::AR4NonPlayerCharacter( const FObjectInitializer& InObject
 	// AI Controller 지정
 	AIControllerClass = AR4AIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	
+	// Set Profile Enemy
+	if ( GetCapsuleComponent() )
+		GetCapsuleComponent()->SetCollisionProfileName( COLLISION_PROFILE_NAME_ENEMY );
 }
 
 void AR4NonPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// TODO : 데이터 집어넣는건 PlayerController가 Character PK를 들고 있다가 OnPossess 와 OnRep_Owner 되면 넣는걸로 하면 될 듯
+	// Character 테스트를 위한 Aurora 데이터 임시 로드
+	PushDTData(100);
+	
 	OnCharacterDamagedDelegate.AddDynamic( this, &AR4NonPlayerCharacter::OnAICharacterDamaged );
 }
 
@@ -63,45 +65,6 @@ int32 AR4NonPlayerCharacter::GetAvailableMaxDistSkillIndex( float& OutDist ) con
 		return skillComp->GetAvailableMaxDistSkillIndex( OutDist );
 
 	return INDEX_NONE;
-}
-
-void AR4NonPlayerCharacter::PushDTData( FPriKey InPk )
-{
-	const FR4CharacterRowPtr characterData(100);
-	if(!characterData.IsValid())
-	{
-		LOG_ERROR(R4Data, TEXT("CharacterData is Invalid. PK : [%d]"), InPk);
-		return;
-	}
-	
-	if(USkeletalMeshComponent* meshComp = GetMesh(); IsValid(meshComp))
-	{
-		// 스켈레탈 메시 설정
-		if(USkeletalMesh* skelMesh = characterData->SkeletalMesh.LoadSynchronous(); IsValid(skelMesh))
-			meshComp->SetSkeletalMesh(skelMesh);
-
-		// 애니메이션 설정
-		meshComp->SetAnimInstanceClass(characterData->AnimInstance);
-	}
-
-	// 스탯 컴포넌트에 데이터 입력
-	StatComp->PushDTData(characterData->BaseStatRowPK);
-	
-	if (!HasAuthority())
-		return;
-	
-	///// Only Server /////
-
-	// 스킬 컴포넌트에 스킬을 적용.
-	// TODO : 배열 주면 Skill Comp에서 읽어가게 하는게 좋을거 같단말이야
-	for ( int32 idx = 0; idx < characterData->Skills.Num(); idx++ )
-	{
-		if (UR4SkillBase* instanceSkill = NewObject<UR4SkillBase>(this, characterData->Skills[idx]); IsValid(instanceSkill))
-		{
-			instanceSkill->RegisterComponent();
-			SkillComp->Server_AddSkill( idx, instanceSkill);
-		}
-	}
 }
 
 /**
