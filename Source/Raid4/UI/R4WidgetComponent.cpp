@@ -10,10 +10,17 @@
 void UR4WidgetComponent::InitWidget()
 {
 	Super::InitWidget();
+
+	// 설정 할 위젯이 R4UserWidget이면 Owner를 설정.
+	if ( UR4UserWidget* widget = Cast<UR4UserWidget>( GetWidget() ) )
+		widget->SetOwningActor( GetOwner() );
+}
+
+void UR4WidgetComponent::SetWidget( UUserWidget* InWidget )
+{
+	// 설정 할 위젯이 R4UserWidget이면 Owner를 설정. ( In Runtime )
+	if ( UR4UserWidget* widget = Cast<UR4UserWidget>( InWidget ) )
+		widget->SetOwningActor( GetOwner() );
 	
-	// 들고있는 위젯이 R4UserWidget이면 Owner를 설정.
-	if(UR4UserWidget* widget = Cast<UR4UserWidget>(GetWidget()); IsValid(widget))
-	{
-		widget->SetOwningActor(GetOwner());
-	}
+	Super::SetWidget( InWidget );
 }

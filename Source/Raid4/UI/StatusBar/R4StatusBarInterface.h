@@ -23,15 +23,6 @@ class RAID4_API IR4StatusBarInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	// 최대 체력을 설정
-	virtual void SetTotalHp( float InTotalHp ) = 0;
-	
-	// 현재 체력을 설정
-	virtual void SetCurrentHp( float InCurrentHp ) = 0;
-
-	// 현재 쉴드량을 설정
-	virtual void SetCurrentShieldAmount( float InCurrentShieldAmount ) = 0;
-
-	// status bar를 초기화
-	virtual void Clear() = 0;
+	// SetUp을 진행
+	virtual void SetupStatusBarWidget(UUserWidget* InWidget) = 0;
 };

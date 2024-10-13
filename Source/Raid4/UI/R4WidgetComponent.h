@@ -15,4 +15,6 @@ class RAID4_API UR4WidgetComponent : public UWidgetComponent
 
 public:
 	virtual void InitWidget() override;
+
+	virtual void SetWidget( UUserWidget* InWidget ) override;
 };

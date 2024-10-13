@@ -2,6 +2,7 @@
 
 
 #include "R4StatusBarWidget.h"
+#include "R4StatusBarInterface.h"
 #include "../ProgressBar/R4StackProgressBar.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4StatusBarWidget)
@@ -12,6 +13,17 @@ UR4StatusBarWidget::UR4StatusBarWidget(const FObjectInitializer& ObjectInitializ
 	CachedCurrentHp = 0.f;
 	CachedTotalHp = 0.f;
 	CachedShieldAmount = 0.f;
+}
+
+void UR4StatusBarWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	if ( !OwningActor.IsValid() )
+		return;
+
+	if ( IR4StatusBarInterface* owner = Cast<IR4StatusBarInterface>( OwningActor ) )
+		owner->SetupStatusBarWidget( this );
 }
 
 /**
@@ -38,17 +50,6 @@ void UR4StatusBarWidget::SetCurrentHp( float InCurrentHp )
 void UR4StatusBarWidget::SetCurrentShieldAmount( float InCurrentShieldAmount )
 {
 	CachedShieldAmount = InCurrentShieldAmount;
-	_UpdateHpBar();
-}
-
-/**
- * status bar를 초기화.
- */
-void UR4StatusBarWidget::Clear()
-{
-	CachedCurrentHp = 0.f;
-	CachedTotalHp = 0.f;
-	CachedShieldAmount = 0.f;
 	_UpdateHpBar();
 }
 
