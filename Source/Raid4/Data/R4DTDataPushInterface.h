@@ -23,4 +23,7 @@ class RAID4_API IR4DTDataPushInterface
 public:
 	// 해당 클래스에 알맞는 DT의 Pk를 통해 데이터를 push
 	virtual void PushDTData(FPriKey InPk) = 0;
+
+	// 해당 클래스에 Push했던 DT의 Data를 Clear.
+	virtual void ClearDTData() = 0;
 };

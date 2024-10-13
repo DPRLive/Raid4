@@ -63,8 +63,8 @@ public:
 	// Force Move Type Getter
 	FORCEINLINE ER4ForceMoveType GetForceMoveType() const { return CachedForceMoveType; }
 
-	// Movement Comp 정리
-	virtual void Clear();
+	// Force Move 정리
+	virtual void ClearForceMove();
 private:
 	// Force Movement 준비
 	void _SetupForceMovement( const FVector& InTargetLoc, float InDuration );

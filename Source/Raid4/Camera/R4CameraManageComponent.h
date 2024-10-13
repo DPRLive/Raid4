@@ -41,8 +41,8 @@ public:
 	// Spring Arm 길이 조정 속도를 설정
 	void SetSpringArmResizeSpeed( float InSpeed ) { CachedSpringArmResizeSpeed = InSpeed; }
 
-	// UR4CameraManageComponent를 초기화.
-	virtual void Clear();
+	// UR4CameraManageComponent를 중단 및 spring arm 복구
+	virtual void ClearResizeSpringArm();
 private:
 	// Spring Arm을 Update
 	bool _UpdateSpringArmLength( float InDeltaTime ) const;

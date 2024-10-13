@@ -7,6 +7,7 @@
 #include "../Buff/R4BuffReceiveInterface.h"
 #include "../Animation/R4AnimationInterface.h"
 #include "../Stat/R4TagStatQueryInterface.h"
+#include "../UI/StatusBar/R4StatusBarInterface.h"
 
 #include <GameFramework/Character.h>
 
@@ -17,7 +18,7 @@ class UR4CharacterStatComponent;
 class UR4SkillComponent;
 class UR4BuffManageComponent;
 class UR4AnimationComponent;
-class UWidgetComponent;
+class UR4WidgetComponent;
 
 /**
  * (NPC, PlayerCharacter 등) 캐릭터에 베이스가 되는 클래스
@@ -25,13 +26,16 @@ class UWidgetComponent;
 UCLASS()
 class RAID4_API AR4CharacterBase : public ACharacter, public IR4DTDataPushInterface,
 									public IR4DamageReceiveInterface, public IR4BuffReceiveInterface,
-									public IR4TagStatQueryInterface, public IR4AnimationInterface
+									public IR4TagStatQueryInterface, public IR4AnimationInterface,
+									public IR4StatusBarInterface
 {
 	GENERATED_BODY()
 
 public:
 	AR4CharacterBase(const FObjectInitializer& InObjectInitializer);
 
+	virtual void BeginPlay() override;
+	
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
@@ -41,8 +45,9 @@ public:
 	virtual FOnClearMontageInstance* OnClearMontageInstance() override;
 	// ~ End IR4AnimationInterface
 
-	// ~ Begin IR4DTDataPushable (Character의 데이터를 초기화한다. ( By DT_Character))
-	virtual void PushDTData( FPriKey InPk ) override; 
+	// ~ Begin IR4DTDataPushable
+	virtual void PushDTData( FPriKey InPk ) override;
+	virtual void ClearDTData() override;
 	// ~ End IR4DTDataPushable
 
 	// ~ Begin IR4DamageReceiveInterface
@@ -60,6 +65,10 @@ public:
 	virtual FR4CurrentStatInfo* GetCurrentStatByTag( const FGameplayTag& InTag ) const override;
 	// ~ End IR4TagStatQueryInterface
 
+	// ~ Begin IStatusBarInterface
+	virtual void SetupStatusBarWidget( UUserWidget* InWidget ) override;
+	// ~ Begin IStatusBarInterface
+	
 	// 죽었는지 반환
 	bool IsDead() const { return bDead; }
 	
@@ -105,7 +114,7 @@ protected:
 
 	// Status Bar Widget Component
 	UPROPERTY( VisibleAnywhere, Category = "Widget" )
-	TObjectPtr<UWidgetComponent> StatusBarComp;
+	TObjectPtr<UR4WidgetComponent> StatusBarComp;
 private:
 	// 죽은 상태인지 여부.
 	uint8 bDead:1;

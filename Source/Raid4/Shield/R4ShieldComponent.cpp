@@ -27,7 +27,8 @@ void UR4ShieldComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 
 void UR4ShieldComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
 {
-	Clear();
+	ClearShields();
+	OnChangeTotalShieldDelegate.Clear();
 	
 	Super::EndPlay( EndPlayReason );
 }
@@ -160,11 +161,10 @@ bool UR4ShieldComponent::RemoveShieldAll(const UObject* InProvideObj)
 }
 
 /**
- *  Shield Comp 초기화.
+ *  Shield들 모두 해제.
  */
-void UR4ShieldComponent::Clear()
+void UR4ShieldComponent::ClearShields()
 {
-	OnChangeTotalShieldDelegate.Clear();
 	Shields.Empty();
 	TotalShield = 0.f;
 }

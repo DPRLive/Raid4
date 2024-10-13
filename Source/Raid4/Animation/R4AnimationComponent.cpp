@@ -99,8 +99,3 @@ void UR4AnimationComponent::PlayDeadAnim()
 	
 	anim->Montage_Play( DeadAnim, 1.f, EMontagePlayReturnType::MontageLength );
 }
-
-void UR4AnimationComponent::Clear()
-{
-	DeadAnim = nullptr;
-}

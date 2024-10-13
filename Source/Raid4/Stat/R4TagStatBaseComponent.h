@@ -24,8 +24,8 @@ protected:
 public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 public:
-	// Stat 정보를 초기화 ( Stat Tag Data Clear )
-	virtual void Clear();
+	// Stat Tag Data Clear
+	void ClearStatTags();
 	
 	// Tag <-> Stat Getter, Tag와 Stat이 Bind가 된 상태이어야 쿼리 가능,
 	// 해당 Stat Comp가 Tag에 맞는 스탯을 들고 있을지 없을지 명확하지 않을때, 유용하게 사용 가능

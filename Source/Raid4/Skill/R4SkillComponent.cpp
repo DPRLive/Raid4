@@ -28,7 +28,7 @@ void UR4SkillComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 void UR4SkillComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
 {
-	Clear();
+	ClearSkills();
 	
 	Super::EndPlay( EndPlayReason );
 }
@@ -64,9 +64,9 @@ void UR4SkillComponent::Server_AddSkill( uint8 InSkillIndex, UR4SkillBase* InSki
 }
 
 /**
- *  Skill Component 초기화.
+ *  관리중이던 Skill들을 모두 해제.
  */
-void UR4SkillComponent::Clear()
+void UR4SkillComponent::ClearSkills()
 {
 	// Skill Comp 제거는 Server에서
 	if( GetOwnerRole() == ROLE_Authority )

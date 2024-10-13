@@ -29,8 +29,6 @@ public:
 	void PlayDeadAnim();
 
 	FORCEINLINE void SetDeadAnim( const TObjectPtr<UAnimMontage>& InDeadAnim ) { DeadAnim = InDeadAnim; }
-
-	virtual void Clear();
 private:
 	// Dead Anim
 	UPROPERTY( EditAnywhere )

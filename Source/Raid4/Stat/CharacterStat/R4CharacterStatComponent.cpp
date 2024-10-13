@@ -37,21 +37,26 @@ void UR4CharacterStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 }
 
 /**
- *  Stat을 초기화 (Current Value = Base Value, Modifier Value = 0.f, Delegate Clear )
+ *  Stat Data를 Clear ( Base Value = Current Value = 0, Modifier Value = 0.f )
  */
-void UR4CharacterStatComponent::Clear()
+void UR4CharacterStatComponent::ClearDTData()
 {
-	Super::Clear();
-
-	Hp.InitStatData();
-	HpRegenPerSec.InitStatData();
-	AttackPower.InitStatData();
-	Armor.InitStatData();
-	CoolDownReduction.InitStatData();
-	CriticalChance.InitStatData();
-	MovementSpeed.InitStatData();
-	ApplyDamageMultiplier.InitStatData();
-	ReceiveDamageMultiplier.InitStatData();
+	// Unbind Stat tag
+	ClearStatTags();
+	
+	// 데이터 설정은 서버에서
+	if(GetOwnerRole() == ROLE_Authority)
+	{
+		SetBaseHp( 0.f ); SetCurrentHp(0.f); SetAddModifierHp(0.f); SetMultiplyModifierHp(1.f); 
+		SetBaseHpRegenPerSec( 0.f ); SetAddModifierHpRegenPerSec(0.f); SetMultiplyModifierHpRegenPerSec(1.f);
+		SetBaseAttackPower( 0.f ); SetAddModifierAttackPower(0.f); SetMultiplyModifierAttackPower(1.f);
+		SetBaseArmor( 0.f ); SetAddModifierArmor(0.f); SetMultiplyModifierArmor(1.f);
+		SetBaseCoolDownReduction( 0.f ); SetAddModifierCoolDownReduction(0.f); SetMultiplyModifierCoolDownReduction(1.f);
+		SetBaseCriticalChance( 0.f ); SetAddModifierCriticalChance(0.f); SetMultiplyModifierCriticalChance(1.f);
+		SetBaseMovementSpeed( 0.f ); SetAddModifierMovementSpeed(0.f); SetMultiplyModifierMovementSpeed(1.f);
+		SetBaseApplyDamageMultiplier( 0.f ); SetAddModifierApplyDamageMultiplier(0.f); SetMultiplyModifierApplyDamageMultiplier(1.f);
+		SetBaseReceiveDamageMultiplier( 0.f ); SetAddModifierReceiveDamageMultiplier(0.f); SetMultiplyModifierReceiveDamageMultiplier(1.f);
+	}
 }
 
 /**

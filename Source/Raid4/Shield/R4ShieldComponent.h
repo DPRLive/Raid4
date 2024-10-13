@@ -36,8 +36,8 @@ public:
 	// 현재 총 방어막 수치를 return
 	FORCEINLINE float GetTotalShield() const { return TotalShield; }
 
-	// Shield Comp 초기화.
-	virtual void Clear();
+	// Shield들 모두 해제.
+	virtual void ClearShields();
 private:
 	// Shields 의 Node 타입
 	using FShieldListNode = TDoubleLinkedList<TTuple<TWeakObjectPtr<const UObject>, float>>::TDoubleLinkedListNode;

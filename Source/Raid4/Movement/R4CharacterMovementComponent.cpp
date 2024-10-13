@@ -42,7 +42,7 @@ UR4CharacterMovementComponent::UR4CharacterMovementComponent()
 
 void UR4CharacterMovementComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
 {
-	Clear();
+	ClearForceMove();
 	Super::EndPlay( EndPlayReason );
 }
 
@@ -96,9 +96,9 @@ void UR4CharacterMovementComponent::SetForceMovementByCurve_Local( const FVector
 }
 
 /**
- *	Movement Comp 정리
+ *	Force Move 정리
  */
-void UR4CharacterMovementComponent::Clear()
+void UR4CharacterMovementComponent::ClearForceMove()
 {
 	CachedForceMoveType = ER4ForceMoveType::None;
 	CachedForceMoveStartWorldLoc = FVector::ZeroVector;

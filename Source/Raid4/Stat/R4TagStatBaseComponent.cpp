@@ -18,15 +18,15 @@ void UR4TagStatBaseComponent::BeginPlay()
 
 void UR4TagStatBaseComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
 {
-	Clear();
+	ClearStatTags();
 	
 	Super::EndPlay( EndPlayReason );
 }
 
 /**
- *	Stat 정보를 초기화 ( Stat Tag Data Clear )
+ *	Stat Tag Data Clear 
  */
-void UR4TagStatBaseComponent::Clear()
+void UR4TagStatBaseComponent::ClearStatTags()
 {
 	TagStats.Empty();
 	TagCurrentStats.Empty();

@@ -70,13 +70,19 @@ void UR4CameraManageComponent::AddSpringArmLength( float InDeltaLength )
 }
 
 /**
- *   UR4CameraManageComponent를 초기화.
+ *   UR4CameraManageComponent를 중단 및 spring arm 복구
  */
-void UR4CameraManageComponent::Clear()
+void UR4CameraManageComponent::ClearResizeSpringArm()
 {
 	SetComponentTickEnabled( false );
-	CachedCameraComp.Reset();
-	CachedSpringArmComp.Reset();
+
+	if( CachedSpringArmComp.IsValid() )
+	{
+		const USpringArmComponent* springArmCDO = CachedSpringArmComp->GetClass() ? CachedSpringArmComp->GetClass()->GetDefaultObject<USpringArmComponent>() : nullptr;
+		if( IsValid( springArmCDO ) )
+			CachedSpringArmComp->TargetArmLength = springArmCDO->TargetArmLength;
+	}
+	
 	CachedNewSpringArmLength = 0.f;
 	CachedSpringArmResizeSpeed = 0.f;
 }

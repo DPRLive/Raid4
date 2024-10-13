@@ -27,8 +27,8 @@ public:
 	// 스킬을 추가한다. (서버)
 	virtual void Server_AddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill );
 
-	// Skill Component 초기화.
-	virtual void Clear();
+	// 관리중이던 Skill들을 모두 해제.
+	virtual void ClearSkills();
 protected:
 	// 스킬이 등록 된 후 호출.
 	virtual void PostAddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill ) {}

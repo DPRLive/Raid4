@@ -44,10 +44,10 @@ void UR4PlayerSkillComponent::OnInputSkillCompleted( EPlayerSkillIndex InSkillIn
 	}
 }
 
-void UR4PlayerSkillComponent::Clear()
+void UR4PlayerSkillComponent::ClearSkills()
 {
-	Super::Clear();
 	SkillDelegateHandles.Empty();
+	Super::ClearSkills();
 }
 
 /**

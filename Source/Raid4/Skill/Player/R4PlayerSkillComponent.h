@@ -22,7 +22,7 @@ public:
 	virtual void OnInputSkillTriggered( EPlayerSkillIndex InSkillIndex );
 	virtual void OnInputSkillCompleted( EPlayerSkillIndex InSkillIndex );
 
-	virtual void Clear() override;
+	virtual void ClearSkills() override;
 protected:
 	// 스킬이 등록 된 후 호출.
 	virtual void PostAddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill ) override;

@@ -53,7 +53,7 @@ void UR4BuffManageComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UR4BuffManageComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
 {
-	Clear();
+	ClearBuffs();
 	Super::EndPlay( EndPlayReason );
 }
 
@@ -228,9 +228,9 @@ void UR4BuffManageComponent::RemoveBlockingBuffTags( const FGameplayTagContainer
 }
 
 /**
- *	Buff Component 초기화.
+ *	Buff들 초기화.
  */
-void UR4BuffManageComponent::Clear()
+void UR4BuffManageComponent::ClearBuffs()
 {
 	auto& objectPool = OBJECT_POOL( GetWorld() );
 	if ( objectPool.IsValid() )

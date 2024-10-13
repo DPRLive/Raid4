@@ -9,6 +9,7 @@
 #include "../Skill/R4SkillBase.h"
 #include "../Buff/R4BuffManageComponent.h"
 #include "../Shield/R4ShieldComponent.h"
+#include "../UI/R4WidgetComponent.h"
 #include "../UI/StatusBar/R4StatusBarWidget.h"
 #include "../Damage/R4DamageStruct.h"
 #include "../Animation/R4AnimationComponent.h"
@@ -40,7 +41,7 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 
 	AnimComp = CreateDefaultSubobject<UR4AnimationComponent>( TEXT( "AnimComp" ) );
 
-	StatusBarComp = CreateDefaultSubobject<UWidgetComponent>( TEXT( "StatusBarComp" ) );
+	StatusBarComp = CreateDefaultSubobject<UR4WidgetComponent>( TEXT( "StatusBarComp" ) );
 	StatusBarComp->SetWidgetSpace( EWidgetSpace::Screen );
 	StatusBarComp->SetCollisionProfileName( Collision::G_ProfileNoCollision );
 	StatusBarComp->SetHiddenInGame( true ); // 시작 시 hidden
@@ -65,6 +66,14 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 		GetCapsuleComponent()->SetHiddenInGame( false );
 	}
 #endif WITH_EDITOR
+}
+
+void AR4CharacterBase::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// Stat Comp binds
+	BindStatComponent();
 }
 
 /**
@@ -156,6 +165,10 @@ void AR4CharacterBase::PushDTData( FPriKey InPk )
 
 		AnimComp->SetDeadAnim( characterData->DeadAnim.LoadSynchronous() );
 	}
+	
+	// Stat Data
+	if( IsValid( StatComp ) )
+		StatComp->PushDTData( characterData->BaseStatRowPK );
 
 	// Set Status Widget
 	if ( IsValid( StatusBarComp ) )
@@ -165,13 +178,6 @@ void AR4CharacterBase::PushDTData( FPriKey InPk )
 		StatusBarComp->SetDrawSize( characterData->StatusBarDrawSize );
 		StatusBarComp->SetRelativeLocation( characterData->StatusBarRelativeLocation );
 		StatusBarComp->AttachToComponent( GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, Socket::G_HealthBarSocket );
-	}
-	
-	// Stat Data + Bind Tag
-	if( IsValid( StatComp ) )
-	{
-		BindStatComponent();
-		StatComp->PushDTData( characterData->BaseStatRowPK );
 	}
 	
 	if ( !HasAuthority() )
@@ -189,6 +195,71 @@ void AR4CharacterBase::PushDTData( FPriKey InPk )
 			SkillComp->Server_AddSkill( idx, instanceSkill );
 		}
 	}
+}
+
+/**
+ *  Dt로 Push한 Data를 Clear.
+ */
+void AR4CharacterBase::ClearDTData()
+{
+	// 초기값으로 돌리기 위한 CDO 준비
+	const UObject* cdo = IsValid( GetClass() ) ? GetClass()->GetDefaultObject( true ) : nullptr;
+	const AR4CharacterBase* characterCDO = Cast<AR4CharacterBase>( cdo );
+
+	if( IsValid( characterCDO ) )
+	{
+		// Capsule
+		UCapsuleComponent* capsuleComp = GetCapsuleComponent();
+		UCapsuleComponent* capsuleCompCDO = characterCDO->GetCapsuleComponent();
+		
+		if( IsValid( capsuleComp ) && IsValid( capsuleCompCDO ) )
+		{
+			capsuleComp->SetCapsuleHalfHeight( capsuleCompCDO->GetUnscaledCapsuleHalfHeight() );
+			capsuleComp->SetCapsuleRadius( capsuleCompCDO->GetUnscaledCapsuleRadius() );
+		}
+
+		// Mesh & Anim
+		USkeletalMeshComponent* meshComp = GetMesh();
+		USkeletalMeshComponent* meshCompCDO = characterCDO->GetMesh();
+		if ( IsValid( meshComp ) && IsValid( meshCompCDO ) )
+		{
+			meshComp->SetSkeletalMesh( meshCompCDO->GetSkeletalMeshAsset() );
+			meshComp->SetRelativeTransform( meshCompCDO->GetRelativeTransform() );
+			// 이거 해줘야됨!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			BaseTranslationOffset = meshCompCDO->GetRelativeTransform().GetLocation();
+			BaseRotationOffset = meshCompCDO->GetRelativeTransform().GetRotation();
+		
+			// Anim
+			meshComp->SetAnimInstanceClass( meshCompCDO->GetAnimClass() );
+		}
+	}
+	
+	// Anim Comp
+	if( IsValid( AnimComp ) )
+		AnimComp->SetDeadAnim( nullptr );
+	
+	// Status Widget
+	if ( IsValid( StatusBarComp ) )
+	{
+		StatusBarComp->SetHiddenInGame( true );
+		StatusBarComp->SetWidgetClass( nullptr );
+		StatusBarComp->SetDrawSize( FVector2D::ZeroVector );
+		StatusBarComp->SetRelativeLocation( FVector::ZeroVector );
+		StatusBarComp->DetachFromComponent( FDetachmentTransformRules::KeepRelativeTransform );
+	}
+	
+	// Stat
+	if( IsValid( StatComp ) )
+		StatComp->ClearDTData();
+	
+	if ( !HasAuthority() )
+		return;
+	
+	///// Only Server /////
+	
+	// Add Skills
+	if( IsValid( SkillComp ) )
+		SkillComp->ClearSkills();
 }
 
 /**
@@ -247,6 +318,39 @@ FR4CurrentStatInfo* AR4CharacterBase::GetCurrentStatByTag(const FGameplayTag& In
 }
 
 /**
+ *  status bar setup
+ */
+void AR4CharacterBase::SetupStatusBarWidget( UUserWidget* InWidget )
+{
+	// Bind Status bar
+	if ( UR4StatusBarWidget* statusBar = Cast< UR4StatusBarWidget >( InWidget ) )
+	{
+		// 초기화
+		statusBar->SetTotalHp( StatComp->GetTotalHp() );
+		statusBar->SetCurrentHp( StatComp->GetCurrentHp() );
+		statusBar->SetCurrentShieldAmount( ShieldComp->GetTotalShield() );
+
+		// 총 체력 변경시 호출
+		StatComp->OnChangeHp().AddWeakLambda( statusBar, [statusBar]( float InPrevTotalHp, float InNowTotalHp )
+		{
+			statusBar->SetTotalHp( InNowTotalHp );
+		} );
+
+		// 현재 체력 변경 시 호출
+		StatComp->OnChangeCurrentHp().AddWeakLambda( statusBar, [statusBar]( float InPrevCurrentHp, float InNowCurrentHp )
+		{
+			statusBar->SetCurrentHp( InNowCurrentHp );
+		} );
+
+		// 방어막 변경 시 호출
+		ShieldComp->OnChangeTotalShieldDelegate.AddWeakLambda( statusBar, [statusBar]( float InNowShieldAmount )
+		{
+			statusBar->SetCurrentShieldAmount( InNowShieldAmount );
+		} );
+	}
+}
+
+/**
  *  StatComp와 필요한 바인딩을 진행
  */
 void AR4CharacterBase::BindStatComponent()
@@ -258,7 +362,7 @@ void AR4CharacterBase::BindStatComponent()
 	StatComp->OnChangeCurrentHp().AddWeakLambda(this, 
 [this]( float InPrevHp, float InNowHp )
 		{
-			if ( InNowHp < KINDA_SMALL_NUMBER )
+			if ( !bDead && InNowHp < KINDA_SMALL_NUMBER )
 			{
 				if ( OnCharacterDeadDelegate.IsBound() )
 					OnCharacterDeadDelegate.Broadcast();
@@ -269,42 +373,13 @@ void AR4CharacterBase::BindStatComponent()
 	// Damage Delegate Bind
 	StatComp->OnChangeCurrentHp().AddWeakLambda(this, 
 [this]( float InPrevHp, float InNowHp )
-	{
-		if ( InNowHp < InPrevHp )
-		{
-			if ( OnCharacterDamagedDelegate.IsBound() )
-				OnCharacterDamagedDelegate.Broadcast( ( InPrevHp - InNowHp ) );
-		}
-	});
-
-	// Bind Status bar
-	UUserWidget* statusBarObj = StatusBarComp->GetWidget();
-	if ( IR4StatusBarInterface* statusBar = Cast<IR4StatusBarInterface>( statusBarObj ) )
-	{
-		// 초기화
-		statusBar->Clear();
-		statusBar->SetTotalHp( StatComp->GetTotalHp() );
-		statusBar->SetCurrentHp( StatComp->GetCurrentHp() );
-		statusBar->SetCurrentShieldAmount( ShieldComp->GetTotalShield() );
-
-		// 총 체력 변경시 호출
-		StatComp->OnChangeHp().AddWeakLambda( statusBarObj, [statusBar]( float InPrevTotalHp, float InNowTotalHp )
-		{
-			statusBar->SetTotalHp( InNowTotalHp );
-		} );
-
-		// 현재 체력 변경 시 호출
-		StatComp->OnChangeCurrentHp().AddWeakLambda( statusBarObj, [statusBar]( float InPrevCurrentHp, float InNowCurrentHp )
-		{
-			statusBar->SetCurrentHp( InNowCurrentHp );
-		} );
-
-		// 방어막 변경 시 호출
-		ShieldComp->OnChangeTotalShieldDelegate.AddWeakLambda( statusBarObj, [statusBar]( float InNowShieldAmount )
-		{
-			statusBar->SetCurrentShieldAmount( InNowShieldAmount );
-		} );
-	}
+	    {
+	    	if ( InNowHp < InPrevHp )
+	    	{
+	    		if ( OnCharacterDamagedDelegate.IsBound() )
+	    			OnCharacterDamagedDelegate.Broadcast( ( InPrevHp - InNowHp ) );
+	    	}
+	    });
 }
 
 /**
@@ -322,29 +397,25 @@ void AR4CharacterBase::ApplyMovementSpeed( float InPrevMovementSpeed, float InNo
  */
 void AR4CharacterBase::Dead()
 {
-	// TODO : Set Collision, Hide widget, stat, skill reset 등 해야함, Respawn을 위한 reset 기능도 추가
-	LOG_WARN(LogTemp, TEXT("DEAD"));
-
 	bDead = true;
 	
 	AnimComp->PlayDeadAnim();
+
+	// Buff, Shield 모두 해제
+	BuffManageComp->ClearBuffs();
+	ShieldComp->ClearShields();
+
+	// Hide StatusBar
+	StatusBarComp->SetHiddenInGame( true );
 	
 	// 이동 제한
 	if( UCharacterMovementComponent* moveComp = GetCharacterMovement() )
 		moveComp->SetMovementMode( MOVE_None );
+
+	// UR4CharacterMovementComponent 사용 시 ForceMove Clear
+	if( UR4CharacterMovementComponent* moveComp = GetCharacterMovement<UR4CharacterMovementComponent>() )
+		moveComp->ClearForceMove();
 	
 	// not collision, Physics simulate 사용 안해서 바닥으로 안떨어짐.
 	SetActorEnableCollision( false );
-	
-	// Components Clear
-	StatComp->Clear();
-	SkillComp->Clear();
-	BuffManageComp->Clear();
-	ShieldComp->Clear();
-	StatusBarComp->SetHiddenInGame( true );
-	AnimComp->Clear();
-	
-	// UR4CharacterMovementComponent 사용 시 Clear
-	if( UR4CharacterMovementComponent* moveComp = GetCharacterMovement<UR4CharacterMovementComponent>() )
-		moveComp->Clear();
 }

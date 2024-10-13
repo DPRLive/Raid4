@@ -24,11 +24,9 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
-	//  Stat을 초기화 (Current Value = Base Value, Modifier Value = 0.f, Delegate Clear )
-	virtual void Clear() override;
-	
-	// ~ Begin IR4DTDataPushable (주어진 Pk로 스탯 데이터를 채운다. ( By DT_Stat))
-	virtual void PushDTData(FPriKey InPk) override; 
+	// ~ Begin IR4DTDataPushable 
+	virtual void PushDTData(FPriKey InPk) override;
+	virtual void ClearDTData() override;
 	// ~ End IR4DTDataPushable
 	
 public:
