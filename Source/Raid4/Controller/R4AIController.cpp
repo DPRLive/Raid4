@@ -22,7 +22,7 @@ void AR4AIController::OnPossess( APawn* InPawn )
 
 	// Character가 Damage를 받아 사망 시 Stop Tree
 	if ( IR4DamageReceiveInterface* pawn = Cast<IR4DamageReceiveInterface>(	InPawn ) )
-		pawn->OnDead().AddDynamic( this, &AR4AIController::StopAI );
+		pawn->OnDead().AddDynamic( this, &AR4AIController::OnDeadAI );
 }
 
 /**
@@ -38,9 +38,17 @@ void AR4AIController::RunAI()
 /**
  *	AI 중지
  */
-void AR4AIController::StopAI()
+void AR4AIController::StopAI( )
 {
 	if ( UBehaviorTreeComponent* behaviorTreeComp = Cast< UBehaviorTreeComponent >( BrainComponent ) )
 		behaviorTreeComp->StopTree();
+}
+
+/**
+ *	AI 사망
+ */
+void AR4AIController::OnDeadAI( AActor* InDeadActor )
+{
+	StopAI();
 }
 

@@ -24,6 +24,9 @@ struct FR4CharacterRow : public FR4RowBase
 	, MeshTransform( FTransform::Identity )
 	, AnimInstance( nullptr )
 	, BaseStatRowPK( DTConst::G_InvalidPK )
+	, StatusBarClass( nullptr )
+	, StatusBarDrawSize( FVector2d::ZeroVector )
+	, StatusBarRelativeLocation( FVector::ZeroVector )
 	{}
 
 	// Capsule Half Height

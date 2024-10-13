@@ -27,6 +27,9 @@ public:
 	// AI 중지
 	UFUNCTION()
 	void StopAI();
+	
+	UFUNCTION()
+	void OnDeadAI( AActor* InDeadActor );
 
 private:
 	// Black board data

@@ -200,9 +200,8 @@ void AR4PlayerCharacter::Dead()
 
 	CameraManageComp->ClearResizeSpringArm();
 
-	// TODO spector ?
-	if ( HasAuthority() )
-		UnPossessed();
+	// Disable input.
+	DisableInput( GetController<APlayerController>() );
 }
 
 /**

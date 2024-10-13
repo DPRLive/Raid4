@@ -365,7 +365,7 @@ void AR4CharacterBase::BindStatComponent()
 			if ( !bDead && InNowHp < KINDA_SMALL_NUMBER )
 			{
 				if ( OnCharacterDeadDelegate.IsBound() )
-					OnCharacterDeadDelegate.Broadcast();
+					OnCharacterDeadDelegate.Broadcast( this );
 				Dead();
 			}
 		});
