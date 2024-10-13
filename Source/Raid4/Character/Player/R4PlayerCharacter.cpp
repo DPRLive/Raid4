@@ -6,12 +6,14 @@
 #include "../../Camera/R4CameraManageComponent.h"
 #include "../../Skill/Player/R4PlayerSkillComponent.h"
 #include "../../Data/DataAsset/R4DataAsset_PCCommonData.h"
+#include "../../PlayerState/R4PlayerStateInterface.h"
 
 #include <Components/CapsuleComponent.h>
 #include <Camera/CameraComponent.h>
 #include <GameFramework/SpringArmComponent.h>
 #include <GameFramework/CharacterMovementComponent.h>
 #include <GameFramework/PlayerController.h>
+#include <GameFramework/PlayerState.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4PlayerCharacter)
 
@@ -64,16 +66,34 @@ void AR4PlayerCharacter::BeginPlay()
 	// Init CameraManageComp
 	CameraManageComp->SetCameraComp( CameraComp );
 	CameraManageComp->SetSpringArmComp( SpringArmComp );
-	
-	// TODO : 데이터 집어넣는건 PlayerController가 Character PK를 들고 있다가 OnPossess 와 OnRep_Owner 되면 넣는걸로 하면 될 듯
-	// Character 테스트를 위한 Aurora 데이터 임시 로드
-	PushDTData(1);
 }
 
 void AR4PlayerCharacter::EndPlay( const EEndPlayReason::Type EndPlayReason )
 {
 	OnSetupPlayerInputDelegate.Clear();
 	Super::EndPlay( EndPlayReason );
+}
+
+/**
+ *  Player State로부터 Character DT Key 값 Load (Server)
+ */
+void AR4PlayerCharacter::PossessedBy( AController* InNewController )
+{
+	Super::PossessedBy( InNewController );
+
+	if ( IR4PlayerStateInterface* playerState = Cast<IR4PlayerStateInterface>( GetPlayerState() ) )
+		PushDTData( playerState->GetCharacterId() );
+}
+
+/**
+ *  Player State로부터 Character DT Key 값 Load (Client)
+ */
+void AR4PlayerCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	if ( IR4PlayerStateInterface* playerState = Cast<IR4PlayerStateInterface>( GetPlayerState() ) )
+		PushDTData( playerState->GetCharacterId() );
 }
 
 /**
@@ -178,7 +198,11 @@ void AR4PlayerCharacter::Dead()
 {
 	Super::Dead();
 
-	CameraManageComp->Clear();
+	CameraManageComp->ClearResizeSpringArm();
+
+	// TODO spector ?
+	if ( HasAuthority() )
+		UnPossessed();
 }
 
 /**

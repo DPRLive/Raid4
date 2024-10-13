@@ -24,12 +24,17 @@ public:
 	AR4PlayerCharacter(const FObjectInitializer& InObjectInitializer);
 
 	virtual void PostInitializeComponents() override;
-	
+
 protected:
 	virtual void BeginPlay() override;
 
 public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;	
+	
+	virtual void PossessedBy( AController* InNewController ) override;
+
+	virtual void OnRep_PlayerState() override;
+
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent) override;
 
