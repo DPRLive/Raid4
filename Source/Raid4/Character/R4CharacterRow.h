@@ -23,7 +23,7 @@ struct FR4CharacterRow : public FR4RowBase
 	, SkeletalMesh( nullptr )
 	, MeshTransform( FTransform::Identity )
 	, AnimInstance( nullptr )
-	, ChampionSelectedAnim ( nullptr )
+	, CharacterPickedAnim ( nullptr )
 	, BaseStatRowPK( DTConst::G_InvalidPK )
 	, StatusBarClass( nullptr )
 	, StatusBarDrawSize( FVector2d::ZeroVector )
@@ -50,9 +50,9 @@ struct FR4CharacterRow : public FR4RowBase
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Anim" )
 	TSubclassOf<UAnimInstance> AnimInstance;
 
-	// Champion Select Anim
+	// 캐릭터 선택 시 Play 할 Anim
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Anim" )
-	TSoftObjectPtr<UAnimMontage> ChampionSelectedAnim;
+	TSoftObjectPtr<UAnimMontage> CharacterPickedAnim;
 	
 	// 캐릭터 사망 모션. ( Loop로 설정할 것 )
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Anim" )

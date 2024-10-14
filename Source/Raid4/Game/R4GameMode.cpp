@@ -14,6 +14,8 @@
 
 AR4GameMode::AR4GameMode()
 {
+	PrimaryActorTick.bCanEverTick = false;
+	
 	bUseSeamlessTravel = true;
 	NumPlayersToStartGame = 0;
 	CachedNumAlivePlayers = 0;

@@ -6,21 +6,21 @@
 
 #include <GameFramework/Pawn.h>
 
-#include "R4PreviewChampionPawn.generated.h"
+#include "R4PreviewCharacterPawn.generated.h"
 
 class UAnimInstance;
 class UAnimMontage;
 
 /**
- * Champion selection에서 캐릭터 미리보기를 제공하는 Actor
+ * Character Pick에서 미리보기를 제공하는 Actor
  */
 UCLASS()
-class RAID4_API AR4PreviewChampionPawn : public APawn, public IR4DTDataPushInterface
+class RAID4_API AR4PreviewCharacterPawn : public APawn, public IR4DTDataPushInterface
 {
 	GENERATED_BODY()
 
 public:
-	AR4PreviewChampionPawn();
+	AR4PreviewCharacterPawn();
 
 	virtual void BeginPlay() override;
 	
@@ -52,9 +52,9 @@ private:
 	UPROPERTY( Transient, VisibleInstanceOnly )
 	TSubclassOf<UAnimInstance> CachedAnimInstance;
 	
-	// Start Anim
+	// Picked Anim
 	UPROPERTY( Transient, VisibleInstanceOnly )
-	TObjectPtr<UAnimMontage> CachedStartAnimMontage;
+	TObjectPtr<UAnimMontage> CachedPickedAnimMontage;
 	
 	// Mesh Async load handle
 	TSharedPtr<FStreamableHandle> CachedMeshHandle;

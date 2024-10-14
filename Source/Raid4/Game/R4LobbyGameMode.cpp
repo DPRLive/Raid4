@@ -46,7 +46,7 @@ void AR4LobbyGameMode::TravelToMainGame() const
 /**
  *	캐릭터 선택 요청 처리.
  */
-void AR4LobbyGameMode::RequestCharacterSelection( APlayerController* InReqController, int32 InCharacterId )
+void AR4LobbyGameMode::RequestCharacterPick( APlayerController* InReqController, int32 InCharacterId )
 {
 	if( InCharacterId == DTConst::G_InvalidPK || !IsValid( InReqController ) )
 		return;
@@ -85,7 +85,7 @@ void AR4LobbyGameMode::HandleStartingNewPlayer_Implementation( APlayerController
 		FTimerHandle handle;
 		GetWorldTimerManager().SetTimer( handle, [this, InNewPlayer]()
 		{
-			RequestCharacterSelection( InNewPlayer, CachedPlayerControllers.Num() );
+			RequestCharacterPick( InNewPlayer, CachedPlayerControllers.Num() );
 		}, 3.f, false);
 	}
 }

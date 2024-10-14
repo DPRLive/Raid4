@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "R4PreviewChampionPawn.h"
+#include "R4PreviewCharacterPawn.h"
 #include "../Character/R4CharacterRow.h"
 #include "../PlayerState/R4PlayerStateInterface.h"
 
@@ -12,9 +12,9 @@
 #include <Engine/AssetManager.h>
 #include <GameFramework/PlayerState.h>
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(R4PreviewChampionPawn)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(R4PreviewCharacterPawn)
 
-AR4PreviewChampionPawn::AR4PreviewChampionPawn()
+AR4PreviewCharacterPawn::AR4PreviewCharacterPawn()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -30,7 +30,7 @@ AR4PreviewChampionPawn::AR4PreviewChampionPawn()
 	SkeletalMeshComp->SetupAttachment( RootComponent );
 }
 
-void AR4PreviewChampionPawn::BeginPlay()
+void AR4PreviewCharacterPawn::BeginPlay()
 {
 	Super::BeginPlay();
 }
@@ -38,7 +38,7 @@ void AR4PreviewChampionPawn::BeginPlay()
 /**
  *  Player State로부터 Character DT Key 값 Load (Server)
  */
-void AR4PreviewChampionPawn::PossessedBy( AController* InNewController )
+void AR4PreviewCharacterPawn::PossessedBy( AController* InNewController )
 {
 	Super::PossessedBy( InNewController );
 
@@ -50,14 +50,14 @@ void AR4PreviewChampionPawn::PossessedBy( AController* InNewController )
 		PushDTData( playerState->GetCharacterId() );
 
 		// 변경사항 수신
-		playerState->OnSetCharacterId().AddUObject( this, &AR4PreviewChampionPawn::PushDTData );
+		playerState->OnSetCharacterId().AddUObject( this, &AR4PreviewCharacterPawn::PushDTData );
 	}
 }
 
 /**
  *  Player State로부터 Character DT Key 값 Load (Client)
  */
-void AR4PreviewChampionPawn::OnRep_PlayerState()
+void AR4PreviewCharacterPawn::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 
@@ -69,7 +69,7 @@ void AR4PreviewChampionPawn::OnRep_PlayerState()
 		PushDTData( playerState->GetCharacterId() );
 
 		// 변경사항 수신
-		playerState->OnSetCharacterId().AddUObject( this, &AR4PreviewChampionPawn::PushDTData );
+		playerState->OnSetCharacterId().AddUObject( this, &AR4PreviewCharacterPawn::PushDTData );
 	}
 }
 
@@ -77,7 +77,7 @@ void AR4PreviewChampionPawn::OnRep_PlayerState()
  *	Mesh Change & Play Level Start Anim
  *	@param InPk : 선택한 Character DT.
  */
-void AR4PreviewChampionPawn::PushDTData( FPriKey InPk )
+void AR4PreviewCharacterPawn::PushDTData( FPriKey InPk )
 {
 	if( InPk == DTConst::G_InvalidPK )
 		return;
@@ -92,7 +92,7 @@ void AR4PreviewChampionPawn::PushDTData( FPriKey InPk )
 	ClearDTData();
 	
 	CachedAnimInstance = characterData->AnimInstance;
-	CachedStartAnimMontage = characterData->ChampionSelectedAnim.LoadSynchronous();
+	CachedPickedAnimMontage = characterData->CharacterPickedAnim.LoadSynchronous();
 	
 	SkeletalMeshComp->SetRelativeTransform( characterData->MeshTransform );
 	
@@ -100,21 +100,21 @@ void AR4PreviewChampionPawn::PushDTData( FPriKey InPk )
 	CachedMeshHandle = UAssetManager::Get().GetStreamableManager().RequestAsyncLoad
 	(
 		characterData->SkeletalMesh.ToSoftObjectPath(),
-		FStreamableDelegate::CreateUObject( this, &AR4PreviewChampionPawn::_MeshLoadComplete )
+		FStreamableDelegate::CreateUObject( this, &AR4PreviewCharacterPawn::_MeshLoadComplete )
 	);
 }
 
-void AR4PreviewChampionPawn::ClearDTData()
+void AR4PreviewCharacterPawn::ClearDTData()
 {
 	SkeletalMeshComp->SetSkeletalMesh( nullptr );
 	CachedAnimInstance = nullptr;
-	CachedStartAnimMontage = nullptr;
+	CachedPickedAnimMontage = nullptr;
 }
 
 /**
  *	Mesh Load Completed
  */
-void AR4PreviewChampionPawn::_MeshLoadComplete()
+void AR4PreviewCharacterPawn::_MeshLoadComplete()
 {
 	if ( !CachedMeshHandle.IsValid() )
 	{
@@ -130,5 +130,5 @@ void AR4PreviewChampionPawn::_MeshLoadComplete()
 	// Anim
 	SkeletalMeshComp->SetAnimInstanceClass( CachedAnimInstance );
 	if( UAnimInstance* animInstance = SkeletalMeshComp->GetAnimInstance() )
-		animInstance->Montage_Play( CachedStartAnimMontage );
+		animInstance->Montage_Play( CachedPickedAnimMontage );
 }

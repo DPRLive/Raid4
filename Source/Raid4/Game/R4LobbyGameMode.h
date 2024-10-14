@@ -20,7 +20,7 @@ public:
 	void TravelToMainGame() const;
 
 	// 캐릭터 선택 요청
-	void RequestCharacterSelection( APlayerController* InReqController, int32 InCharacterId );
+	void RequestCharacterPick( APlayerController* InReqController, int32 InCharacterId );
 protected:
 	// PostLogin / Seamless travel 시 호출.
 	virtual void HandleStartingNewPlayer_Implementation( APlayerController* InNewPlayer ) override;
