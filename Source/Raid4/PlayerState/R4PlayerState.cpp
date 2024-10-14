@@ -10,7 +10,7 @@
 AR4PlayerState::AR4PlayerState()
 {
 	// 우히힝 테스틍
-	SelectedCharacterId = 1;
+	SelectedCharacterId = DTConst::G_InvalidPK;
 }
 
 void AR4PlayerState::GetLifetimeReplicatedProps( TArray<FLifetimeProperty>& OutLifetimeProps ) const
@@ -21,11 +21,6 @@ void AR4PlayerState::GetLifetimeReplicatedProps( TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME( AR4PlayerState, SelectedCharacterId );
 }
 
-void AR4PlayerState::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
 void AR4PlayerState::CopyProperties( APlayerState* InPlayerState )
 {
 	Super::CopyProperties( InPlayerState );
@@ -34,4 +29,8 @@ void AR4PlayerState::CopyProperties( APlayerState* InPlayerState )
 		newPlayerState->SetCharacterId( SelectedCharacterId );
 }
 
-
+void AR4PlayerState::_OnRep_SelectedCharacterId() const
+{
+	if( OnSetCharacterIdDelegate.IsBound() )
+		OnSetCharacterIdDelegate.Broadcast( SelectedCharacterId );
+}

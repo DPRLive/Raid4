@@ -22,18 +22,24 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const override;
 
 protected:
-	virtual void BeginPlay() override;
-
 	virtual void CopyProperties(APlayerState* InPlayerState) override;
 	
 public:
 	// ~ Begin IR4PlayerStateInterface
 	FORCEINLINE virtual int32 GetCharacterId() const override { return SelectedCharacterId; }
-	virtual void SetCharacterId( int32 InCharacterId ) override { SelectedCharacterId = InCharacterId; }
+	virtual void SetCharacterId( int32 InCharacterId ) override { SelectedCharacterId = InCharacterId; _OnRep_SelectedCharacterId(); }
+	FORCEINLINE virtual FOnSetCharacterIdDelegate& OnSetCharacterId() override { return OnSetCharacterIdDelegate; }
 	// ~ End IR4PlayerStateInterface
+
+private:
+	UFUNCTION()
+	void _OnRep_SelectedCharacterId() const;
 	
 private:
 	// 선택한 Character Number (DT Key)
-	UPROPERTY( Replicated, VisibleInstanceOnly, Transient )
+	UPROPERTY( ReplicatedUsing = _OnRep_SelectedCharacterId, VisibleInstanceOnly, Transient )
 	int32 SelectedCharacterId;
+
+	// Character ID 선택 Delegate.
+	FOnSetCharacterIdDelegate OnSetCharacterIdDelegate;
 };

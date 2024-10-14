@@ -5,6 +5,9 @@
 #include <UObject/Interface.h>
 #include "R4PlayerStateInterface.generated.h"
 
+// Character Number 설정시 호출.
+DECLARE_MULTICAST_DELEGATE_OneParam( FOnSetCharacterIdDelegate, int32 )
+
 // This class does not need to be modified.
 UINTERFACE()
 class UR4PlayerStateInterface : public UInterface
@@ -26,4 +29,7 @@ public:
 
 	// Character ID ( DT Key ) 를 설정
 	virtual void SetCharacterId( int32 InCharacterId ) = 0;
+
+	// Character ID가 설정되었음을 알리는 Delegate.
+	virtual FOnSetCharacterIdDelegate& OnSetCharacterId() = 0;
 };
