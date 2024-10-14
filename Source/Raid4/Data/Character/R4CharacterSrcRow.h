@@ -20,6 +20,10 @@ struct FR4CharacterSrcRow : public FR4RowBase
 	, CharacterPickedAnim ( nullptr )
 	, DeadAnim ( nullptr )
 	{}
+
+	// 캐릭터에 사용할 초상화
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Image" )
+	TSoftObjectPtr<UTexture> Portrait;
 	
 	// 캐릭터에 사용할 Skeletal Mesh 
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Mesh" )
