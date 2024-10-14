@@ -10,7 +10,7 @@
 #include <Components/SkeletalMeshComponent.h>
 #include <Engine/SkeletalMesh.h>
 #include <Engine/AssetManager.h>
-#include <GameFramework/PlayerState.h>
+#include <Engine/SkinnedAssetCommon.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4PreviewCharacterPawn)
 
@@ -93,7 +93,14 @@ void AR4PreviewCharacterPawn::_MeshLoadComplete()
 	}
 	
 	if ( USkeletalMesh* skelMesh = Cast<USkeletalMesh>( CachedMeshHandle->GetLoadedAsset() ) )
+	{
 		SkeletalMeshComp->SetSkeletalMesh( skelMesh );
+
+		// Mesh가 존재하는 상태에서 변경 시 Material이 안되는 버그?가 있어서 강제로 설정.
+		TArray<FSkeletalMaterial>& matArray = skelMesh->GetMaterials();
+		for ( int32 matIndex = 0; matIndex < matArray.Num(); matIndex++ )
+			SkeletalMeshComp->SetMaterial( matIndex, matArray[matIndex].MaterialInterface );
+	}
 
 	CachedMeshHandle->ReleaseHandle();
 	
