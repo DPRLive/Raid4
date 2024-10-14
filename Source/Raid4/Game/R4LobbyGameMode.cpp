@@ -7,8 +7,6 @@
 
 #include <GameFramework/PlayerState.h>
 
-#include "TimerManager.h"
-
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4LobbyGameMode)
 
 AR4LobbyGameMode::AR4LobbyGameMode()
@@ -78,14 +76,4 @@ void AR4LobbyGameMode::HandleStartingNewPlayer_Implementation( APlayerController
 
 	// 접속한 Player 캐싱
 	CachedPlayerControllers.Emplace( InNewPlayer );
-
-	// TODO : 우끼끼 테스트~~!
-	if( IR4PlayerStateInterface* playerState = Cast<IR4PlayerStateInterface>( InNewPlayer->PlayerState ) )
-	{
-		FTimerHandle handle;
-		GetWorldTimerManager().SetTimer( handle, [this, InNewPlayer]()
-		{
-			RequestCharacterPick( InNewPlayer, CachedPlayerControllers.Num() );
-		}, 3.f, false);
-	}
 }

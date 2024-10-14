@@ -26,21 +26,13 @@ protected:
 	// 게임 시작
 	virtual void HandleMatchHasStarted() override;
 
-	// 게임 종료
-	virtual void HandleMatchHasEnded() override;
-
 private:
 	// Player 사망
 	UFUNCTION()
 	void _PlayerDead( AActor* InDeadActor );
-
-	// NPC 사망
-	UFUNCTION()
-	void _NPCDead( AActor* InDeadActor );
 	
 	// Match 상태를 확인
 	void _CheckMatchState();
-	
 private:
 	// 몇명의 플레이어가 Travel 되면 게임을 시작하는지 설정 
 	UPROPERTY( EditDefaultsOnly )
@@ -53,10 +45,4 @@ private:
 	// 현재 게임에 참여한 { Player, 사용 중인 Pawn }
 	UPROPERTY( Transient, VisibleInstanceOnly )
 	TMap<TWeakObjectPtr<APlayerController>, TWeakObjectPtr<APawn>> CachedPlayers;
-	
-	// 살아있는 Player
-	int32 CachedNumAlivePlayers;
-	
-	// 살아있는 NPC
-	int32 CachedNumAliveNPCs;
 };

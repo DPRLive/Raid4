@@ -9,7 +9,6 @@
 
 AR4PlayerState::AR4PlayerState()
 {
-	// 우히힝 테스틍
 	SelectedCharacterId = DTConst::G_InvalidPK;
 }
 
