@@ -19,6 +19,7 @@ void AR4PlayerController::BeginPlay()
 	if( !IsLocalController() )
 		return;
 
+	// 이잉 테스트
 	static int32 testCharacterID = 1;
 	FTimerHandle handle;
 	GetWorldTimerManager().SetTimer( handle, [this]()
@@ -33,8 +34,8 @@ void AR4PlayerController::BeginPlay()
  */
 void AR4PlayerController::RequestCharacterPick_Implementation( int32 InCharacterId )
 {
-	// Lobby Game Mode에 요청
-	AR4LobbyGameMode* gameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AR4LobbyGameMode>() : nullptr;
-	if( IsValid( gameMode ) )
-		gameMode->RequestCharacterPick( this, InCharacterId );
+	// Game Mode에 요청
+	AGameModeBase* gameMode = GetWorld() ? GetWorld()->GetAuthGameMode() : nullptr;
+	if( IR4CharacterPickGameModeInterface* gameModeInter = Cast<IR4CharacterPickGameModeInterface>( gameMode ) )
+		gameModeInter->RequestCharacterPick( this, InCharacterId );
 }

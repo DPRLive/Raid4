@@ -43,11 +43,22 @@ void AR4LobbyGameMode::TravelToMainGame() const
 
 /**
  *	캐릭터 선택 요청 처리.
+ *	Player State에 저장.
  */
 void AR4LobbyGameMode::RequestCharacterPick( APlayerController* InReqController, int32 InCharacterId )
 {
 	if( InCharacterId == DTConst::G_InvalidPK || !IsValid( InReqController ) )
 		return;
+
+	// 이미 선택이 된 상태이면, 무시
+	if ( IsValid( InReqController ) )
+	{
+		if( IR4PlayerStateInterface* playerState = Cast<IR4PlayerStateInterface>( InReqController->PlayerState ) )
+		{
+			if ( playerState->GetCharacterId() != DTConst::G_InvalidPK )
+				return;
+		}
+	}
 	
 	// 중복 확인
 	for ( const auto& controller : CachedPlayerControllers )
