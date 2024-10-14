@@ -2,8 +2,8 @@
 
 
 #include "R4PreviewCharacterPawn.h"
-#include "../Character/R4CharacterRow.h"
-#include "../PlayerState/R4PlayerStateInterface.h"
+#include "../Data/Character/R4CharacterRow.h"
+#include "../Data/Character/R4CharacterSrcRow.h"
 
 #include <Animation/AnimInstance.h>
 #include <Animation/AnimMontage.h>
@@ -36,44 +36,6 @@ void AR4PreviewCharacterPawn::BeginPlay()
 }
 
 /**
- *  Player State로부터 Character DT Key 값 Load (Server)
- */
-void AR4PreviewCharacterPawn::PossessedBy( AController* InNewController )
-{
-	Super::PossessedBy( InNewController );
-
-	if( !IsLocallyControlled() )
-		return;
-	
-	if ( IR4PlayerStateInterface* playerState = Cast<IR4PlayerStateInterface>( GetPlayerState() ) )
-	{
-		PushDTData( playerState->GetCharacterId() );
-
-		// 변경사항 수신
-		playerState->OnSetCharacterId().AddUObject( this, &AR4PreviewCharacterPawn::PushDTData );
-	}
-}
-
-/**
- *  Player State로부터 Character DT Key 값 Load (Client)
- */
-void AR4PreviewCharacterPawn::OnRep_PlayerState()
-{
-	Super::OnRep_PlayerState();
-
-	if( !IsLocallyControlled() )
-		return;
-	
-	if ( IR4PlayerStateInterface* playerState = Cast<IR4PlayerStateInterface>( GetPlayerState() ) )
-	{
-		PushDTData( playerState->GetCharacterId() );
-
-		// 변경사항 수신
-		playerState->OnSetCharacterId().AddUObject( this, &AR4PreviewCharacterPawn::PushDTData );
-	}
-}
-
-/**
  *	Mesh Change & Play Level Start Anim
  *	@param InPk : 선택한 Character DT.
  */
@@ -89,17 +51,25 @@ void AR4PreviewCharacterPawn::PushDTData( FPriKey InPk )
 		return;
 	}
 
+	// Get Resource Pk
+	const FR4CharacterSrcRowPtr characterSrcRow( characterData->ResourceRowPK );
+	if ( !characterData.IsValid() )
+	{
+		LOG_ERROR( R4Data, TEXT("CharacterSrcData is Invalid. PK : [%d]"), InPk );
+		return;
+	}
+	
 	ClearDTData();
 	
 	CachedAnimInstance = characterData->AnimInstance;
-	CachedPickedAnimMontage = characterData->CharacterPickedAnim.LoadSynchronous();
+	CachedPickedAnimMontage = characterSrcRow->CharacterPickedAnim.LoadSynchronous();
 	
-	SkeletalMeshComp->SetRelativeTransform( characterData->MeshTransform );
+	SkeletalMeshComp->SetRelativeTransform( characterSrcRow->MeshTransform );
 	
 	// Skeletal Mesh ( Async load )
 	CachedMeshHandle = UAssetManager::Get().GetStreamableManager().RequestAsyncLoad
 	(
-		characterData->SkeletalMesh.ToSoftObjectPath(),
+		characterSrcRow->SkeletalMesh.ToSoftObjectPath(),
 		FStreamableDelegate::CreateUObject( this, &AR4PreviewCharacterPawn::_MeshLoadComplete )
 	);
 }

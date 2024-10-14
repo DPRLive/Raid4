@@ -2,7 +2,8 @@
 
 
 #include "R4CharacterBase.h"
-#include "R4CharacterRow.h"
+#include "../Data/Character/R4CharacterRow.h"
+#include "../Data/Character/R4CharacterSrcRow.h"
 #include "../Stat/CharacterStat/R4CharacterStatComponent.h"
 #include "../Movement/R4CharacterMovementComponent.h"
 #include "../Skill/R4SkillComponent.h"
@@ -141,6 +142,14 @@ void AR4CharacterBase::PushDTData( FPriKey InPk )
 		return;
 	}
 
+	// Get Resource Pk
+	const FR4CharacterSrcRowPtr characterSrcRow( characterData->ResourceRowPK );
+	if ( !characterData.IsValid() )
+	{
+		LOG_ERROR( R4Data, TEXT("CharacterSrcData is Invalid. PK : [%d]"), InPk );
+		return;
+	}
+	
 	// Capsule
 	if( UCapsuleComponent* capsuleComp = GetCapsuleComponent() )
 	{
@@ -152,18 +161,18 @@ void AR4CharacterBase::PushDTData( FPriKey InPk )
 	if ( USkeletalMeshComponent* meshComp = GetMesh() )
 	{
 		// Skeletal Mesh
-		if ( USkeletalMesh* skelMesh = characterData->SkeletalMesh.LoadSynchronous(); IsValid( skelMesh ) )
+		if ( USkeletalMesh* skelMesh = characterSrcRow->SkeletalMesh.LoadSynchronous(); IsValid( skelMesh ) )
 			meshComp->SetSkeletalMesh( skelMesh );
 
-		meshComp->SetRelativeTransform( characterData->MeshTransform );
+		meshComp->SetRelativeTransform( characterSrcRow->MeshTransform );
 		// 이거 해줘야됨!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		BaseTranslationOffset = characterData->MeshTransform.GetLocation();
-		BaseRotationOffset = characterData->MeshTransform.GetRotation();
+		BaseTranslationOffset = characterSrcRow->MeshTransform.GetLocation();
+		BaseRotationOffset = characterSrcRow->MeshTransform.GetRotation();
 		
 		// Anim
 		meshComp->SetAnimInstanceClass( characterData->AnimInstance );
 
-		AnimComp->SetDeadAnim( characterData->DeadAnim.LoadSynchronous() );
+		AnimComp->SetDeadAnim( characterSrcRow->DeadAnim.LoadSynchronous() );
 	}
 	
 	// Stat Data

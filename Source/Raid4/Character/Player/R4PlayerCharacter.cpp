@@ -5,7 +5,7 @@
 #include "../../Input/R4PlayerInputComponent.h"
 #include "../../Camera/R4CameraManageComponent.h"
 #include "../../Skill/Player/R4PlayerSkillComponent.h"
-#include "../../Data/DataAsset/R4DataAsset_PCCommonData.h"
+#include "../../Data/Character/R4DataAsset_PCCommonData.h"
 #include "../../PlayerState/R4PlayerStateInterface.h"
 
 #include <Components/CapsuleComponent.h>

@@ -2,7 +2,7 @@
 
 
 #include "R4CharacterStatComponent.h"
-#include "R4CharacterStatRow.h"
+#include "../../Data/Character/R4CharacterStatRow.h"
 
 #include <Net/UnrealNetwork.h>
 

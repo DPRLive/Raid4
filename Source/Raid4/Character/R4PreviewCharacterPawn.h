@@ -23,10 +23,6 @@ public:
 	AR4PreviewCharacterPawn();
 
 	virtual void BeginPlay() override;
-	
-	virtual void PossessedBy( AController* InNewController ) override;
-
-	virtual void OnRep_PlayerState() override;
 
 public:
 	// ~ Begin IR4DTDataPushable

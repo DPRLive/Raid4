@@ -1,8 +1,9 @@
 ﻿#include "DataTableManager.h"
 
 #include "../Data/ExampleRow.h"
-#include "../Stat/CharacterStat/R4CharacterStatRow.h"
-#include "../Character/R4CharacterRow.h"
+#include "../Data/Character/R4CharacterStatRow.h"
+#include "../Data/Character/R4CharacterSrcRow.h"
+#include "../Data/Character/R4CharacterRow.h"
 
 /**
  * 데이터 초기화 (로드)
@@ -32,6 +33,7 @@ void FDataTableManager::_LoadDataTableAll()
 {
 	LOAD_DATATABLE( FExampleRow, ExampleRow, TEXT("DT_Example") );
 	LOAD_DATATABLE( FR4CharacterStatRow, R4CharacterStatRow, TEXT("DT_CharacterBaseStat") );
+	LOAD_DATATABLE( FR4CharacterSrcRow, R4CharacterSrcRow, TEXT("DT_CharacterSrc") );
 	LOAD_DATATABLE( FR4CharacterRow, R4CharacterRow, TEXT("DT_Character") );
 }
 

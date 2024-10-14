@@ -22,6 +22,7 @@ public:															\
 // 여기에 전방 선언 //
 struct FExampleRow;
 struct FR4CharacterStatRow;
+struct FR4CharacterSrcRow;
 struct FR4CharacterRow;
 ////////////////////
 
@@ -34,6 +35,7 @@ private:
 	// 데이터 테이블을 선언 //
 	DECLARE_DATATABLE( FExampleRow, ExampleRow );
 	DECLARE_DATATABLE( FR4CharacterStatRow, R4CharacterStatRow );
+	DECLARE_DATATABLE( FR4CharacterSrcRow, R4CharacterSrcRow );
 	DECLARE_DATATABLE( FR4CharacterRow, R4CharacterRow );
 	///////////////////////
 

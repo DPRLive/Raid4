@@ -1,5 +1,5 @@
 ﻿#include "R4CharacterRow.h"
-#include "../Manager/DataTableManager.h"
+#include "../../Manager/DataTableManager.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4CharacterRow)
 

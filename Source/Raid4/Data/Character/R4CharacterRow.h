@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "../Data/R4RowBase.h"
+#include "../R4RowBase.h"
 #include "R4CharacterRow.generated.h"
 
 class UAnimMontage;
@@ -20,14 +20,12 @@ struct FR4CharacterRow : public FR4RowBase
 	FR4CharacterRow()
 	: CapsuleHalfHeight( 88.f )
 	, CapsuleRadius ( 34.f )
-	, SkeletalMesh( nullptr )
-	, MeshTransform( FTransform::Identity )
 	, AnimInstance( nullptr )
-	, CharacterPickedAnim ( nullptr )
-	, BaseStatRowPK( DTConst::G_InvalidPK )
 	, StatusBarClass( nullptr )
 	, StatusBarDrawSize( FVector2d::ZeroVector )
 	, StatusBarRelativeLocation( FVector::ZeroVector )
+	, ResourceRowPK( DTConst::G_InvalidPK )
+	, BaseStatRowPK( DTConst::G_InvalidPK )
 	{}
 
 	// Capsule Half Height
@@ -38,29 +36,9 @@ struct FR4CharacterRow : public FR4RowBase
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Collision" )
 	float CapsuleRadius;
 	
-	// 캐릭터에 사용할 Skeletal Mesh 
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Mesh" )
-	TSoftObjectPtr<USkeletalMesh> SkeletalMesh;
-
-	// Skeletal Mesh Transform
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Mesh" )
-	FTransform MeshTransform;
-	
 	// 캐릭터에 사용할 Anim Instance
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Anim" )
 	TSubclassOf<UAnimInstance> AnimInstance;
-
-	// 캐릭터 선택 시 Play 할 Anim
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Anim" )
-	TSoftObjectPtr<UAnimMontage> CharacterPickedAnim;
-	
-	// 캐릭터 사망 모션. ( Loop로 설정할 것 )
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Anim" )
-	TSoftObjectPtr<UAnimMontage> DeadAnim;
-	
-	// 해당 캐릭터의 기본 스탯 정보를 담은 Data table의 Pk
-	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
-	int32 BaseStatRowPK;
 
 	// 해당 캐릭터가 사용할 Skill Set.
 	// 순서대로 Skill Comp에 등록되므로, Player Skill 등록 시 순서에 주의.
@@ -78,6 +56,14 @@ struct FR4CharacterRow : public FR4RowBase
 	// 해당 캐릭터가 사용할 Status Bar의 Relative Location.
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Widget" )
 	FVector StatusBarRelativeLocation;
+
+	// 해당 캐릭터의 Resource를 담은 Datatable의 Pk
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Resource" )
+	int32 ResourceRowPK;
+	
+	// 해당 캐릭터의 기본 스탯 정보를 담은 Data table의 Pk
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Stat" )
+	int32 BaseStatRowPK;
 };
 
 GENERATE_DT_PTR_H( FR4CharacterRow );
