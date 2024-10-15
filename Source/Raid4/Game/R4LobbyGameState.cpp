@@ -10,6 +10,12 @@ AR4LobbyGameState::AR4LobbyGameState()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
+void AR4LobbyGameState::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	OnChangePlayerArrayDelegate.Clear();
+	Super::EndPlay( EndPlayReason );
+}
+
 void AR4LobbyGameState::AddPlayerState( APlayerState* PlayerState )
 {
 	Super::AddPlayerState( PlayerState );
@@ -25,5 +31,3 @@ void AR4LobbyGameState::RemovePlayerState( APlayerState* PlayerState )
 	if( OnChangePlayerArrayDelegate.IsBound() )
 		OnChangePlayerArrayDelegate.Broadcast();
 }
-
-

@@ -24,6 +24,13 @@ void AR4GameState::GetLifetimeReplicatedProps( TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME( AR4GameState, CachedNumAliveNPCs );
 }
 
+void AR4GameState::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	OnUpdateGameState.Clear();
+	
+	Super::EndPlay( EndPlayReason );
+}
+
 /**
  *	On Match Start
  */

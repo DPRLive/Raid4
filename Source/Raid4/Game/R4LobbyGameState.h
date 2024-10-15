@@ -17,6 +17,8 @@ class RAID4_API AR4LobbyGameState : public AGameStateBase
 public:
 	AR4LobbyGameState();
 
+	virtual void EndPlay( const EEndPlayReason::Type EndPlayReason ) override;
+public:
 	// Player State 추가
 	virtual void AddPlayerState( APlayerState* PlayerState ) override;
 

@@ -29,7 +29,7 @@ private:												\
 														\
 public:													\
 	Name##Ptr() = delete;								\
-	Name##Ptr(FPriKey InPK);							\
+	Name##Ptr(UWorld* InWorld, FPriKey InPK);			\
 	FPriKey GetPK() const { return PK; }				\
 	const Name* GetRow() const { return Row; }			\
 	const Name* operator->() const { return Row; }		\
@@ -38,5 +38,11 @@ public:													\
 }
 
 // DT를 쉽게 가져오기 위한 class Cpp ( FRowBase 상속받은 클래스 cpp에 작성 + DataTableManager.h 추가필요) 
-#define GENERATE_DT_PTR_CPP(Name, RowName)																\
-Name##Ptr::Name##Ptr(FPriKey InPK) : PK(InPK), Row(DTManager(R4GetWorld())->Get##RowName( InPK )) {}
+#define GENERATE_DT_PTR_CPP(Name, RowName)						\
+Name##Ptr::Name##Ptr(UWorld* InWorld, FPriKey InPK) : PK(InPK)	\
+{																\
+	if( InWorld == nullptr )									\
+		return;													\
+																\
+	Row = DTManager(InWorld)->Get##RowName( InPK );				\
+}

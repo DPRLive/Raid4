@@ -18,6 +18,7 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > &OutLifetimeProps) const override;
 
+	virtual void EndPlay( const EEndPlayReason::Type EndPlayReason ) override;
 public:
 	// Getter
 	FORCEINLINE int32 GetNumAlivePlayers() const { return CachedNumAlivePlayers; }	

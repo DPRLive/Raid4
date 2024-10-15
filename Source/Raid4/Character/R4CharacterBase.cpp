@@ -135,7 +135,7 @@ FOnClearMontageInstance* AR4CharacterBase::OnClearMontageInstance()
  */
 void AR4CharacterBase::PushDTData( FPriKey InPk )
 {
-	const FR4CharacterRowPtr characterData( InPk );
+	const FR4CharacterRowPtr characterData( GetWorld(), InPk );
 	if ( !characterData.IsValid() )
 	{
 		LOG_ERROR( R4Data, TEXT("CharacterData is Invalid. PK : [%d]"), InPk );
@@ -143,7 +143,7 @@ void AR4CharacterBase::PushDTData( FPriKey InPk )
 	}
 
 	// Get Resource Pk
-	const FR4CharacterSrcRowPtr characterSrcRow( characterData->ResourceRowPK );
+	const FR4CharacterSrcRowPtr characterSrcRow( GetWorld(), characterData->ResourceRowPK );
 	if ( !characterData.IsValid() )
 	{
 		LOG_ERROR( R4Data, TEXT("CharacterSrcData is Invalid. PK : [%d]"), InPk );

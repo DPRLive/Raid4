@@ -20,12 +20,27 @@ void AR4PlayerState::GetLifetimeReplicatedProps( TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME( AR4PlayerState, SelectedCharacterId );
 }
 
+void AR4PlayerState::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	OnSetCharacterIdDelegate.Clear();
+	OnSetPlayerNameDelegate.Clear();
+	Super::EndPlay( EndPlayReason );
+}
+
 void AR4PlayerState::CopyProperties( APlayerState* InPlayerState )
 {
 	Super::CopyProperties( InPlayerState );
 
 	if ( IR4PlayerStateInterface* newPlayerState = Cast<IR4PlayerStateInterface>( InPlayerState ) )
 		newPlayerState->SetCharacterId( SelectedCharacterId );
+}
+
+void AR4PlayerState::OnRep_PlayerName()
+{
+	Super::OnRep_PlayerName();
+
+	if( OnSetPlayerNameDelegate.IsBound() )
+		OnSetPlayerNameDelegate.Broadcast( GetPlayerName() );
 }
 
 void AR4PlayerState::_OnRep_SelectedCharacterId() const

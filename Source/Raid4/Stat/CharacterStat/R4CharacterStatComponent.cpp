@@ -64,7 +64,7 @@ void UR4CharacterStatComponent::ClearDTData()
  */
 void UR4CharacterStatComponent::PushDTData(FPriKey InPk)
 {
-	const FR4CharacterStatRowPtr statPtr(InPk);
+	const FR4CharacterStatRowPtr statPtr( GetWorld(), InPk );
 	if(!statPtr.IsValid())
 	{
 		LOG_ERROR(R4Data, TEXT("StatData is Invalid. PK : [%d]"), InPk);

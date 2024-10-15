@@ -7,6 +7,8 @@
 
 // Character Number 설정시 호출.
 DECLARE_MULTICAST_DELEGATE_OneParam( FOnSetCharacterIdDelegate, int32 )
+DECLARE_MULTICAST_DELEGATE_OneParam( FOnSetPlayerNameDelegate, const FString& )
+
 
 // This class does not need to be modified.
 UINTERFACE()
@@ -32,4 +34,7 @@ public:
 
 	// Character ID가 설정되었음을 알리는 Delegate.
 	virtual FOnSetCharacterIdDelegate& OnSetCharacterId() = 0;
+
+	// Player Name이 설정되었음을 알리는 Delegate
+	virtual FOnSetPlayerNameDelegate& OnSetPlayerName() = 0;
 };
