@@ -7,7 +7,7 @@
 #include "../Buff/R4BuffReceiveInterface.h"
 #include "../Animation/R4AnimationInterface.h"
 #include "../Stat/R4TagStatQueryInterface.h"
-#include "../UI/StatusBar/R4StatusBarInterface.h"
+#include "../UI/Status/R4HpBarWidgetInterface.h"
 
 #include <GameFramework/Character.h>
 
@@ -27,7 +27,7 @@ UCLASS()
 class RAID4_API AR4CharacterBase : public ACharacter, public IR4DTDataPushInterface,
 									public IR4DamageReceiveInterface, public IR4BuffReceiveInterface,
 									public IR4TagStatQueryInterface, public IR4AnimationInterface,
-									public IR4StatusBarInterface
+									public IR4HpBarWidgetInterface
 {
 	GENERATED_BODY()
 
@@ -65,9 +65,9 @@ public:
 	virtual FR4CurrentStatInfo* GetCurrentStatByTag( const FGameplayTag& InTag ) const override;
 	// ~ End IR4TagStatQueryInterface
 
-	// ~ Begin IStatusBarInterface
-	virtual void SetupStatusBarWidget( UUserWidget* InWidget ) override;
-	// ~ Begin IStatusBarInterface
+	// ~ Begin IR4HpBarWidgetInterface
+	virtual void SetupHpBarWidget( UUserWidget* InWidget ) override;
+	// ~ Begin IR4HpBarWidgetInterface
 	
 	// 죽었는지 반환
 	bool IsDead() const { return bDead; }

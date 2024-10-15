@@ -11,7 +11,7 @@
 #include "../Buff/R4BuffManageComponent.h"
 #include "../Shield/R4ShieldComponent.h"
 #include "../UI/R4WidgetComponent.h"
-#include "../UI/StatusBar/R4StatusBarWidget.h"
+#include "../UI/Status/R4HpBarWidget.h"
 #include "../Damage/R4DamageStruct.h"
 #include "../Animation/R4AnimationComponent.h"
 #include "../Util/UtilStat.h"
@@ -100,7 +100,8 @@ void AR4CharacterBase::EndPlay( const EEndPlayReason::Type EndPlayReason )
  */
 void AR4CharacterBase::PlayAnimSync( UAnimMontage* InAnimMontage, const FName& InStartSectionName, float InPlayRate, float InStartServerTime )
 {
-	AnimComp->PlayAnimSync( InAnimMontage, InStartSectionName, InPlayRate, InStartServerTime );
+	if( IsValid( AnimComp ) )
+		AnimComp->PlayAnimSync( InAnimMontage, InStartSectionName, InPlayRate, InStartServerTime );
 }
 
 /**
@@ -278,6 +279,9 @@ void AR4CharacterBase::ClearDTData()
  */
 void AR4CharacterBase::ReceiveDamage(AActor* InInstigator, const FR4DamageReceiveInfo& InDamageInfo)
 {
+	if( !IsValid( StatComp ) )
+		return;
+	
 	// 음수의 데미지를 수신한 경우 경고
 	if(InDamageInfo.IncomingDamage < 0.f)
 		LOG_WARN(R4Data, TEXT("[%s] : Receive negative damage."), *GetName());
@@ -291,7 +295,8 @@ void AR4CharacterBase::ReceiveDamage(AActor* InInstigator, const FR4DamageReceiv
 	reducedDamage *= StatComp->GetTotalReceiveDamageMultiplier();
 
 	// 방어막 적용
-	reducedDamage = reducedDamage - ShieldComp->ConsumeShield(reducedDamage);
+	if ( IsValid( ShieldComp ) )
+		reducedDamage = reducedDamage - ShieldComp->ConsumeShield(reducedDamage);
 	
 	// 실제 HP 감소, StatComp에 적용
 	float damagedHp = FMath::Max(StatComp->GetCurrentHp() - reducedDamage, 0.f);
@@ -307,7 +312,8 @@ void AR4CharacterBase::ReceiveDamage(AActor* InInstigator, const FR4DamageReceiv
 void AR4CharacterBase::ReceiveBuff(AActor* InInstigator, const TSubclassOf<UR4BuffBase>& InBuffClass, const FR4BuffSettingDesc& InBuffSettingDesc)
 {
 	// BuffComp에게 넘겨준다.
-	BuffManageComp->AddBuff(InInstigator, InBuffClass, InBuffSettingDesc);
+	if( IsValid( BuffManageComp ) )
+		BuffManageComp->AddBuff(InInstigator, InBuffClass, InBuffSettingDesc);
 }
 
 /**
@@ -315,7 +321,10 @@ void AR4CharacterBase::ReceiveBuff(AActor* InInstigator, const TSubclassOf<UR4Bu
  */
 FR4StatInfo* AR4CharacterBase::GetStatByTag(const FGameplayTag& InTag) const
 {
-	return StatComp->GetStatByTag<FR4StatInfo>( InTag );
+	if( IsValid( StatComp ) )
+		return StatComp->GetStatByTag<FR4StatInfo>( InTag );
+
+	return nullptr;
 }
 
 /**
@@ -323,39 +332,49 @@ FR4StatInfo* AR4CharacterBase::GetStatByTag(const FGameplayTag& InTag) const
  */
 FR4CurrentStatInfo* AR4CharacterBase::GetCurrentStatByTag(const FGameplayTag& InTag) const
 {
-	return StatComp->GetStatByTag<FR4CurrentStatInfo>( InTag );
+	if( IsValid( StatComp ) )
+		return StatComp->GetStatByTag<FR4CurrentStatInfo>( InTag );
+
+	return nullptr;
 }
 
 /**
  *  status bar setup
  */
-void AR4CharacterBase::SetupStatusBarWidget( UUserWidget* InWidget )
+void AR4CharacterBase::SetupHpBarWidget( UUserWidget* InWidget )
 {
 	// Bind Status bar
-	if ( UR4StatusBarWidget* statusBar = Cast< UR4StatusBarWidget >( InWidget ) )
+	if ( UR4HpBarWidget* statusBar = Cast< UR4HpBarWidget >( InWidget ) )
 	{
 		// 초기화
-		statusBar->SetTotalHp( StatComp->GetTotalHp() );
-		statusBar->SetCurrentHp( StatComp->GetCurrentHp() );
-		statusBar->SetCurrentShieldAmount( ShieldComp->GetTotalShield() );
-
-		// 총 체력 변경시 호출
-		StatComp->OnChangeHp().AddWeakLambda( statusBar, [statusBar]( float InPrevTotalHp, float InNowTotalHp )
+		if( IsValid( StatComp ) )
 		{
-			statusBar->SetTotalHp( InNowTotalHp );
-		} );
+			statusBar->SetTotalHp( StatComp->GetTotalHp() );
+			statusBar->SetCurrentHp( StatComp->GetCurrentHp() );
 
-		// 현재 체력 변경 시 호출
-		StatComp->OnChangeCurrentHp().AddWeakLambda( statusBar, [statusBar]( float InPrevCurrentHp, float InNowCurrentHp )
-		{
-			statusBar->SetCurrentHp( InNowCurrentHp );
-		} );
+			// 총 체력 변경시 호출
+			StatComp->OnChangeHp().AddWeakLambda( statusBar, [statusBar]( float InPrevTotalHp, float InNowTotalHp )
+			{
+				statusBar->SetTotalHp( InNowTotalHp );
+			} );
 
-		// 방어막 변경 시 호출
-		ShieldComp->OnChangeTotalShieldDelegate.AddWeakLambda( statusBar, [statusBar]( float InNowShieldAmount )
+			// 현재 체력 변경 시 호출
+			StatComp->OnChangeCurrentHp().AddWeakLambda( statusBar, [statusBar]( float InPrevCurrentHp, float InNowCurrentHp )
+			{
+				statusBar->SetCurrentHp( InNowCurrentHp );
+			} );
+		}
+		
+		if( IsValid( ShieldComp ) )
 		{
-			statusBar->SetCurrentShieldAmount( InNowShieldAmount );
-		} );
+			statusBar->SetCurrentShieldAmount( ShieldComp->GetTotalShield() );
+		
+			// 방어막 변경 시 호출
+			ShieldComp->OnChangeTotalShieldDelegate.AddWeakLambda( statusBar, [statusBar]( float InNowShieldAmount )
+			{
+				statusBar->SetCurrentShieldAmount( InNowShieldAmount );
+			} );
+		}
 	}
 }
 
@@ -364,6 +383,9 @@ void AR4CharacterBase::SetupStatusBarWidget( UUserWidget* InWidget )
  */
 void AR4CharacterBase::BindStatComponent()
 {
+	if( !IsValid( StatComp ) )
+		return;
+	
 	// Bind Stats
 	StatComp->OnChangeMovementSpeed().AddUObject( this, &AR4CharacterBase::ApplyMovementSpeed ); // 이동속도 설정 바인드
 
@@ -407,15 +429,20 @@ void AR4CharacterBase::ApplyMovementSpeed( float InPrevMovementSpeed, float InNo
 void AR4CharacterBase::Dead()
 {
 	bDead = true;
-	
-	AnimComp->PlayDeadAnim();
+
+	if ( IsValid( AnimComp ) )
+		AnimComp->PlayDeadAnim();
 
 	// Buff, Shield 모두 해제
-	BuffManageComp->ClearBuffs();
-	ShieldComp->ClearShields();
+	if( IsValid( BuffManageComp ) )
+		BuffManageComp->ClearBuffs();
+
+	if( IsValid( ShieldComp ) )
+		ShieldComp->ClearShields();
 
 	// Hide StatusBar
-	StatusBarComp->SetHiddenInGame( true );
+	if( IsValid( StatusBarComp ) )
+		StatusBarComp->SetHiddenInGame( true );
 	
 	// 이동 제한
 	if( UCharacterMovementComponent* moveComp = GetCharacterMovement() )

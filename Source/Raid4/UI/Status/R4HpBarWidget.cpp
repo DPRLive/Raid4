@@ -1,13 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "R4StatusBarWidget.h"
-#include "R4StatusBarInterface.h"
+#include "R4HpBarWidget.h"
+#include "R4HpBarWidgetInterface.h"
 #include "../ProgressBar/R4StackProgressBar.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(R4StatusBarWidget)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(R4HpBarWidget)
 
-UR4StatusBarWidget::UR4StatusBarWidget(const FObjectInitializer& ObjectInitializer)
+UR4HpBarWidget::UR4HpBarWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	CachedCurrentHp = 0.f;
@@ -15,21 +15,21 @@ UR4StatusBarWidget::UR4StatusBarWidget(const FObjectInitializer& ObjectInitializ
 	CachedShieldAmount = 0.f;
 }
 
-void UR4StatusBarWidget::NativeConstruct()
+void UR4HpBarWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
 	if ( !OwningActor.IsValid() )
 		return;
 
-	if ( IR4StatusBarInterface* owner = Cast<IR4StatusBarInterface>( OwningActor ) )
-		owner->SetupStatusBarWidget( this );
+	if ( IR4HpBarWidgetInterface* owner = Cast<IR4HpBarWidgetInterface>( OwningActor ) )
+		owner->SetupHpBarWidget( this );
 }
 
 /**
  * 최대 체력 상태를 업데이트
  */
-void UR4StatusBarWidget::SetTotalHp( float InTotalHp )
+void UR4HpBarWidget::SetTotalHp( float InTotalHp )
 {
 	CachedTotalHp = InTotalHp;
 	_UpdateHpBar();
@@ -38,7 +38,7 @@ void UR4StatusBarWidget::SetTotalHp( float InTotalHp )
 /**
  * 현재 체력 상태를 업데이트
  */
-void UR4StatusBarWidget::SetCurrentHp( float InCurrentHp )
+void UR4HpBarWidget::SetCurrentHp( float InCurrentHp )
 {
 	CachedCurrentHp = InCurrentHp;
 	_UpdateHpBar();
@@ -47,7 +47,7 @@ void UR4StatusBarWidget::SetCurrentHp( float InCurrentHp )
 /**
  * 현재 쉴드량을 업데이트
  */
-void UR4StatusBarWidget::SetCurrentShieldAmount( float InCurrentShieldAmount )
+void UR4HpBarWidget::SetCurrentShieldAmount( float InCurrentShieldAmount )
 {
 	CachedShieldAmount = InCurrentShieldAmount;
 	_UpdateHpBar();
@@ -56,8 +56,11 @@ void UR4StatusBarWidget::SetCurrentShieldAmount( float InCurrentShieldAmount )
 /**
  * HpBar를 업데이트.
  */
-void UR4StatusBarWidget::_UpdateHpBar() const
+void UR4HpBarWidget::_UpdateHpBar() const
 {
+	if ( !IsValid( HpBar ) )
+		return;
+	
 	// division by zero 방지
 	float totalAmount = CachedTotalHp + CachedShieldAmount + KINDA_SMALL_NUMBER;
 
@@ -66,4 +69,8 @@ void UR4StatusBarWidget::_UpdateHpBar() const
 
 	// 방어막 부분 갱신
 	HpBar->SetBottomProgressRatio( CachedShieldAmount / totalAmount );
+
+	// broadcast
+	if( OnHpBarUpdate.IsBound() )
+		OnHpBarUpdate.Broadcast();
 }
