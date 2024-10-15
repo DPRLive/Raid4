@@ -24,9 +24,12 @@ void UR4CharacterPickerWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	CachedPickedCharacterId = 0;
-	
-	CharacterFixButton->OnClicked.AddDynamic( this, &UR4CharacterPickerWidget::_OnClickCharacterFixButton );
-	GameStartButton->OnClicked.AddDynamic( this, &UR4CharacterPickerWidget::_OnClickGameStartButton );
+
+	if ( IsValid( CharacterFixButton ) )
+		CharacterFixButton->OnClicked.AddDynamic( this, &UR4CharacterPickerWidget::_OnClickCharacterFixButton );
+
+	if ( IsValid( GameStartButton ) )
+		GameStartButton->OnClicked.AddDynamic( this, &UR4CharacterPickerWidget::_OnClickGameStartButton );
 
 	// Player State Init
 	_OnChangePlayerStateArray();
@@ -41,7 +44,10 @@ void UR4CharacterPickerWidget::NativeConstruct()
 	// Server가 아니면, Hide Game Start Button.
 	APlayerController* ownerController = GetOwningPlayer();
 	if( !IsValid( ownerController ) || !ownerController->HasAuthority() )
-		GameStartButton->SetVisibility( ESlateVisibility::Hidden );
+	{
+		if ( IsValid( GameStartButton ) )
+			GameStartButton->SetVisibility( ESlateVisibility::Hidden );
+	}
 
 	// UHorizontalBox Setup
 	for ( int32 key = DT_PC_BEGIN; key <= DT_PC_END; key++ )
@@ -98,7 +104,9 @@ void UR4CharacterPickerWidget::_CreateCharacterPickButton( int32 InCharacterId )
 		
 		button->SetId( InCharacterId );
 		button->OnImageIdButtonClickedDelegate.AddUObject( this, &UR4CharacterPickerWidget::_OnClickCharacterPortraitButton );
-		PortraitButtonBox->AddChild( button );
+
+		if( IsValid( PortraitButtonBox ) )
+			PortraitButtonBox->AddChild( button );
 	}
 }
 
@@ -129,14 +137,17 @@ void UR4CharacterPickerWidget::_OnChangePlayerStateArray()
 	PlayerPickBox->ClearChildren();
 
 	// Portrait Box Btn 모두 활성화.
-	TArray<UWidget*> portraitButtonBoxs = PortraitButtonBox->GetAllChildren();
-	for( const auto& btn : portraitButtonBoxs )
+	if( IsValid( PortraitButtonBox ) )
 	{
-		if ( !IsValid( btn ) )
-			continue;
+		TArray<UWidget*> portraitButtonBoxs = PortraitButtonBox->GetAllChildren();
+		for( const auto& btn : portraitButtonBoxs )
+		{
+			if ( !IsValid( btn ) )
+				continue;
 		
-		btn->SetIsEnabled( true );
-		btn->SetVisibility( ESlateVisibility::Visible );
+			btn->SetIsEnabled( true );
+			btn->SetVisibility( ESlateVisibility::Visible );
+		}
 	}
 	
 	// 생성
@@ -167,7 +178,8 @@ void UR4CharacterPickerWidget::_AddPlayerStateMonitor( APlayerState* InPlayerSta
 		if( !IsValid( widgetBox ) )
 			return;
 
-		PlayerPickBox->AddChild( widgetBox );
+		if ( IsValid( PlayerPickBox ) )
+			PlayerPickBox->AddChild( widgetBox );
 		
 		// monitor 생성
 		CachedPlayerStateMonitors.Add( FR4PlayerStateMonitorInfo() );
@@ -208,27 +220,34 @@ void UR4CharacterPickerWidget::_OnFixCharacterId( int32 InMonitorIndex, int32 In
 		return;
 
 	// Portrait Box Btn 비활성화.
-	TArray<UWidget*> portraitButtonBoxs = PortraitButtonBox->GetAllChildren();
-	for( const auto& btn : portraitButtonBoxs )
+
+	if ( IsValid( PortraitButtonBox ) )
 	{
-		if( UR4ImageIdButton* portraitBtn = Cast<UR4ImageIdButton>( btn ) )
+		TArray<UWidget*> portraitButtonBoxs = PortraitButtonBox->GetAllChildren();
+		for( const auto& btn : portraitButtonBoxs )
 		{
-			if ( portraitBtn->GetId() == InCharacterId )
+			if( UR4ImageIdButton* portraitBtn = Cast<UR4ImageIdButton>( btn ) )
 			{
-				portraitBtn->SetIsEnabled( false );
-				portraitBtn->SetVisibility( ESlateVisibility::HitTestInvisible );
+				if ( portraitBtn->GetId() == InCharacterId )
+				{
+					portraitBtn->SetIsEnabled( false );
+					portraitBtn->SetVisibility( ESlateVisibility::HitTestInvisible );
+				}
 			}
 		}
 	}
 	
 	// PlayerPickBox에 Portrait push
-	if( UWidget* pickBox = PlayerPickBox->GetChildAt( InMonitorIndex ) )
+	if ( IsValid( PlayerPickBox ) )
 	{
-		if ( UR4ImageTextHorizontalBox* portraitBox = Cast<UR4ImageTextHorizontalBox>( pickBox ) )
+		if( UWidget* pickBox = PlayerPickBox->GetChildAt( InMonitorIndex ) )
 		{
-			auto portrait = _GetCharacterPortrait( InCharacterId );
-			if ( portrait != nullptr )
-				portraitBox->SetImage( *_GetCharacterPortrait( InCharacterId ) );
+			if ( UR4ImageTextHorizontalBox* portraitBox = Cast<UR4ImageTextHorizontalBox>( pickBox ) )
+			{
+				auto portrait = _GetCharacterPortrait( InCharacterId );
+				if ( portrait != nullptr )
+					portraitBox->SetImage( *_GetCharacterPortrait( InCharacterId ) );
+			}
 		}
 	}
 	
@@ -236,11 +255,15 @@ void UR4CharacterPickerWidget::_OnFixCharacterId( int32 InMonitorIndex, int32 In
 	if( CachedPlayerStateMonitors[InMonitorIndex].PlayerStatePtr == GetOwningPlayerState( ) )
 	{
 		// Character Fix 버튼 비활성화.
-		CharacterFixButton->SetIsEnabled( false );
-		CharacterFixButton->SetVisibility( ESlateVisibility::HitTestInvisible );
+		if ( IsValid( CharacterFixButton ) )
+		{
+			CharacterFixButton->SetIsEnabled( false );
+			CharacterFixButton->SetVisibility( ESlateVisibility::HitTestInvisible );
+		}
 		
 		// PortraitButtonBox hit test off.
-		PortraitButtonBox->SetVisibility( ESlateVisibility::HitTestInvisible );
+		if ( IsValid( PortraitButtonBox ) )
+			PortraitButtonBox->SetVisibility( ESlateVisibility::HitTestInvisible );
 	}
 }
 
@@ -250,6 +273,9 @@ void UR4CharacterPickerWidget::_OnFixCharacterId( int32 InMonitorIndex, int32 In
  */
 void UR4CharacterPickerWidget::_OnSetPlayerName( int32 InMonitorIndex, const FString& InName )
 {
+	if ( !IsValid( PlayerPickBox ) )
+		return;
+	
 	// PlayerPickBox에 Name push
 	if( UWidget* pickBox = PlayerPickBox->GetChildAt( InMonitorIndex ) )
 	{

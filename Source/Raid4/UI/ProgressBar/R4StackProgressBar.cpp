@@ -14,8 +14,10 @@ void UR4StackProgressBar::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 
-	MaterialInstanceDynamic = UKismetMaterialLibrary::CreateDynamicMaterialInstance(GetWorld(), MaterialInstance);
-	ProgressBarImage->SetBrushFromMaterial(MaterialInstanceDynamic);
+	MaterialInstanceDynamic = UKismetMaterialLibrary::CreateDynamicMaterialInstance( GetWorld(), MaterialInstance );
+
+	if( IsValid( ProgressBarImage ) )
+		ProgressBarImage->SetBrushFromMaterial(MaterialInstanceDynamic);
 }
 
 /**
@@ -24,7 +26,8 @@ void UR4StackProgressBar::NativePreConstruct()
  */
 void UR4StackProgressBar::SetBottomProgressRatio(float InRatio)
 {
-	MaterialInstanceDynamic->SetScalarParameterValue(TEXT("BottomProgress"), InRatio);
+	if( IsValid( MaterialInstanceDynamic ) )
+		MaterialInstanceDynamic->SetScalarParameterValue(TEXT("BottomProgress"), InRatio);
 }
 
 /**
@@ -33,5 +36,6 @@ void UR4StackProgressBar::SetBottomProgressRatio(float InRatio)
  */
 void UR4StackProgressBar::SetTopProgressRatio(float InRatio)
 {
-	MaterialInstanceDynamic->SetScalarParameterValue(TEXT("TopProgress"), InRatio);
+	if( IsValid( MaterialInstanceDynamic ) )
+		MaterialInstanceDynamic->SetScalarParameterValue(TEXT("TopProgress"), InRatio);
 }

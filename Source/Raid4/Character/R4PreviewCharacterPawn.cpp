@@ -27,7 +27,8 @@ AR4PreviewCharacterPawn::AR4PreviewCharacterPawn()
 	SetRootComponent( RootComponent );
 	
 	SkeletalMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(  TEXT("SkeletalMeshComp") );
-	SkeletalMeshComp->SetupAttachment( RootComponent );
+	if ( SkeletalMeshComp )
+		SkeletalMeshComp->SetupAttachment( RootComponent );
 }
 
 void AR4PreviewCharacterPawn::BeginPlay()
@@ -63,8 +64,9 @@ void AR4PreviewCharacterPawn::PushDTData( FPriKey InPk )
 	
 	CachedAnimInstance = characterData->AnimInstance;
 	CachedPickedAnimMontage = characterSrcRow->CharacterPickedAnim.LoadSynchronous();
-	
-	SkeletalMeshComp->SetRelativeTransform( characterSrcRow->MeshTransform );
+
+	if ( IsValid( SkeletalMeshComp ) )
+		SkeletalMeshComp->SetRelativeTransform( characterSrcRow->MeshTransform );
 	
 	// Skeletal Mesh ( Async load )
 	CachedMeshHandle = UAssetManager::Get().GetStreamableManager().RequestAsyncLoad
@@ -76,7 +78,8 @@ void AR4PreviewCharacterPawn::PushDTData( FPriKey InPk )
 
 void AR4PreviewCharacterPawn::ClearDTData()
 {
-	SkeletalMeshComp->SetSkeletalMesh( nullptr );
+	if ( IsValid( SkeletalMeshComp ) )
+		SkeletalMeshComp->SetSkeletalMesh( nullptr );
 	CachedAnimInstance = nullptr;
 	CachedPickedAnimMontage = nullptr;
 }
@@ -86,6 +89,9 @@ void AR4PreviewCharacterPawn::ClearDTData()
  */
 void AR4PreviewCharacterPawn::_MeshLoadComplete()
 {
+	if ( !IsValid( SkeletalMeshComp ) )
+		return;
+	
 	if ( !CachedMeshHandle.IsValid() )
 	{
 		LOG_WARN( R4Data, TEXT("Mesh Data Load Failed.") );
