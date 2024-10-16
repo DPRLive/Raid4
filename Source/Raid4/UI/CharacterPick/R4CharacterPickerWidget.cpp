@@ -84,9 +84,9 @@ void UR4CharacterPickerWidget::_OnClickCharacterFixButton()
  */
 void UR4CharacterPickerWidget::_OnClickGameStartButton()
 {
-	AR4LobbyGameMode* lobbyGameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AR4LobbyGameMode>() : nullptr;
-	if ( IsValid( lobbyGameMode ) )
-		lobbyGameMode->TravelToMainGame();
+	UR4GameInstance* gameInstance = GetGameInstance<UR4GameInstance>();
+	if ( IsValid( gameInstance ) )
+		gameInstance->TravelToMainGame();
 }
 
 /**

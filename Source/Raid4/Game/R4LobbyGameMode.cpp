@@ -15,9 +15,12 @@ AR4LobbyGameMode::AR4LobbyGameMode()
 	bUseSeamlessTravel = true;
 }
 
-void AR4LobbyGameMode::TravelToMainGame() const
+/**
+ *	Main Level로 이동할 수 있는지 확인.
+ *	현재 접속한 캐릭터들이 캐릭터 선택을 모두 진행 했는지 확인
+ */
+bool AR4LobbyGameMode::CanTravelMainLevel() const
 {
-	// 현재 접속한 캐릭터들이 캐릭터 선택을 모두 진행 했는지 확인
 	for ( const auto& controller : CachedPlayerControllers )
 	{
 		if ( !IsValid( controller.Get() ) )
@@ -26,19 +29,11 @@ void AR4LobbyGameMode::TravelToMainGame() const
 		if( IR4PlayerStateInterface* playerState = Cast<IR4PlayerStateInterface>( controller->PlayerState ) )
 		{
 			if ( playerState->GetCharacterId() == DTConst::G_InvalidPK )
-				return;
+				return false;
 		}
 	}
 
-	UWorld* world = GetWorld();
-	if ( !IsValid( GetWorld() ) )
-	{
-		LOG_WARN( R4Log, TEXT("GetWorld() is invalid.") );
-		return;
-	}
-
-	// Seamless travel
-	world->ServerTravel( MainGameLevel.GetAssetName(), true );
+	return true;
 }
 
 /**

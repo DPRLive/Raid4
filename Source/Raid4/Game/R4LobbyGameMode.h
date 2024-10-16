@@ -18,22 +18,17 @@ class RAID4_API AR4LobbyGameMode : public AGameModeBase, public IR4CharacterPick
 
 public:
 	AR4LobbyGameMode();
-
-	// Main Game으로 이동 요청
-	void TravelToMainGame() const;
-
+	
 	// ~ Begin IR4CharacterPickGameModeInterface
 	virtual void RequestCharacterPick( APlayerController* InReqController, int32 InCharacterId ) override;
 	// ~ End IR4CharacterPickGameModeInterface
+
+	bool CanTravelMainLevel() const;
 protected:
 	// PostLogin / Seamless travel 시 호출.
 	virtual void HandleStartingNewPlayer_Implementation( APlayerController* InNewPlayer ) override;
 
 private:
-	// Transition할 Main Game Level
-	UPROPERTY( EditDefaultsOnly )
-	TSoftObjectPtr<UWorld> MainGameLevel;
-
 	// 현재 게임에 참여한 Player의 Controllers.
 	UPROPERTY( Transient, VisibleInstanceOnly )
 	TSet<TWeakObjectPtr<APlayerController>> CachedPlayerControllers;

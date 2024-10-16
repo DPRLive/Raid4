@@ -3,8 +3,13 @@
 
 #include "R4GameInstance.h"
 
-#include "../Manager/DataTableManager.h"
 #include "ObjectPool/ObjectPool.h"
+#include "../Manager/DataTableManager.h"
+#include "../Game/R4LobbyGameMode.h"
+
+#include <OnlineSubsystem.h>
+#include <OnlineSessionSettings.h>
+#include <GameFramework/PlayerController.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4GameInstance)
 
@@ -13,7 +18,8 @@
  */
 UR4GameInstance::UR4GameInstance()
 {
-
+	CachedSessionSearch = nullptr;
+	MaxPlayerNum = 4;
 }
 
 /**
@@ -24,6 +30,19 @@ void UR4GameInstance::Init()
 	Super::Init();
 
 	_CreateSingletons();
+
+	// Session 함수 관련 Bind
+	IOnlineSubsystem* onlineSubsystem = IOnlineSubsystem::Get();
+	if ( onlineSubsystem != nullptr )
+	{
+		IOnlineSessionPtr sessionInterface = onlineSubsystem->GetSessionInterface();
+		if ( sessionInterface.IsValid() )
+		{
+			sessionInterface->OnCreateSessionCompleteDelegates.AddUObject( this, &UR4GameInstance::_OnCreateGameSessionComplete );
+			sessionInterface->OnFindSessionsCompleteDelegates.AddUObject( this, &UR4GameInstance::_OnFindGameSessionComplete );
+			sessionInterface->OnJoinSessionCompleteDelegates.AddUObject( this, &UR4GameInstance::_OnJoinGameSessionComplete );
+		}
+	}
 }
 
 /**
@@ -34,6 +53,205 @@ void UR4GameInstance::Shutdown()
 	_ClearSingletons();
 	
 	Super::Shutdown();
+}
+
+/**
+ * Session 생성
+ */
+void UR4GameInstance::CreateGameSession( bool InIsLanMatch )
+{
+	IOnlineSubsystem* onlineSubsystem = IOnlineSubsystem::Get();
+	if ( onlineSubsystem != nullptr )
+	{
+		IOnlineSessionPtr sessionInterface = onlineSubsystem->GetSessionInterface();
+		if ( sessionInterface.IsValid() )
+		{
+			FOnlineSessionSettings settings;
+			settings.bIsLANMatch = InIsLanMatch; // LAN 매치?
+			settings.NumPublicConnections = MaxPlayerNum; // 최대 플레이어 수
+			settings.bShouldAdvertise = true;
+			settings.bAllowJoinInProgress = true; // start를 따로 호출.
+
+			sessionInterface->CreateSession( 0, NAME_GameSession, settings );
+		}
+	}
+}
+
+/**
+ * Session 검색
+ */
+void UR4GameInstance::FindGameSession( bool InIsLanMatch, int32 InMaxSearchNum )
+{
+	IOnlineSubsystem* onlineSubsystem = IOnlineSubsystem::Get();
+	if ( onlineSubsystem != nullptr )
+	{
+		IOnlineSessionPtr sessionInterface = onlineSubsystem->GetSessionInterface();
+		if ( sessionInterface.IsValid() )
+		{
+			CachedSessionSearch = MakeShared<FOnlineSessionSearch>();
+			CachedSessionSearch->bIsLanQuery = InIsLanMatch;
+			CachedSessionSearch->MaxSearchResults = InMaxSearchNum;
+			
+			sessionInterface->FindSessions( 0, CachedSessionSearch.ToSharedRef() );
+		}
+	}
+}
+
+/**
+ * Join Session
+ * @param InResultIndex : CachedSessionSearch의 결과 중 Index
+ */
+void UR4GameInstance::JoinGameSession( int32 InResultIndex )
+{
+	IOnlineSubsystem* onlineSubsystem = IOnlineSubsystem::Get();
+	if ( onlineSubsystem != nullptr )
+	{
+		IOnlineSessionPtr sessionInterface = onlineSubsystem->GetSessionInterface();
+		if ( sessionInterface.IsValid() && CachedSessionSearch->SearchResults.IsValidIndex( InResultIndex ) )
+			sessionInterface->JoinSession( 0, NAME_GameSession, CachedSessionSearch->SearchResults[InResultIndex] );
+	}
+}
+
+/**
+ * Main Game으로 이동
+ */
+void UR4GameInstance::TravelToMainGame() const
+{
+	IOnlineSubsystem* onlineSubsystem = IOnlineSubsystem::Get();
+	if ( onlineSubsystem != nullptr )
+	{
+		IOnlineSessionPtr sessionInterface = onlineSubsystem->GetSessionInterface();
+		if ( sessionInterface.IsValid() )
+		{
+			// travel 가능한지 확인
+			UWorld* world = GetWorld();
+			if ( !IsValid( world ) )
+			{
+				LOG_WARN( R4Log, TEXT("GetWorld() is invalid.") );
+				return;
+			}
+
+			AR4LobbyGameMode* gameMode = world->GetAuthGameMode<AR4LobbyGameMode>();
+			if ( !IsValid( gameMode ) )
+			{
+				LOG_WARN( R4Log, TEXT("LobbyGameMode is invalid.") );
+				return;
+			}
+			
+			// Seamless travel
+			if ( gameMode->CanTravelMainLevel() )
+			{
+				sessionInterface->StartSession( NAME_GameSession );
+				world->ServerTravel( MainGameLevel.GetAssetName(), true );
+			}
+		}
+	}
+}
+
+/**
+ * Lobby로 이동
+ */
+void UR4GameInstance::TravelToLobby() const
+{
+	APlayerController* PlayerController = GetFirstLocalPlayerController();
+	if ( !IsValid( PlayerController ) )
+		return;
+	
+	_DestroyGameSession();
+	PlayerController->ClientTravel( LobbyLevel.GetAssetName(), TRAVEL_Absolute );
+}
+
+/**
+ * Destroy Session.
+ */
+void UR4GameInstance::_DestroyGameSession() const
+{
+	// 서버가 나가면 다같이 바이바이
+	IOnlineSubsystem* onlineSubsystem = IOnlineSubsystem::Get();
+	if ( onlineSubsystem != nullptr )
+	{
+		IOnlineSessionPtr sessionInterface = onlineSubsystem->GetSessionInterface();
+		if ( sessionInterface.IsValid() )
+		{
+			sessionInterface->DestroySession( NAME_GameSession );
+		}
+	}
+}
+
+/**
+ * On Session Create
+ */
+void UR4GameInstance::_OnCreateGameSessionComplete( FName InSessionName, bool InIsSuccessful )
+{
+	if ( !InIsSuccessful )
+	{
+		LOG_N( R4Log, TEXT("Create Session Failed.") );
+		_DestroyGameSession();
+		return;
+	}
+	
+	if ( GetWorld() )
+	{
+		// Seamless travel
+		bool bServerTravel = GetWorld()->ServerTravel( CharacterPickLevel.GetAssetName() + TEXT("?listen"), true );
+
+		LOG_WARN( R4Log, TEXT("Create Session, [%s]"), *(CharacterPickLevel.GetAssetName() + TEXT("?listen")) );
+		if ( !bServerTravel	)
+			_DestroyGameSession();
+	}
+}
+
+/**
+ * Find Session Complete
+ */
+void UR4GameInstance::_OnFindGameSessionComplete( bool InIsSuccessful ) const
+{
+	// broadcast
+	if ( InIsSuccessful
+		&& OnFindSessionCompleteDelegate.IsBound()
+		&& CachedSessionSearch.IsValid()
+		&& CachedSessionSearch->SearchState == EOnlineAsyncTaskState::Done )
+	{
+		OnFindSessionCompleteDelegate.Broadcast( CachedSessionSearch->SearchResults );
+	}
+}
+
+/**
+ * Join Session Complete. URL로 travel
+ */
+void UR4GameInstance::_OnJoinGameSessionComplete( FName InSessionName, EOnJoinSessionCompleteResult::Type InType )
+{
+	if( InType != EOnJoinSessionCompleteResult::Success )
+	{
+		LOG_N( R4Log, TEXT("Join Session Failed.") );
+		_DestroyGameSession();
+		return;
+	}
+	
+	FString address;
+
+	IOnlineSubsystem* onlineSubsystem = IOnlineSubsystem::Get();
+	if ( onlineSubsystem != nullptr )
+	{
+		IOnlineSessionPtr sessionInterface = onlineSubsystem->GetSessionInterface();
+		if ( !sessionInterface.IsValid() )
+		{
+			_DestroyGameSession();
+			return;
+		}
+
+		if ( !sessionInterface->GetResolvedConnectString( NAME_GameSession, address ) )
+		{
+			LOG_WARN( R4Log, TEXT("Resolve connect string Failed.") );
+			_DestroyGameSession();
+			return;
+		}
+	}
+
+	LOG_WARN( R4Log, TEXT("url : [%s]"), *address );
+	APlayerController* PlayerController = GetFirstLocalPlayerController();
+	if ( IsValid( PlayerController ) )
+		PlayerController->ClientTravel( address, TRAVEL_Absolute, false );
 }
 
 /**

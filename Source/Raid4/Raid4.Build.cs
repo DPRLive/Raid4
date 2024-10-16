@@ -20,7 +20,8 @@ public class Raid4 : ModuleRules
 			"AIModule", 
 			"NavigationSystem",
 			"AnimationCore",
-			"GameplayTags"
+			"GameplayTags",
+			"OnlineSubsystem"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "AnimGraphRuntime" });
