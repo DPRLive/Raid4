@@ -11,6 +11,7 @@
 UR4ImageIdButton::UR4ImageIdButton()
 {
 	CachedId = 0;
+	ImageSize = FVector2D( 50.f );
 	CachedTextureHandle = nullptr;
 }
 
@@ -90,6 +91,14 @@ void UR4ImageIdButton::_SetImageByTexture( UTexture* InTexture )
 	style.Hovered.SetResourceObject( InTexture );
 	style.Pressed.SetResourceObject( InTexture );
 	style.Disabled.SetResourceObject( InTexture );
-		
+	
+	// Set Size
+	style.Normal.SetImageSize( ImageSize );
+	style.Hovered.SetImageSize( ImageSize );
+	style.Pressed.SetImageSize( ImageSize );
+	style.Disabled.SetImageSize( ImageSize );
+	
 	SetStyle( style );
+
+	RebuildWidget();
 }

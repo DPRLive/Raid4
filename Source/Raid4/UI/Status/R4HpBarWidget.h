@@ -20,7 +20,8 @@ public:
 
 protected:
 	virtual void NativeConstruct() override;
-	
+
+	virtual void NativeDestruct() override;
 public:
 	// 최대 체력을 설정
 	void SetTotalHp( float InTotalHp );

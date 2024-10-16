@@ -49,6 +49,10 @@ private:
 	// Image 적용
 	void _SetImageByTexture( UTexture* InTexture );
 private:
+	// Image 크기
+	UPROPERTY( EditDefaultsOnly )
+	FVector2D ImageSize;
+	
 	// 설정된 ID
 	UPROPERTY( Transient, VisibleInstanceOnly )
 	int32 CachedId;

@@ -72,6 +72,8 @@ public:
 	// Skill의 종료를 알림
 	FSimpleMulticastDelegate OnEndSkill;
 
+	// Skill의 쿨타임이 적용됨을 알림
+	FSimpleMulticastDelegate OnSetSkillCooldown;
 private:
 	// Skill 시작 시 적용할 Buff.
 	UPROPERTY( EditAnywhere )

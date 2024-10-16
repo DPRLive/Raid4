@@ -7,6 +7,7 @@
 #include "../../Skill/Player/R4PlayerSkillComponent.h"
 #include "../../Data/Character/R4DataAsset_PCCommonData.h"
 #include "../../PlayerState/R4PlayerStateInterface.h"
+#include "../../UI/HUD/R4InGameHUDWidget.h"
 
 #include <Components/CapsuleComponent.h>
 #include <Camera/CameraComponent.h>
@@ -14,6 +15,7 @@
 #include <GameFramework/CharacterMovementComponent.h>
 #include <GameFramework/PlayerController.h>
 #include <GameFramework/PlayerState.h>
+
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4PlayerCharacter)
 
@@ -106,6 +108,38 @@ void AR4PlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayerInpu
 	if(OnSetupPlayerInputDelegate.IsBound())
 		OnSetupPlayerInputDelegate.Broadcast(InPlayerInputComponent);
 	
+}
+
+/**
+ *  Skill Widget에 데이터 제공
+ */
+void AR4PlayerCharacter::SetupSkillWidget( UUserWidget* InWidget )
+{
+	if ( !IsValid( SkillComp ) )
+		return;
+	
+	// Bind Skill Widget
+	if ( UR4InGameHUDWidget* hudWidget = Cast<UR4InGameHUDWidget>( InWidget ) )
+	{
+		hudWidget->OnUpdateSkillCooldown();
+		
+		SkillComp->OnSkillCooldownDelegate.AddWeakLambda( hudWidget, [hudWidget]( int32 InSkillIndex )
+		{
+			hudWidget->OnUpdateSkillCooldown();
+		} );
+	}
+}
+
+/**
+ *  Cooldown 반환
+ *  @return : 해당 Skill index에 해당하는 남은 쿨타임, 유효하지 않을 시 -1 반환.
+ */
+float AR4PlayerCharacter::GetSkillCooldownRemaining( int32 InSkillIndex )
+{
+	if( IsValid( SkillComp ) )
+		return SkillComp->GetSkillCooldownRemaining( InSkillIndex );
+
+	return -1.f;
 }
 
 /**

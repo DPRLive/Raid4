@@ -40,6 +40,10 @@ struct FR4CharacterSrcRow : public FR4RowBase
 	// 캐릭터 사망 모션. ( Loop로 설정할 것 )
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Anim" )
 	TSoftObjectPtr<UAnimMontage> DeadAnim;
+
+	// Skill icons. Index 순서에 주의
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Skill" )
+	TArray<TSoftObjectPtr<UTexture>> SkillIcons;
 };
 
 GENERATE_DT_PTR_H( FR4CharacterSrcRow );

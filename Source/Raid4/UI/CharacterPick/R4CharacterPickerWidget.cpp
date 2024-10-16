@@ -156,9 +156,6 @@ void UR4CharacterPickerWidget::_OnChangePlayerStateArray()
 		if( IsValid( playerState ) )
 			_AddPlayerStateMonitor( playerState );
 	}
-	
-	// Rebuild
-	RebuildWidget();
 }
 
 /**
@@ -220,7 +217,6 @@ void UR4CharacterPickerWidget::_OnFixCharacterId( int32 InMonitorIndex, int32 In
 		return;
 
 	// Portrait Box Btn 비활성화.
-
 	if ( IsValid( PortraitButtonBox ) )
 	{
 		TArray<UWidget*> portraitButtonBoxs = PortraitButtonBox->GetAllChildren();

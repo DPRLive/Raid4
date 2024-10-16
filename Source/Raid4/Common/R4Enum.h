@@ -14,7 +14,6 @@ enum class EPlayerSkillIndex : uint8
 	Skill1		UMETA( DisplayName = "1번 스킬" ),
     Skill2		UMETA( DisplayName = "2번 스킬" ),
 	Skill3		UMETA( DisplayName = "3번 스킬" ),
-	Evasion     UMETA( DisplayName = "회피 스킬" ),
 	MAX			UMETA( Hidden )
 };
 ENUM_RANGE_BY_COUNT( EPlayerSkillIndex, EPlayerSkillIndex::MAX );

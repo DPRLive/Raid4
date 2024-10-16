@@ -29,6 +29,7 @@ void UR4SkillComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 void UR4SkillComponent::EndPlay( const EEndPlayReason::Type EndPlayReason )
 {
 	ClearSkills();
+	OnSkillCooldownDelegate.Clear();
 	
 	Super::EndPlay( EndPlayReason );
 }
@@ -75,6 +76,34 @@ void UR4SkillComponent::ClearSkills()
 			skill->DestroyComponent();
 		SkillInstances.Empty();
 	}
+}
+
+/**
+ *  Cooldown getter
+ *  @return : 해당 Skill index에 해당하는 남은 쿨타임, 유효하지 않을 시 -1 반환.
+ */
+float UR4SkillComponent::GetSkillCooldownRemaining( int32 InSkillIndex ) const
+{
+	if ( SkillInstances.IsValidIndex(InSkillIndex) && IsValid( SkillInstances[InSkillIndex] ) )
+		return SkillInstances[InSkillIndex]->GetSkillCooldownRemaining();
+
+	return -1.f;
+}
+
+/**
+ *  Skill에 Cooldown이 적용 시 broadcast.
+ */
+void UR4SkillComponent::PostAddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill )
+{
+	if ( !IsValid( InSkill ) )
+		return;
+		
+	InSkill->OnSetSkillCooldown.AddWeakLambda( this,
+		[this, InSkillIndex]()
+		{
+			if ( OnSkillCooldownDelegate.IsBound() )
+				OnSkillCooldownDelegate.Broadcast( InSkillIndex );
+		} );
 }
 
 void UR4SkillComponent::_OnRep_SkillInstances( const TArray<UR4SkillBase*>& InPrev )

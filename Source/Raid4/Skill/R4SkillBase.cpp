@@ -62,6 +62,7 @@ void UR4SkillBase::EndPlay( const EEndPlayReason::Type EndPlayReason )
 {
 	OnBeginSkill.Clear();
 	OnEndSkill.Clear();
+	OnSetSkillCooldown.Clear();
 	
 	Super::EndPlay( EndPlayReason );
 }
@@ -92,6 +93,9 @@ void UR4SkillBase::SetSkillCoolDownTime( float InCoolDownTime )
 {
 	// 쿨타임 적용
 	CachedNextActivationServerTime = InCoolDownTime + R4GetServerTimeSeconds( GetWorld() );
+
+	if( OnSetSkillCooldown.IsBound() )
+		OnSetSkillCooldown.Broadcast();
 }
 
 /**

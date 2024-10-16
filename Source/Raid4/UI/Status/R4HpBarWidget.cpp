@@ -26,6 +26,13 @@ void UR4HpBarWidget::NativeConstruct()
 		owner->SetupHpBarWidget( this );
 }
 
+void UR4HpBarWidget::NativeDestruct()
+{
+	OnHpBarUpdate.Clear();
+	
+	Super::NativeDestruct();
+}
+
 /**
  * 최대 체력 상태를 업데이트
  */

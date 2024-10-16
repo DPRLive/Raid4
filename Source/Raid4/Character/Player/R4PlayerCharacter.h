@@ -4,6 +4,7 @@
 
 #include "../R4CharacterBase.h"
 #include "../../Input/R4PlayerInputInterface.h"
+#include "../../UI/Status/R4HUDWidgetInterface.h"
 #include "R4PlayerCharacter.generated.h"
 
 class UR4DataAsset_PCCommonData;
@@ -16,7 +17,8 @@ class UCameraComponent;
  *  PlayerCharacter의 베이스가 되는 클래스
  */
 UCLASS()
-class RAID4_API AR4PlayerCharacter : public AR4CharacterBase, public IR4PlayerInputInterface
+class RAID4_API AR4PlayerCharacter : public AR4CharacterBase, public IR4PlayerInputInterface,
+									public IR4HUDWidgetInterface
 {
 	GENERATED_BODY()
 	
@@ -38,6 +40,11 @@ public:
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent) override;
 
+	// ~ Begin IR4SkillWidgetInterface
+	virtual void SetupSkillWidget( UUserWidget* InWidget ) override;
+	virtual float GetSkillCooldownRemaining( int32 InSkillIndex ) override;
+	// ~ End IR4SkillWidgetInterface
+	
 	// ~ Begin IR4PlayerInputInterface
 	virtual APlayerController* GetPlayerController() override;
 	FORCEINLINE virtual FOnSetupPlayerInputDelegate& OnSetupPlayerInput() override { return OnSetupPlayerInputDelegate; }
@@ -53,7 +60,6 @@ public:
 	virtual void OnInputSkillTriggered( EPlayerSkillIndex InSkillIndex ) override;
 	virtual void OnInputSkillCompleted( EPlayerSkillIndex InSkillIndex ) override;
 	// ~ End IR4PlayerInputInterface
-
 protected:
 	// 캐릭터 죽음 처리
 	virtual void Dead() override;

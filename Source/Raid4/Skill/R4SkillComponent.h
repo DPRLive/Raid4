@@ -29,15 +29,25 @@ public:
 
 	// 관리중이던 Skill들을 모두 해제.
 	virtual void ClearSkills();
+
+	// Cooldown getter
+	float GetSkillCooldownRemaining( int32 InSkillIndex ) const;
+
 protected:
 	// 스킬이 등록 된 후 호출.
-	virtual void PostAddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill ) {}
+	virtual void PostAddSkill( uint8 InSkillIndex, UR4SkillBase* InSkill );
 
 	// 스킬이 등록 해제 되기 전 호출
 	virtual void PreRemoveSkill( uint8 InSkillIndex, UR4SkillBase* InSkill ) {}
+	
 private:
 	UFUNCTION()
 	virtual void _OnRep_SkillInstances( const TArray<UR4SkillBase*>& InPrev );
+
+public:
+	// 특정 Skill Index 에 쿨타임이 적용됨을 알림 .
+	DECLARE_MULTICAST_DELEGATE_OneParam( FOnSkillCooldownDelegate, int32 );
+	FOnSkillCooldownDelegate OnSkillCooldownDelegate;
 	
 protected:
 	// 인스턴스화된 스킬 배열
