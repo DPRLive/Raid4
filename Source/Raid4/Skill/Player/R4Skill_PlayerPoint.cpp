@@ -42,6 +42,13 @@ void UR4Skill_PlayerPoint::BeginPlay()
 		CachedPlayerController = owner->GetController<APlayerController>();
 }
 
+void UR4Skill_PlayerPoint::EndPlay( const EEndPlayReason::Type EndPlayReason )
+{
+	_TearDownPointing();
+	
+	Super::EndPlay( EndPlayReason );
+}
+
 void UR4Skill_PlayerPoint::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
 {
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
