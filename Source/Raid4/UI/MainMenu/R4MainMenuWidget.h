@@ -5,6 +5,7 @@
 #include <Blueprint/UserWidget.h>
 #include "R4MainMenuWidget.generated.h"
 
+struct FR4SessionEntryInfo;
 class UEditableText;
 class UCheckBox;
 class UButton;
@@ -32,8 +33,14 @@ private:
 	UFUNCTION()
 	void _OnClickFindGameButton();
 
+	// _OnClickJoinButton (SessionList's widget)
+	void _OnDoubleClickSessionEntry( UObject* InObject ) const;
+	
 	// Session 찾기 결과를 수신.
 	void _OnFindSessionCompleted( const TArray<FOnlineSessionSearchResult>& InResult );
+
+	// Player Name Parsing
+	FString _ParsePlayerName() const;
 private:
 	// Player Name
 	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )

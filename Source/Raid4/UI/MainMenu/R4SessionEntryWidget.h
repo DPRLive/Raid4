@@ -34,7 +34,7 @@ struct FR4SessionEntryInfo
 };
 
 class UTextBlock;
-class UButton;
+
 /**
  * Session List에 표시되는 Session List Entry.
  */
@@ -45,9 +45,6 @@ class RAID4_API UR4SessionEntryWidget : public UUserWidget, public IUserObjectLi
 
 public:
 	UR4SessionEntryWidget( const FObjectInitializer& InObjectInitializer );
-	
-protected:
-	virtual void NativeConstruct() override;
 
 protected:
 	// ~ Begin IUserObjectListEntry
@@ -60,11 +57,6 @@ public:
 
 	// Session Entry info Get
 	FORCEINLINE const FR4SessionEntryInfo& GetSessionEntryInfo() const { return CachedSessionInfo; }
-
-private:
-	// _OnClickJoinButton, 설정된 Session에 Join 후 travel.
-	UFUNCTION()
-	void _OnClickJoinButton();	
 	
 private:
 	// Name
@@ -78,10 +70,6 @@ private:
 	// Ping
 	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
 	TObjectPtr<UTextBlock> PingText;
-	
-	// Join Button ( Session에 Join 후 travel )
-	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
-	TObjectPtr<UButton> JoinButton;
 	
 	// 현재 표시하고 있는 Session의 Info.
 	FR4SessionEntryInfo CachedSessionInfo;

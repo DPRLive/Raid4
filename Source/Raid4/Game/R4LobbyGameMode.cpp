@@ -6,6 +6,7 @@
 #include "../PlayerState/R4PlayerStateInterface.h"
 
 #include <GameFramework/PlayerState.h>
+#include <Kismet/GameplayStatics.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4LobbyGameMode)
 
@@ -79,6 +80,31 @@ void AR4LobbyGameMode::HandleStartingNewPlayer_Implementation( APlayerController
 {
 	Super::HandleStartingNewPlayer_Implementation( InNewPlayer );
 
+	if ( !IsValid( InNewPlayer ) )
+		return;
+	
 	// 접속한 Player 캐싱
 	CachedPlayerControllers.Emplace( InNewPlayer );
+}
+
+/**
+ *	seamless / post login 시 호출.
+ */
+FString AR4LobbyGameMode::InitNewPlayer( APlayerController* InNewPlayerController, const FUniqueNetIdRepl& InUniqueId, const FString& InOptions, const FString& InPortal )
+{
+	FString ret = Super::InitNewPlayer( InNewPlayerController, InUniqueId, InOptions, InPortal );
+
+	if( !IsValid( InNewPlayerController ) )
+		return ret;
+	
+	// 접속 url에 Player Name이 존재한다면, 파싱 후 설정
+	// URL 옵션에서 Player Name을 추출 및 설정
+	FString playerName = UGameplayStatics::ParseOption( InOptions, NetGame::G_PlayerNameParamKey );
+
+	APlayerState* playerState = InNewPlayerController->GetPlayerState<APlayerState>();
+	if ( !IsValid( playerState ) )
+		return ret;
+
+	playerState->SetPlayerName( playerName );
+	return ret;
 }

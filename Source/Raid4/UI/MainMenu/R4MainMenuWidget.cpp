@@ -28,7 +28,10 @@ void UR4MainMenuWidget::NativeConstruct()
 
 	if ( IsValid( FindGameButton ) )
 		FindGameButton->OnClicked.AddDynamic( this, &UR4MainMenuWidget::_OnClickFindGameButton );
-	
+
+	if ( IsValid( SessionList ) )
+		SessionList->OnItemDoubleClicked().AddUObject( this, &UR4MainMenuWidget::_OnDoubleClickSessionEntry );
+
 	UR4GameInstance* gameInstance = GetGameInstance<UR4GameInstance>();
 	if ( !IsValid( gameInstance ) )
 	{
@@ -50,7 +53,7 @@ void UR4MainMenuWidget::_OnClickNewGameButton()
 	
 	UR4GameInstance* gameInstance = GetGameInstance<UR4GameInstance>();
 	if ( IsValid( gameInstance ) )
-		gameInstance->CreateGameSession( isLanMatch );
+		gameInstance->CreateGameSession( isLanMatch, _ParsePlayerName() );
 }
 
 /**
@@ -68,6 +71,21 @@ void UR4MainMenuWidget::_OnClickFindGameButton()
 }
 
 /**
+ *	_OnDoubleClickSessionEntry (SessionList's widget)
+ *	Session에 Join.
+ */
+void UR4MainMenuWidget::_OnDoubleClickSessionEntry( UObject* InObject ) const
+{
+	UR4SessionEntryWidget* sessionEntry = Cast<UR4SessionEntryWidget>( InObject );
+	if ( !IsValid( sessionEntry ) )
+		return;
+	
+	UR4GameInstance* gameInstance = GetGameInstance<UR4GameInstance>();
+	if ( IsValid( gameInstance ) )
+		gameInstance->JoinGameSession( sessionEntry->GetSessionEntryInfo().ResultIndex, _ParsePlayerName() );
+}
+
+/**
  *	Session 찾기 결과를 수신 및 List에 채우기
  */
 void UR4MainMenuWidget::_OnFindSessionCompleted( const TArray<FOnlineSessionSearchResult>& InResult )
@@ -82,20 +100,52 @@ void UR4MainMenuWidget::_OnFindSessionCompleted( const TArray<FOnlineSessionSear
 		if ( !InResult[idx].IsValid() )
 			continue;
 		
-		UR4SessionEntryWidget* newSessionEntry = NewObject< UR4SessionEntryWidget >( this, SessionList->GetDefaultEntryClass() );
+		UR4SessionEntryWidget* newSessionEntry = NewObject<UR4SessionEntryWidget>( this, SessionList->GetDefaultEntryClass() );
 		if( !IsValid( newSessionEntry ) )
 			continue;
 		
 		FR4SessionEntryInfo entryInfo;
 		entryInfo.ResultIndex = idx;
-		entryInfo.Name = InResult[idx].Session.OwningUserName;
+
+		// Host Name Parsing
+		if( auto it = InResult[idx].Session.SessionSettings.Settings.Find( NetGame::G_HostPlayerName ) )
+			entryInfo.Name = it->Data.ToString();
+		else
+			entryInfo.Name = InResult[idx].Session.OwningUserName;
+		
 		entryInfo.NowPlayer = InResult[idx].Session.SessionSettings.NumPublicConnections - InResult[idx].Session.NumOpenPublicConnections;
 		entryInfo.MaxPlayer = InResult[idx].Session.SessionSettings.NumPublicConnections;
 		entryInfo.Ping = InResult[idx].PingInMs;
-		
+
 		newSessionEntry->SetSessionEntryInfo( entryInfo );
 		
 		// ListView에 추가
 		SessionList->AddItem( newSessionEntry );
 	}
+}
+
+/**
+ *	Player Name Parsing
+ *	PlayerNameText의 PlayerName을 영어, 숫자, 한글만 남기고 리턴.
+ */
+FString UR4MainMenuWidget::_ParsePlayerName() const
+{
+	if( IsValid( PlayerNameText ) )
+	{
+		FString input = PlayerNameText->GetText().ToString();
+
+		FString result;
+		for (int32 i = 0; i < input.Len(); i++)
+		{
+			TCHAR CurrentChar = input[i];
+
+			// 영어, 숫자, || 한글 ( 한글 범위 체크 (가 ~ 힣) )
+			if ( FChar::IsAlnum( CurrentChar ) || ( CurrentChar >= 0xAC00 && CurrentChar <= 0xD7A3 ) )
+				result += CurrentChar;
+		}
+		
+		return result;
+	}
+
+	return FString();
 }

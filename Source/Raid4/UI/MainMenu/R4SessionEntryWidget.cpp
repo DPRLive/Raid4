@@ -4,7 +4,6 @@
 #include "R4SessionEntryWidget.h"
 #include "../../Core/R4GameInstance.h"
 
-#include <Components/Button.h>
 #include <Components/TextBlock.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4SessionEntryWidget)
@@ -13,14 +12,6 @@ UR4SessionEntryWidget::UR4SessionEntryWidget( const FObjectInitializer& InObject
 	: Super( InObjectInitializer )
 {
 	CachedSessionInfo = FR4SessionEntryInfo();
-}
-
-void UR4SessionEntryWidget::NativeConstruct()
-{
-	Super::NativeConstruct();
-
-	if( IsValid( JoinButton ) )
-		JoinButton->OnClicked.AddDynamic( this, &UR4SessionEntryWidget::_OnClickJoinButton );
 }
 
 void UR4SessionEntryWidget::NativeOnListItemObjectSet( UObject* InListItemObject )
@@ -50,14 +41,4 @@ void UR4SessionEntryWidget::SetSessionEntryInfo( const FR4SessionEntryInfo& InEn
 		PingText->SetText( FText::FromString( FString::Printf( TEXT( "%d" ), InEntryInfo.Ping ) ) );
 
 	CachedSessionInfo = InEntryInfo;
-}
-
-/**
- *	_OnClickJoinButton, 설정된 Session에 Join 후 travel.
- */
-void UR4SessionEntryWidget::_OnClickJoinButton()
-{
-	UR4GameInstance* gameInstance = GetGameInstance<UR4GameInstance>();
-	if ( IsValid( gameInstance ) )
-		gameInstance->JoinGameSession( CachedSessionInfo.ResultIndex );
 }

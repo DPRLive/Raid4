@@ -18,8 +18,9 @@
  */
 UR4GameInstance::UR4GameInstance()
 {
-	CachedSessionSearch = nullptr;
 	MaxPlayerNum = 4;
+	CachedSessionSearch = nullptr;
+	CachedNetPlayerName = FString();
 }
 
 /**
@@ -57,8 +58,9 @@ void UR4GameInstance::Shutdown()
 
 /**
  * Session 생성
+ * @param InNetPlayerName : Session에서 사용할 Player Name.
  */
-void UR4GameInstance::CreateGameSession( bool InIsLanMatch )
+void UR4GameInstance::CreateGameSession( bool InIsLanMatch, const FString& InNetPlayerName )
 {
 	IOnlineSubsystem* onlineSubsystem = IOnlineSubsystem::Get();
 	if ( onlineSubsystem != nullptr )
@@ -72,6 +74,15 @@ void UR4GameInstance::CreateGameSession( bool InIsLanMatch )
 			settings.bShouldAdvertise = true;
 			settings.bAllowJoinInProgress = true; // start를 따로 호출.
 
+			// Set Host Name
+			FOnlineSessionSetting hostName;
+			hostName.Data = InNetPlayerName;
+			hostName.AdvertisementType = EOnlineDataAdvertisementType::Type::ViaOnlineService;
+			settings.Settings.Add( NetGame::G_HostPlayerName, hostName );
+
+			// Caching Name
+			CachedNetPlayerName = InNetPlayerName;
+			
 			sessionInterface->CreateSession( 0, NAME_GameSession, settings );
 		}
 	}
@@ -100,15 +111,19 @@ void UR4GameInstance::FindGameSession( bool InIsLanMatch, int32 InMaxSearchNum )
 /**
  * Join Session
  * @param InResultIndex : CachedSessionSearch의 결과 중 Index
+ * @param InNetPlayerName : Session에서 사용할 Player Name.
  */
-void UR4GameInstance::JoinGameSession( int32 InResultIndex )
+void UR4GameInstance::JoinGameSession( int32 InResultIndex, const FString& InNetPlayerName )
 {
 	IOnlineSubsystem* onlineSubsystem = IOnlineSubsystem::Get();
 	if ( onlineSubsystem != nullptr )
 	{
 		IOnlineSessionPtr sessionInterface = onlineSubsystem->GetSessionInterface();
 		if ( sessionInterface.IsValid() && CachedSessionSearch->SearchResults.IsValidIndex( InResultIndex ) )
+		{
+			CachedNetPlayerName = InNetPlayerName;
 			sessionInterface->JoinSession( 0, NAME_GameSession, CachedSessionSearch->SearchResults[InResultIndex] );
+		}
 	}
 }
 
@@ -154,12 +169,12 @@ void UR4GameInstance::TravelToMainGame() const
  */
 void UR4GameInstance::TravelToLobby() const
 {
-	APlayerController* PlayerController = GetFirstLocalPlayerController();
-	if ( !IsValid( PlayerController ) )
+	APlayerController* playerController = GetFirstLocalPlayerController();
+	if ( !IsValid( playerController ) )
 		return;
 	
 	_DestroyGameSession();
-	PlayerController->ClientTravel( LobbyLevel.GetAssetName(), TRAVEL_Absolute );
+	playerController->ClientTravel( LobbyLevel.GetAssetName(), TRAVEL_Absolute );
 }
 
 /**
@@ -177,6 +192,23 @@ void UR4GameInstance::_DestroyGameSession() const
 			sessionInterface->DestroySession( NAME_GameSession );
 		}
 	}
+}
+
+/**
+ * Session 참가 시 사용했던 Name을 반환.
+ */
+const FString& UR4GameInstance::_GetLocalNetPlayerName() const
+{
+	return CachedNetPlayerName;
+}
+
+/**
+ * 주어진 String에 Name parameter를 붙여 반환. ( Network 이동 시 사용 )
+ */
+void UR4GameInstance::_AppendNetPlayerNameParam( FString& OutString ) const
+{
+	FString playerNameParam = FString::Printf( TEXT("?%s=%s"), *NetGame::G_PlayerNameParamKey, *_GetLocalNetPlayerName() );
+	OutString.Append( playerNameParam );
 }
 
 /**
@@ -198,7 +230,9 @@ void UR4GameInstance::_OnCreateGameSessionComplete( FName InSessionName, bool In
 	if ( IsValid( world ) )
 	{
 		// NonSeamless travel
-		bTravelSuccess = world->ServerTravel( CharacterPickLevel.GetAssetName() + TEXT( "?listen" ) );
+		FString url = CharacterPickLevel.GetAssetName() + TEXT( "?listen" );
+		_AppendNetPlayerNameParam( url );
+		bTravelSuccess = world->ServerTravel( url );
 	}
 	
 	if ( !bTravelSuccess )
@@ -244,11 +278,14 @@ void UR4GameInstance::_OnJoinGameSessionComplete( FName InSessionName, EOnJoinSe
 		IOnlineSessionPtr sessionInterface = onlineSubsystem->GetSessionInterface();
 		if ( sessionInterface.IsValid() && sessionInterface->GetResolvedConnectString( NAME_GameSession, address ) )
 		{
-			APlayerController* PlayerController = GetFirstLocalPlayerController();
-			if ( IsValid( PlayerController ) )
+			APlayerController* playerController = GetFirstLocalPlayerController();
+			if ( IsValid( playerController ) )
 			{
 				LOG_N( R4Log, TEXT("Join Session Complete. Try Travel to : [%s]"), *address );
-				PlayerController->ClientTravel( address, TRAVEL_Absolute );
+
+				// travel to server, append net player name
+				_AppendNetPlayerNameParam( address );
+				playerController->ClientTravel( address, TRAVEL_Absolute );
 			}
 			return;
 		}

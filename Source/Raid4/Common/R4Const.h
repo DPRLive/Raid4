@@ -78,3 +78,12 @@ namespace Socket
 	// Health Bar 부착 시 Socket
 	const static FName G_HealthBarSocket = TEXT( "HealthBar" );
 }
+
+namespace NetGame
+{
+	// Session Setting에 설정되는 Host Player Name
+	const static FName G_HostPlayerName = TEXT( "HostPlayerName" );
+
+	// Travel URL에 붙이는 Player Name parameter의 Key
+	const static FString G_PlayerNameParamKey = TEXT( "NetPlayerName" );
+}

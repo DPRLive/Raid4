@@ -18,16 +18,20 @@ class RAID4_API AR4LobbyGameMode : public AGameModeBase, public IR4CharacterPick
 
 public:
 	AR4LobbyGameMode();
-	
+
+public:
 	// ~ Begin IR4CharacterPickGameModeInterface
 	virtual void RequestCharacterPick( APlayerController* InReqController, int32 InCharacterId ) override;
 	// ~ End IR4CharacterPickGameModeInterface
 
 	bool CanTravelMainLevel() const;
+
 protected:
 	// PostLogin / Seamless travel 시 호출.
 	virtual void HandleStartingNewPlayer_Implementation( APlayerController* InNewPlayer ) override;
 
+	// Parse Option
+	virtual FString InitNewPlayer( APlayerController* InNewPlayerController, const FUniqueNetIdRepl& InUniqueId, const FString& InOptions, const FString& InPortal ) override;
 private:
 	// 현재 게임에 참여한 Player의 Controllers.
 	UPROPERTY( Transient, VisibleInstanceOnly )

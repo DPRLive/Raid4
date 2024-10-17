@@ -43,7 +43,7 @@ public:
 public:
 	// Session 생성
 	UFUNCTION( BlueprintCallable, Category = "Multiplayer" )
-	void CreateGameSession( bool InIsLanMatch );
+	void CreateGameSession( bool InIsLanMatch, const FString& InNetPlayerName );
 
 	// Session Find
 	UFUNCTION( BlueprintCallable, Category = "Multiplayer" )
@@ -51,7 +51,7 @@ public:
 
 	// Session Join
 	UFUNCTION( BlueprintCallable, Category = "Multiplayer" )
-	void JoinGameSession( int32 InResultIndex );
+	void JoinGameSession( int32 InResultIndex, const FString& InNetPlayerName );
 	
 	// Main Game으로 이동
 	void TravelToMainGame() const;
@@ -70,6 +70,12 @@ private:
 
 	// Destroy Session.
 	void _DestroyGameSession() const;
+
+	// Session 참가 시 사용했던 Name을 반환.
+	const FString& _GetLocalNetPlayerName() const;
+
+	// 주어진 String에 Name parameter를 붙여 반환. ( Network 이동 시 사용 )
+	void _AppendNetPlayerNameParam( FString& OutString ) const;
 	
 	//// singleton ////
 	// Singleton 처럼 1개의 인스턴스만 쓰기 위한 Object들 선언
@@ -102,6 +108,9 @@ private:
 	
 	// Session Search 결과
 	TSharedPtr<FOnlineSessionSearch> CachedSessionSearch;
+
+	// Session 참가 시 사용한 Net Player Name
+	FString CachedNetPlayerName;
 };
 
 // Singleton 생성 매크로. _CreateSingletons() 내부에서 사용
