@@ -114,7 +114,7 @@ void UR4MainMenuWidget::_OnFindSessionCompleted( const TArray<FOnlineSessionSear
 		FR4SessionEntryInfo entryInfo;
 		entryInfo.ResultIndex = idx;
 		entryInfo.Name = InResult[idx].Session.OwningUserName;
-		entryInfo.NowPlayer = InResult[idx].Session.SessionSettings.NumPublicConnections - InResult[idx].Session.NumOpenPublicConnections + 1;
+		entryInfo.NowPlayer = InResult[idx].Session.SessionSettings.NumPublicConnections - InResult[idx].Session.NumOpenPublicConnections;
 		entryInfo.MaxPlayer = InResult[idx].Session.SessionSettings.NumPublicConnections;
 		entryInfo.Ping = InResult[idx].PingInMs;
 		

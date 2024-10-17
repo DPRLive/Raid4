@@ -12,7 +12,6 @@
 AR4LobbyGameMode::AR4LobbyGameMode()
 {
 	PrimaryActorTick.bCanEverTick = false;
-	bUseSeamlessTravel = true;
 }
 
 /**

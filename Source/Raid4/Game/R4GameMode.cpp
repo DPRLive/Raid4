@@ -16,7 +16,6 @@ AR4GameMode::AR4GameMode()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	
-	bUseSeamlessTravel = true;
 	NumPlayersToStartGame = 0;
 	ToSpectatorDelay = 3.f;
 }

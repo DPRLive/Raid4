@@ -113,7 +113,7 @@ void UR4GameInstance::JoinGameSession( int32 InResultIndex )
 }
 
 /**
- * Main Game으로 이동
+ * Main Game으로 이동 ( Seamless travel )
  */
 void UR4GameInstance::TravelToMainGame() const
 {
@@ -138,10 +138,11 @@ void UR4GameInstance::TravelToMainGame() const
 				return;
 			}
 			
-			// Seamless travel
 			if ( gameMode->CanTravelMainLevel() )
 			{
 				sessionInterface->StartSession( NAME_GameSession );
+				// Seamless travel
+				gameMode->bUseSeamlessTravel = true;
 				world->ServerTravel( MainGameLevel.GetAssetName(), true );
 			}
 		}
@@ -185,19 +186,25 @@ void UR4GameInstance::_OnCreateGameSessionComplete( FName InSessionName, bool In
 {
 	if ( !InIsSuccessful )
 	{
-		LOG_N( R4Log, TEXT("Create Session Failed.") );
+		LOG_WARN( R4Log, TEXT("Create Session Failed.") );
 		_DestroyGameSession();
 		return;
 	}
-	
-	if ( GetWorld() )
-	{
-		// Seamless travel
-		bool bServerTravel = GetWorld()->ServerTravel( CharacterPickLevel.GetAssetName() + TEXT("?listen"), true );
 
-		LOG_WARN( R4Log, TEXT("Create Session, [%s]"), *(CharacterPickLevel.GetAssetName() + TEXT("?listen")) );
-		if ( !bServerTravel	)
-			_DestroyGameSession();
+	LOG_N( R4Log, TEXT("Create Session Success.") );
+	
+	bool bTravelSuccess = false;
+	UWorld* world = GetWorld();
+	if ( IsValid( world ) )
+	{
+		// NonSeamless travel
+		bTravelSuccess = world->ServerTravel( CharacterPickLevel.GetAssetName() + TEXT( "?listen" ) );
+	}
+	
+	if ( !bTravelSuccess )
+	{
+		LOG_WARN( R4Log, TEXT("ServerTravel Failed, Destroy Game Session.") );
+		_DestroyGameSession();
 	}
 }
 
@@ -212,6 +219,7 @@ void UR4GameInstance::_OnFindGameSessionComplete( bool InIsSuccessful ) const
 		&& CachedSessionSearch.IsValid()
 		&& CachedSessionSearch->SearchState == EOnlineAsyncTaskState::Done )
 	{
+		LOG_N( R4Log, TEXT("Find Session Complete. Num : [%d]."), CachedSessionSearch->SearchResults.Num() );
 		OnFindSessionCompleteDelegate.Broadcast( CachedSessionSearch->SearchResults );
 	}
 }
@@ -223,7 +231,7 @@ void UR4GameInstance::_OnJoinGameSessionComplete( FName InSessionName, EOnJoinSe
 {
 	if( InType != EOnJoinSessionCompleteResult::Success )
 	{
-		LOG_N( R4Log, TEXT("Join Session Failed.") );
+		LOG_WARN( R4Log, TEXT("Join Session Failed. Destroy Session.") );
 		_DestroyGameSession();
 		return;
 	}
@@ -234,24 +242,20 @@ void UR4GameInstance::_OnJoinGameSessionComplete( FName InSessionName, EOnJoinSe
 	if ( onlineSubsystem != nullptr )
 	{
 		IOnlineSessionPtr sessionInterface = onlineSubsystem->GetSessionInterface();
-		if ( !sessionInterface.IsValid() )
+		if ( sessionInterface.IsValid() && sessionInterface->GetResolvedConnectString( NAME_GameSession, address ) )
 		{
-			_DestroyGameSession();
-			return;
-		}
-
-		if ( !sessionInterface->GetResolvedConnectString( NAME_GameSession, address ) )
-		{
-			LOG_WARN( R4Log, TEXT("Resolve connect string Failed.") );
-			_DestroyGameSession();
+			APlayerController* PlayerController = GetFirstLocalPlayerController();
+			if ( IsValid( PlayerController ) )
+			{
+				LOG_N( R4Log, TEXT("Join Session Complete. Try Travel to : [%s]"), *address );
+				PlayerController->ClientTravel( address, TRAVEL_Absolute );
+			}
 			return;
 		}
 	}
-
-	LOG_WARN( R4Log, TEXT("url : [%s]"), *address );
-	APlayerController* PlayerController = GetFirstLocalPlayerController();
-	if ( IsValid( PlayerController ) )
-		PlayerController->ClientTravel( address, TRAVEL_Absolute, false );
+	
+	LOG_WARN( R4Log, TEXT("Resolve connect string Failed. Destroy Session.") );
+	_DestroyGameSession();
 }
 
 /**
