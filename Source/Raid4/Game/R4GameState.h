@@ -47,10 +47,10 @@ private:
 	void _UpdateGameState() const;
 private:
 	// 살아있는 Player
-	UPROPERTY( Replicated = _UpdateGameState )
+	UPROPERTY( ReplicatedUsing = _UpdateGameState )
 	int32 CachedNumAlivePlayers;
 	
 	// 살아있는 NPC
-	UPROPERTY( Replicated = _UpdateGameState )
+	UPROPERTY( ReplicatedUsing = _UpdateGameState )
 	int32 CachedNumAliveNPCs;
 };

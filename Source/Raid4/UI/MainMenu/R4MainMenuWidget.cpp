@@ -3,7 +3,7 @@
 
 #include "R4MainMenuWidget.h"
 #include "R4SessionEntryWidget.h"
-#include "../../Core/R4GameInstance.h"
+#include "../../Game/R4GameInstance.h"
 
 #include <Components/Button.h>
 #include <Components/CheckBox.h>

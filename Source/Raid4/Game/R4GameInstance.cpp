@@ -3,9 +3,9 @@
 
 #include "R4GameInstance.h"
 
-#include "ObjectPool/ObjectPool.h"
+#include "R4LobbyGameMode.h"
 #include "../Manager/DataTableManager.h"
-#include "../Game/R4LobbyGameMode.h"
+#include "../Core/ObjectPool/ObjectPool.h"
 
 #include <OnlineSubsystem.h>
 #include <OnlineSessionSettings.h>
@@ -159,6 +159,7 @@ void UR4GameInstance::TravelToMainGame() const
 				// Seamless travel
 				gameMode->bUseSeamlessTravel = true;
 				world->ServerTravel( MainGameLevel.GetAssetName(), true );
+				gameMode->bUseSeamlessTravel = false;
 			}
 		}
 	}

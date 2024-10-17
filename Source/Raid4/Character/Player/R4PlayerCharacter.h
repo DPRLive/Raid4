@@ -4,7 +4,7 @@
 
 #include "../R4CharacterBase.h"
 #include "../../Input/R4PlayerInputInterface.h"
-#include "../../UI/Status/R4HUDWidgetInterface.h"
+#include "../../UI/HUD/R4HUDWidgetInterface.h"
 #include "R4PlayerCharacter.generated.h"
 
 class UR4DataAsset_PCCommonData;

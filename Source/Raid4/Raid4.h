@@ -20,7 +20,7 @@
 #include "Data/R4DataAssetHelper.h"
 #include "Tag/R4GameplayTag.h"
 #include "Core/ObjectPool/ObjectPool.h"
-#include "Core/R4GameInstance.h"
+#include "Game/R4GameInstance.h"
 #include "Data/Character/R4DataAsset_PlayerCharacterDTKey.h"
 
 // Defines

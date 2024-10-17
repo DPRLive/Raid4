@@ -6,7 +6,7 @@
 #include "../R4ImageIdButton.h"
 #include "../Status/R4HpBarWidgetInterface.h"
 #include "../Status/R4HpBarWidget.h"
-#include "../Status/R4HUDWidgetInterface.h"
+#include "../HUD/R4HUDWidgetInterface.h"
 #include "../../Data/Character/R4CharacterRow.h"
 #include "../../Data/Character/R4CharacterSrcRow.h"
 #include "../../PlayerState/R4PlayerStateInterface.h"
