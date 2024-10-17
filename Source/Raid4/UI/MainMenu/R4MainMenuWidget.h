@@ -7,7 +7,6 @@
 
 class UEditableText;
 class UCheckBox;
-class UWidgetSwitcher;
 class UButton;
 class UListView;
 /**
@@ -33,25 +32,17 @@ private:
 	UFUNCTION()
 	void _OnClickFindGameButton();
 
-	// _OnClickCreateSessionButton
-	UFUNCTION()
-	void _OnClickCreateSessionButton();
-
-	// _OnClickBackMainButton
-	UFUNCTION()
-	void _OnClickBackMainButton();
-
 	// Session 찾기 결과를 수신.
 	void _OnFindSessionCompleted( const TArray<FOnlineSessionSearchResult>& InResult );
 private:
-	// Widget Switcher
+	// Player Name
 	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
-	TObjectPtr<UWidgetSwitcher> WidgetSwitcher;
+	TObjectPtr<UEditableText> PlayerNameText;
 
-	// Main Widget
+	// Is Lan Match
 	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
-	TObjectPtr<UWidget> MainWidget;
-
+	TObjectPtr<UCheckBox> IsLanMatchCheckBox;
+	
 	// Session ListView
 	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
 	TObjectPtr<UListView> SessionList;
@@ -63,27 +54,7 @@ private:
 	// Find Game button
 	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
 	TObjectPtr<UButton> FindGameButton;
-
-	// NewSession Widget
-	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
-	TObjectPtr<UWidget> NewSessionWidget;
 	
-	// Session Name
-	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
-	TObjectPtr<UEditableText> SessionNameText;
-
-	// Session Name
-	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
-	TObjectPtr<UCheckBox> IsLanMatchCheckBox;
-	
-	// Create Session Button
-	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
-	TObjectPtr<UButton> CreateSessionButton;
-
-	// Back Main Button
-	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
-	TObjectPtr<UButton> BackMainButton;
-
 	// Session을 한번에 얼마나 찾을지 설정
 	UPROPERTY( EditDefaultsOnly )
 	int32 MaxSessionSearchNum;

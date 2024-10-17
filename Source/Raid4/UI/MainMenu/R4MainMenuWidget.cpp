@@ -6,7 +6,6 @@
 #include "../../Core/R4GameInstance.h"
 
 #include <Components/Button.h>
-#include <Components/WidgetSwitcher.h>
 #include <Components/CheckBox.h>
 #include <Components/EditableText.h>
 #include <Components/ListView.h>
@@ -29,12 +28,6 @@ void UR4MainMenuWidget::NativeConstruct()
 
 	if ( IsValid( FindGameButton ) )
 		FindGameButton->OnClicked.AddDynamic( this, &UR4MainMenuWidget::_OnClickFindGameButton );
-
-	if ( IsValid( CreateSessionButton ) )
-		CreateSessionButton->OnClicked.AddDynamic( this, &UR4MainMenuWidget::_OnClickCreateSessionButton );
-
-	if ( IsValid( BackMainButton ) )
-		BackMainButton->OnClicked.AddDynamic( this, &UR4MainMenuWidget::_OnClickBackMainButton );
 	
 	UR4GameInstance* gameInstance = GetGameInstance<UR4GameInstance>();
 	if ( !IsValid( gameInstance ) )
@@ -51,8 +44,13 @@ void UR4MainMenuWidget::NativeConstruct()
  */
 void UR4MainMenuWidget::_OnClickNewGameButton()
 {
-	if ( IsValid( WidgetSwitcher ) )
-		WidgetSwitcher->SetActiveWidget( NewSessionWidget );
+	bool isLanMatch = true;
+	if ( IsValid( IsLanMatchCheckBox ) )
+		isLanMatch = IsLanMatchCheckBox->IsChecked();
+	
+	UR4GameInstance* gameInstance = GetGameInstance<UR4GameInstance>();
+	if ( IsValid( gameInstance ) )
+		gameInstance->CreateGameSession( isLanMatch );
 }
 
 /**
@@ -67,29 +65,6 @@ void UR4MainMenuWidget::_OnClickFindGameButton()
 	UR4GameInstance* gameInstance = GetGameInstance<UR4GameInstance>();
 	if ( IsValid( gameInstance ) )
 		gameInstance->FindGameSession( isLanMatch, MaxSessionSearchNum );
-}
-
-/**
- *	_OnClickCreateSessionButton,  새 세션 생성 후 Travel.
- */
-void UR4MainMenuWidget::_OnClickCreateSessionButton()
-{
-	bool isLanMatch = true;
-	if ( IsValid( IsLanMatchCheckBox ) )
-		isLanMatch = IsLanMatchCheckBox->IsChecked();
-	
-	UR4GameInstance* gameInstance = GetGameInstance<UR4GameInstance>();
-	if ( IsValid( gameInstance ) )
-		gameInstance->CreateGameSession( isLanMatch );
-}
-
-/**
- *	_OnClickBackMainButton, Main Menu로 Switch
- */
-void UR4MainMenuWidget::_OnClickBackMainButton()
-{
-	if ( IsValid( WidgetSwitcher ) )
-		WidgetSwitcher->SetActiveWidget( MainWidget );
 }
 
 /**
