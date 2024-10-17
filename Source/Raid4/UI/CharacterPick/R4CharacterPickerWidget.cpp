@@ -2,8 +2,8 @@
 
 
 #include "R4CharacterPickerWidget.h"
+#include "R4PlayerPickWidget.h"
 #include "../R4ImageIdButton.h"
-#include "../R4ImageTextHorizontalBox.h"
 #include "../../Controller/R4CharacterPickControllerInterface.h"
 #include "../../Data/R4DTDataPushInterface.h"
 #include "../../Data/Character/R4CharacterRow.h"
@@ -164,19 +164,18 @@ void UR4CharacterPickerWidget::_OnChangePlayerStateArray()
  */
 void UR4CharacterPickerWidget::_AddPlayerStateMonitor( APlayerState* InPlayerState )
 {
-	if ( !IsValid( InPlayerState ) )
+	if ( !IsValid( InPlayerState ) || !IsValid( PlayerPickBox ) )
 		return;
 
 	// 새로운 감시 추가
 	if ( IR4PlayerStateInterface* playerState = Cast<IR4PlayerStateInterface>( InPlayerState ) )
 	{
-		// PortraitNameHorizontalBox 생성
-		UR4ImageTextHorizontalBox* widgetBox = NewObject<UR4ImageTextHorizontalBox>( this, PlayerPickBoxElemClass );
-		if( !IsValid( widgetBox ) )
+		// UR4PlayerPickEntryWidget 생성
+		UR4PlayerPickWidget* newPickEntry = NewObject<UR4PlayerPickWidget>( this, PlayerPickWidgetClass );
+		if( !IsValid( newPickEntry ) )
 			return;
-
-		if ( IsValid( PlayerPickBox ) )
-			PlayerPickBox->AddChild( widgetBox );
+		
+		PlayerPickBox->AddChild( newPickEntry );
 		
 		// monitor 생성
 		CachedPlayerStateMonitors.Add( FR4PlayerStateMonitorInfo() );
@@ -236,13 +235,13 @@ void UR4CharacterPickerWidget::_OnFixCharacterId( int32 InMonitorIndex, int32 In
 	// PlayerPickBox에 Portrait push
 	if ( IsValid( PlayerPickBox ) )
 	{
-		if( UWidget* pickBox = PlayerPickBox->GetChildAt( InMonitorIndex ) )
+		if( UObject* pickObj = PlayerPickBox->GetChildAt( InMonitorIndex ) )
 		{
-			if ( UR4ImageTextHorizontalBox* portraitBox = Cast<UR4ImageTextHorizontalBox>( pickBox ) )
+			if ( UR4PlayerPickWidget* pickItem = Cast<UR4PlayerPickWidget>( pickObj ) )
 			{
 				auto portrait = _GetCharacterPortrait( InCharacterId );
 				if ( portrait != nullptr )
-					portraitBox->SetImage( *_GetCharacterPortrait( InCharacterId ) );
+					pickItem->SetPortrait( *_GetCharacterPortrait( InCharacterId ) );
 			}
 		}
 	}
@@ -273,10 +272,10 @@ void UR4CharacterPickerWidget::_OnSetPlayerName( int32 InMonitorIndex, const FSt
 		return;
 	
 	// PlayerPickBox에 Name push
-	if( UWidget* pickBox = PlayerPickBox->GetChildAt( InMonitorIndex ) )
+	if( UObject* pickObj = PlayerPickBox->GetChildAt( InMonitorIndex ) )
 	{
-		if ( UR4ImageTextHorizontalBox* portraitBox = Cast<UR4ImageTextHorizontalBox>( pickBox ) )
-			portraitBox->SetText( InName );
+		if ( UR4PlayerPickWidget* pickItem = Cast<UR4PlayerPickWidget>( pickObj ) )
+			pickItem->SetPlayerName( InName );
 	}
 }
 

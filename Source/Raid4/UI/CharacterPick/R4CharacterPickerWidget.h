@@ -5,7 +5,7 @@
 #include <Blueprint/UserWidget.h>
 #include "R4CharacterPickerWidget.generated.h"
 
-class UR4ImageTextHorizontalBox;
+class UR4PlayerPickWidget;
 class UVerticalBox;
 class UR4ImageIdButton;
 class UButton;
@@ -82,7 +82,7 @@ private:
 	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
 	TObjectPtr<UHorizontalBox> PortraitButtonBox;
 
-	// Player들을 표시하는 Player List Box.
+	// Player의 Pick 정보를 표시하는 PlayerPickBox.
 	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
 	TObjectPtr<UVerticalBox> PlayerPickBox;
 	
@@ -98,9 +98,9 @@ private:
 	UPROPERTY( EditAnywhere )
 	TSubclassOf<UR4ImageIdButton> CharacterPortraitButtonClass;
 
-	// Player의 Character Pick을 보여줄 Element
+	// Player의 Pick 정보 표시용으로 사용할 Entry Widget.
 	UPROPERTY( EditAnywhere )
-	TSubclassOf<UR4ImageTextHorizontalBox> PlayerPickBoxElemClass;
+	TSubclassOf<UR4PlayerPickWidget> PlayerPickWidgetClass;
 	
 	// 현재 선택된 Character ID.
 	int32 CachedPickedCharacterId;
