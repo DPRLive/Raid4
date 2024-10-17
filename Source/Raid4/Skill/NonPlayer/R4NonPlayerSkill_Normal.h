@@ -19,6 +19,8 @@ class RAID4_API UR4NonPlayerSkill_Normal : public UR4AnimSkillBase, public IR4No
 public:
 	UR4NonPlayerSkill_Normal();
 
+	virtual void GetLifetimeReplicatedProps( TArray< class FLifetimeProperty >& OutLifetimeProps ) const override;
+
 protected:
 	// ~ Begin IR4NonPlayerSkillInterface
 	virtual void ActivateAISkill() override;
@@ -33,7 +35,7 @@ protected:
 
 private:
 	// 발동할 스킬 애니메이션
-	UPROPERTY( EditAnywhere, Category = "Skill|Anim" )
+	UPROPERTY( Replicated, EditAnywhere, Category = "Skill|Anim" )
 	FR4SkillAnimInfo SkillAnimInfo;
 
 	// AI가 Skill을 사용 시, Target과의 최소 거리.

@@ -3,11 +3,21 @@
 
 #include "R4NonPlayerSkill_Normal.h"
 
+#include <Net/UnrealNetwork.h>
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4NonPlayerSkill_Normal)
 
 UR4NonPlayerSkill_Normal::UR4NonPlayerSkill_Normal()
 {
 	ActivateSkillMinDist = 0.f;
+}
+
+void UR4NonPlayerSkill_Normal::GetLifetimeReplicatedProps( TArray<class FLifetimeProperty>& OutLifetimeProps ) const
+{
+	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
+
+	// Anim Key를 Replicate 받을 수 있도록 설정
+	DOREPLIFETIME_CONDITION( UR4NonPlayerSkill_Normal, SkillAnimInfo, COND_InitialOnly );
 }
 
 /**
