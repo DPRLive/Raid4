@@ -8,6 +8,7 @@
 #include "../../Data/Character/R4DataAsset_PCCommonData.h"
 #include "../../PlayerState/R4PlayerStateInterface.h"
 #include "../../UI/HUD/R4InGameHUDWidget.h"
+#include "../../UI/Status/R4NameplateWidget.h"
 
 #include <Components/CapsuleComponent.h>
 #include <Camera/CameraComponent.h>
@@ -15,7 +16,6 @@
 #include <GameFramework/CharacterMovementComponent.h>
 #include <GameFramework/PlayerController.h>
 #include <GameFramework/PlayerState.h>
-
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4PlayerCharacter)
 
@@ -140,6 +140,27 @@ float AR4PlayerCharacter::GetSkillCooldownRemaining( int32 InSkillIndex )
 		return SkillComp->GetSkillCooldownRemaining( InSkillIndex );
 
 	return -1.f;
+}
+
+/**
+ *  Nameplate Widget Setup ( Player )
+ */
+void AR4PlayerCharacter::SetupNameplateWidget( UUserWidget* InWidget )
+{
+	Super::SetupNameplateWidget( InWidget );
+	
+	UR4NameplateWidget* nameplate = Cast<UR4NameplateWidget>( InWidget );
+	IR4PlayerStateInterface* playerState = Cast<IR4PlayerStateInterface>( GetPlayerState() );
+	
+	if( IsValid( nameplate ) && ( playerState != nullptr ) )
+	{
+		nameplate->SetName( GetPlayerState()->GetPlayerName() );
+
+		playerState->OnSetPlayerName().AddWeakLambda( nameplate, [nameplate]( const FString& InName )
+		{
+			nameplate->SetName( InName );
+		} );
+	}
 }
 
 /**

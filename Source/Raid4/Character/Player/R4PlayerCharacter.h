@@ -5,6 +5,7 @@
 #include "../R4CharacterBase.h"
 #include "../../Input/R4PlayerInputInterface.h"
 #include "../../UI/HUD/R4HUDWidgetInterface.h"
+#include "../../UI/Status/R4NameplateWidgetInterface.h"
 #include "R4PlayerCharacter.generated.h"
 
 class UR4DataAsset_PCCommonData;
@@ -18,7 +19,7 @@ class UCameraComponent;
  */
 UCLASS()
 class RAID4_API AR4PlayerCharacter : public AR4CharacterBase, public IR4PlayerInputInterface,
-									public IR4HUDWidgetInterface
+									 public IR4HUDWidgetInterface
 {
 	GENERATED_BODY()
 	
@@ -40,10 +41,14 @@ public:
 public:
 	virtual void SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent) override;
 
-	// ~ Begin IR4SkillWidgetInterface
+	// ~ Begin IR4HUDWidgetInterface
 	virtual void SetupSkillWidget( UUserWidget* InWidget ) override;
 	virtual float GetSkillCooldownRemaining( int32 InSkillIndex ) override;
-	// ~ End IR4SkillWidgetInterface
+	// ~ End IR4HUDWidgetInterface
+
+	// ~ Begin IR4NameplateWidgetInterface
+	virtual void SetupNameplateWidget( UUserWidget* InWidget ) override;
+	// ~ End IR4NameplateWidgetInterface
 	
 	// ~ Begin IR4PlayerInputInterface
 	virtual APlayerController* GetPlayerController() override;

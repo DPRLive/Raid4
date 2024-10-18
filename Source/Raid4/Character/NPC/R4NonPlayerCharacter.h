@@ -36,6 +36,11 @@ public:
 	virtual void ReceiveDamage(AActor* InInstigator, const FR4DamageReceiveInfo& InDamageInfo) override;
 	// ~ End IR4DamageReceiveInterface
 private:
+	// 적용할 Character ID. Begin Play 시 적용되며,
+	// Begin Play 이전 다른 Character DT Key를 Push 하였다면 무시됨.
+	UPROPERTY( EditInstanceOnly )
+	int32 CharacterDTKey;
+	
 	// 정찰 시 최대 이동 범위.
 	UPROPERTY( EditAnywhere, Category = "AI" )
 	float MaxPatrolRadius;

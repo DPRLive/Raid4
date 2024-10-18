@@ -12,6 +12,7 @@
 #include "../Shield/R4ShieldComponent.h"
 #include "../UI/R4WidgetComponent.h"
 #include "../UI/Status/R4HpBarWidget.h"
+#include "../UI/Status/R4NameplateWidget.h"
 #include "../Damage/R4DamageStruct.h"
 #include "../Animation/R4AnimationComponent.h"
 #include "../Util/UtilStat.h"
@@ -21,6 +22,7 @@
 #include <Components/CapsuleComponent.h>
 #include <Engine/SkeletalMesh.h>
 #include <Components/WidgetComponent.h>
+
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4CharacterBase)
 
@@ -54,10 +56,11 @@ AR4CharacterBase::AR4CharacterBase(const FObjectInitializer& InObjectInitializer
 	// Requested Move Acceleration
 	if( GetCharacterMovement() )
 		GetCharacterMovement()->bRequestedMoveUseAcceleration = true;
-	
-	// Capsule
+
+	CachedCharacterDTKey = DTConst::G_InvalidPK;
 	bDead = false;
 
+	// Capsule
 #if WITH_EDITOR
 	if ( GetCapsuleComponent() )
 	{
@@ -150,6 +153,9 @@ void AR4CharacterBase::PushDTData( FPriKey InPk )
 		LOG_ERROR( R4Data, TEXT("CharacterSrcData is Invalid. PK : [%d]"), InPk );
 		return;
 	}
+
+	// Cached Key
+	CachedCharacterDTKey = InPk;
 	
 	// Capsule
 	if( UCapsuleComponent* capsuleComp = GetCapsuleComponent() )
@@ -339,43 +345,60 @@ FR4CurrentStatInfo* AR4CharacterBase::GetCurrentStatByTag(const FGameplayTag& In
 }
 
 /**
- *  status bar setup
+ *  HP bar setup
  */
 void AR4CharacterBase::SetupHpBarWidget( UUserWidget* InWidget )
 {
-	// Bind Status bar
-	if ( UR4HpBarWidget* statusBar = Cast< UR4HpBarWidget >( InWidget ) )
+	// Bind HP bar
+	if ( UR4HpBarWidget* hpBar = Cast< UR4HpBarWidget >( InWidget ) )
 	{
 		// 초기화
 		if( IsValid( StatComp ) )
 		{
-			statusBar->SetTotalHp( StatComp->GetTotalHp() );
-			statusBar->SetCurrentHp( StatComp->GetCurrentHp() );
+			hpBar->SetTotalHp( StatComp->GetTotalHp() );
+			hpBar->SetCurrentHp( StatComp->GetCurrentHp() );
 
 			// 총 체력 변경시 호출
-			StatComp->OnChangeHp().AddWeakLambda( statusBar, [statusBar]( float InPrevTotalHp, float InNowTotalHp )
+			StatComp->OnChangeHp().AddWeakLambda( hpBar, [hpBar]( float InPrevTotalHp, float InNowTotalHp )
 			{
-				statusBar->SetTotalHp( InNowTotalHp );
+				hpBar->SetTotalHp( InNowTotalHp );
 			} );
 
 			// 현재 체력 변경 시 호출
-			StatComp->OnChangeCurrentHp().AddWeakLambda( statusBar, [statusBar]( float InPrevCurrentHp, float InNowCurrentHp )
+			StatComp->OnChangeCurrentHp().AddWeakLambda( hpBar, [hpBar]( float InPrevCurrentHp, float InNowCurrentHp )
 			{
-				statusBar->SetCurrentHp( InNowCurrentHp );
+				hpBar->SetCurrentHp( InNowCurrentHp );
 			} );
 		}
 		
 		if( IsValid( ShieldComp ) )
 		{
-			statusBar->SetCurrentShieldAmount( ShieldComp->GetTotalShield() );
+			hpBar->SetCurrentShieldAmount( ShieldComp->GetTotalShield() );
 		
 			// 방어막 변경 시 호출
-			ShieldComp->OnChangeTotalShieldDelegate.AddWeakLambda( statusBar, [statusBar]( float InNowShieldAmount )
+			ShieldComp->OnChangeTotalShieldDelegate.AddWeakLambda( hpBar, [hpBar]( float InNowShieldAmount )
 			{
-				statusBar->SetCurrentShieldAmount( InNowShieldAmount );
+				hpBar->SetCurrentShieldAmount( InNowShieldAmount );
 			} );
 		}
 	}
+}
+
+/**
+ *  Nameplate Widget Setup. 기본적으로 Character DT Key에 포함된 Character Name을 사용.
+ */
+void AR4CharacterBase::SetupNameplateWidget( UUserWidget* InWidget )
+{
+	const FR4CharacterRowPtr characterData( GetWorld(), CachedCharacterDTKey );
+	if ( !characterData.IsValid() )
+	{
+		LOG_ERROR( R4Data, TEXT("CharacterData is Invalid. PK : [%d]"), CachedCharacterDTKey );
+		return;
+	}
+	
+	UR4NameplateWidget* nameplate = Cast<UR4NameplateWidget>( InWidget );
+	if( IsValid( nameplate ) )
+		nameplate->SetName( characterData->CharacterName );
 }
 
 /**

@@ -18,7 +18,8 @@ struct FR4CharacterRow : public FR4RowBase
 	GENERATED_BODY()
 
 	FR4CharacterRow()
-	: CapsuleHalfHeight( 88.f )
+	: CharacterName ( FString() )
+	, CapsuleHalfHeight( 88.f )
 	, CapsuleRadius ( 34.f )
 	, AnimInstance( nullptr )
 	, StatusBarClass( nullptr )
@@ -28,6 +29,10 @@ struct FR4CharacterRow : public FR4RowBase
 	, BaseStatRowPK( DTConst::G_InvalidPK )
 	{}
 
+	// Character Name
+	UPROPERTY( EditAnywhere, BlueprintReadOnly )
+	FString CharacterName;
+		
 	// Capsule Half Height
 	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category = "Collision" )
 	float CapsuleHalfHeight;

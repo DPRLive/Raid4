@@ -16,6 +16,7 @@ AR4NonPlayerCharacter::AR4NonPlayerCharacter( const FObjectInitializer& InObject
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	CharacterDTKey = DTConst::G_InvalidPK;
 	MaxPatrolRadius = 800.f;
 	AIRotationSpeed = 300.f;
 	
@@ -32,9 +33,10 @@ void AR4NonPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// TODO : 데이터 집어넣는건 PlayerController가 Character PK를 들고 있다가 OnPossess 와 OnRep_Owner 되면 넣는걸로 하면 될 듯
-	// Character 테스트를 위한 Aurora 데이터 임시 로드
-	PushDTData(100);
+	// Begin Play 이전 Push된 Character DT Key가 존재하지 않으면,
+	// 레벨 배치 시 적용한 ID를 사용
+	if( CachedCharacterDTKey == DTConst::G_InvalidPK )
+		PushDTData( CharacterDTKey );
 }
 
 void AR4NonPlayerCharacter::EndPlay( const EEndPlayReason::Type EndPlayReason )
