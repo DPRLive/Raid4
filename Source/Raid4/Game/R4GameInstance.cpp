@@ -78,7 +78,7 @@ void UR4GameInstance::CreateGameSession( bool InIsLanMatch, const FString& InNet
 			FOnlineSessionSetting hostName;
 			hostName.Data = InNetPlayerName;
 			hostName.AdvertisementType = EOnlineDataAdvertisementType::Type::ViaOnlineService;
-			settings.Settings.Add( NetGame::G_HostPlayerName, hostName );
+			settings.Settings.Add( NetGame::G_HostPlayerNameKey, hostName );
 
 			// Caching Name
 			CachedNetPlayerName = InNetPlayerName;
@@ -158,7 +158,11 @@ void UR4GameInstance::TravelToMainGame() const
 				sessionInterface->StartSession( NAME_GameSession );
 				// Seamless travel
 				gameMode->bUseSeamlessTravel = true;
-				world->ServerTravel( MainGameLevel.GetAssetName(), true );
+
+				// 현재 참여중인 Player가 몇명인지 Options으로 포함하여 호출
+				FString mainURL = FString::Printf( TEXT("%s?%s=%d"), *MainGameLevel.GetAssetName(), *NetGame::G_PlayerNumsParamKey, gameMode->GetNumPlayers() );
+				world->ServerTravel( mainURL, true );
+
 				gameMode->bUseSeamlessTravel = false;
 			}
 		}

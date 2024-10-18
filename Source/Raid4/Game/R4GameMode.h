@@ -19,13 +19,21 @@ class RAID4_API AR4GameMode : public AGameMode
 public:
 	AR4GameMode();
 
+	// Init Game, Option에 설정된 Player Num 체크
+	virtual void InitGame(const FString& InMapName, const FString& InOptions, FString& InErrorMessage) override;
+
 protected:
 	// PostLogin / Seamless travel 시 호출.
 	virtual void HandleStartingNewPlayer_Implementation( APlayerController* InNewPlayer ) override;
-
+	
+	// Spawn Player Pawn
+	virtual void RestartPlayer(AController* InNewPlayer) override;
+	
 	// 게임 시작
 	virtual void HandleMatchHasStarted() override;
 
+	// Game 시작 타이밍을 수동으로 설정
+	virtual bool ReadyToStartMatch_Implementation() override { return false; }
 private:
 	// Player 사망
 	UFUNCTION()
@@ -33,16 +41,17 @@ private:
 	
 	// Match 상태를 확인
 	void _CheckMatchState();
+	
 private:
-	// 몇명의 플레이어가 Travel 되면 게임을 시작하는지 설정 
-	UPROPERTY( EditDefaultsOnly )
-	uint8 NumPlayersToStartGame;
-
 	// Player 사망 시 ASpectatorPawn로 변경하는 Delay
 	UPROPERTY( EditDefaultsOnly )
 	float ToSpectatorDelay;
 
+	// 게임에 참여하는 총 Player 수
+	UPROPERTY( Transient, VisibleInstanceOnly )
+	int32 CachedInGamePlayerNums;
+	
 	// 현재 게임에 참여한 { Player, 사용 중인 Pawn }
 	UPROPERTY( Transient, VisibleInstanceOnly )
-	TMap<TWeakObjectPtr<APlayerController>, TWeakObjectPtr<APawn>> CachedPlayers;
+	TMap<TWeakObjectPtr<AController>, TWeakObjectPtr<APawn>> CachedPlayers;
 };

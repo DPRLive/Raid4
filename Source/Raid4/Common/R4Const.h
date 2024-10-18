@@ -82,8 +82,11 @@ namespace Socket
 namespace NetGame
 {
 	// Session Setting에 설정되는 Host Player Name
-	const static FName G_HostPlayerName = TEXT( "HostPlayerName" );
+	const static FName G_HostPlayerNameKey = TEXT( "NetHostPlayerName" );
 
 	// Travel URL에 붙이는 Player Name parameter의 Key
 	const static FString G_PlayerNameParamKey = TEXT( "NetPlayerName" );
+
+	// 현재 참여중인 Player가 몇명인지에 대한 URL Option Param key
+	const static FString G_PlayerNumsParamKey = TEXT( "NetPlayerNums" );
 }

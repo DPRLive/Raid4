@@ -9,6 +9,7 @@
 #include <GameFramework/Pawn.h>
 #include <GameFramework/SpectatorPawn.h>
 #include <TimerManager.h>
+#include <Kismet/GameplayStatics.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4GameMode)
 
@@ -16,22 +17,55 @@ AR4GameMode::AR4GameMode()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	
-	NumPlayersToStartGame = 0;
 	ToSpectatorDelay = 3.f;
+	CachedInGamePlayerNums = 0;
+}
+
+void AR4GameMode::InitGame( const FString& InMapName, const FString& InOptions, FString& InErrorMessage )
+{
+	Super::InitGame( InMapName, InOptions, InErrorMessage );
+
+	// URL 옵션에서 PlayerNums을 추출 및 설정
+	FString playerNums = UGameplayStatics::ParseOption( InOptions, NetGame::G_PlayerNumsParamKey );
+	CachedInGamePlayerNums = FCString::Atoi( *playerNums ); 
 }
 
 /**
- *	seamless / post login 시 호출.
+ *	PostLogin / Seamless travel 시 호출.
  */
 void AR4GameMode::HandleStartingNewPlayer_Implementation( APlayerController* InNewPlayer )
 {
 	Super::HandleStartingNewPlayer_Implementation( InNewPlayer );
 
-	CachedPlayers.Emplace( InNewPlayer );
+	// Caching Player
+	CachedPlayers.Emplace( InNewPlayer, nullptr );
 
-	// 일정 인원 도달 시, Start Match
-	if( CachedPlayers.Num() >= NumPlayersToStartGame )
+	// Player Num만큼 Player의 Pawn이 Spawn되면, 게임 시작
+	if( CachedPlayers.Num() >= CachedInGamePlayerNums )
 		StartMatch();
+}
+
+/**
+ *	Spawn Player Pawn
+ */
+void AR4GameMode::RestartPlayer( AController* InNewPlayer )
+{
+	Super::RestartPlayer( InNewPlayer );
+
+	if ( IsValid( InNewPlayer ) )
+	{
+		APawn* pawn = InNewPlayer->GetPawn();
+
+		if( IR4DamageReceiveInterface* damageablePawn = Cast<IR4DamageReceiveInterface>( pawn ) )
+		{
+			LOG_N( R4Log, TEXT("Spawn Player's pawn. :[%s]"), *pawn->GetName() )
+			damageablePawn->OnDead().AddDynamic( this, &AR4GameMode::_PlayerDead );
+		}
+
+		// Caching Player pawn
+		if( auto it = CachedPlayers.Find(InNewPlayer) )
+			(*it) = pawn;
+	}
 }
 
 /**
@@ -50,15 +84,6 @@ void AR4GameMode::HandleMatchHasStarted()
 	
 	// Game State로 부터 Game 상태 업데이트 수신
 	gameState->OnUpdateGameState.AddUObject( this, &AR4GameMode::_CheckMatchState );
-	
-	// Player별 사용 중인 Character 정보 캐싱
-	for( auto& [controller, pawn] : CachedPlayers )
-	{
-		pawn = controller->GetPawn();
-
-		if( IR4DamageReceiveInterface* damageablePawn = Cast<IR4DamageReceiveInterface>( pawn ) )
-			damageablePawn->OnDead().AddDynamic( this, &AR4GameMode::_PlayerDead );
-	}
 }
 
 /**

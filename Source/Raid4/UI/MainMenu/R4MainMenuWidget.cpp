@@ -108,7 +108,7 @@ void UR4MainMenuWidget::_OnFindSessionCompleted( const TArray<FOnlineSessionSear
 		entryInfo.ResultIndex = idx;
 
 		// Host Name Parsing
-		if( auto it = InResult[idx].Session.SessionSettings.Settings.Find( NetGame::G_HostPlayerName ) )
+		if( auto it = InResult[idx].Session.SessionSettings.Settings.Find( NetGame::G_HostPlayerNameKey ) )
 			entryInfo.Name = it->Data.ToString();
 		else
 			entryInfo.Name = InResult[idx].Session.OwningUserName;
