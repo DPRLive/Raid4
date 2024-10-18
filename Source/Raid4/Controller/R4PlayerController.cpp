@@ -4,7 +4,7 @@
 #include "R4PlayerController.h"
 #include "../Game/R4CharacterPickGameModeInterface.h"
 
-#include <GameFramework/GameStateBase.h>
+#include <GameFramework/GameModeBase.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4PlayerController)
 

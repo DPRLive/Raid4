@@ -26,6 +26,7 @@ public:
 
 	// Game State 변동 알림
 	FSimpleMulticastDelegate OnUpdateGameState;
+	
 protected:
 	// 게임 시작
 	virtual void HandleMatchHasStarted() override;
@@ -45,7 +46,25 @@ private:
 	// Game State Update
 	UFUNCTION()
 	void _UpdateGameState() const;
+
+	// Game End 후 처리
+	void _AfterEndGame();
 private:
+	// 게임 종료 시 UI (Player Win)
+	UPROPERTY( EditDefaultsOnly )
+	TSubclassOf<UUserWidget> PlayerWinWidget;
+
+	// 게임 종료 시 UI (Player Defeat)
+	UPROPERTY( EditDefaultsOnly )
+	TSubclassOf<UUserWidget> PlayerDeFeatWidget;
+
+	// 게임 종료 처리 Delay.
+	UPROPERTY( EditDefaultsOnly )
+	float GameEndDelay;
+
+	// 게임 종료 처리 Delay Timer
+	FTimerHandle CachedGameEndDelayTimer;
+	
 	// 살아있는 Player
 	UPROPERTY( ReplicatedUsing = _UpdateGameState )
 	int32 CachedNumAlivePlayers;

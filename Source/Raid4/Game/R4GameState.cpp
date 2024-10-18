@@ -5,13 +5,16 @@
 #include "../Damage/R4DamageReceiveInterface.h"
 
 #include <Net/UnrealNetwork.h>
-#include <GameFramework/PlayerState.h>
+#include <TimerManager.h>
+#include <Blueprint/UserWidget.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4GameState)
 
 AR4GameState::AR4GameState()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	GameEndDelay = 0.0f;
+	CachedGameEndDelayTimer = FTimerHandle();
 	CachedNumAlivePlayers = 0;
 	CachedNumAliveNPCs = 0;
 }
@@ -75,8 +78,12 @@ void AR4GameState::HandleMatchHasEnded()
 {
 	Super::HandleMatchHasEnded();
 
-	// TODO : 로컬 Player Controller에게 종료 알림 전송
-	
+	GetWorldTimerManager().SetTimer( CachedGameEndDelayTimer, [thisPtr = TWeakObjectPtr<AR4GameState>(this)]()
+	{
+		if( thisPtr.IsValid() )
+			thisPtr->_AfterEndGame();
+		
+	}, GameEndDelay, false );
 }
 
 /**
@@ -104,4 +111,33 @@ void AR4GameState::_UpdateGameState() const
 {
 	if( OnUpdateGameState.IsBound() )
 		OnUpdateGameState.Broadcast();
+}
+
+/**
+ *	Game State Update
+ */
+void AR4GameState::_AfterEndGame()
+{
+	UWorld* world = GetWorld();
+	if( !IsValid( world ) )
+		return;
+
+	APlayerController* controller = world->GetFirstPlayerController();
+	if( !IsValid( controller ) )
+		return;
+	
+	// 종료 UI
+	TSubclassOf<UUserWidget> endWidget = ( CachedNumAlivePlayers > CachedNumAliveNPCs )
+											   ? PlayerWinWidget
+											   : PlayerDeFeatWidget;
+	UUserWidget* widget = CreateWidget<UUserWidget>( controller, endWidget );
+	if ( !IsValid( widget ) )
+		return;
+
+	widget->AddToViewport();
+
+	FInputModeUIOnly uiInput;
+	controller->SetInputMode( uiInput );
+	controller->SetShowMouseCursor( true );
+	controller->FlushPressedKeys();
 }
