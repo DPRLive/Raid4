@@ -6,16 +6,16 @@
 
 #if UE_ENABLE_DEBUG_DRAWING
 
-float GServerDrawDebugColorTintStrength = 0.75f;
-FLinearColor GServerDrawDebugColorTint(0.0f, 0.0f, 0.0f, 1.0f);
+float G_MyServerDrawDebugColorTintStrength = 0.75f;
+FLinearColor G_MyServerDrawDebugColorTint(0.0f, 0.0f, 0.0f, 1.0f);
 
 #if WITH_EDITOR
 
-FColor AdjustColorForServer(const FColor InColor)
+FColor MyAdjustColorForServer(const FColor InColor)
 {
-	if (GServerDrawDebugColorTintStrength > 0.0f)
+	if (G_MyServerDrawDebugColorTintStrength > 0.0f)
 	{
-		return FMath::Lerp(FLinearColor::FromSRGBColor(InColor), GServerDrawDebugColorTint, GServerDrawDebugColorTintStrength).ToFColor(/*bSRGB=*/ true);
+		return FMath::Lerp(FLinearColor::FromSRGBColor(InColor), G_MyServerDrawDebugColorTint, G_MyServerDrawDebugColorTintStrength).ToFColor(/*bSRGB=*/ true);
 	}
 	else
 	{
@@ -23,7 +23,7 @@ FColor AdjustColorForServer(const FColor InColor)
 	}
 }
 
-bool CanDrawServerDebugInContext(const FWorldContext& WorldContext)
+bool MyCanDrawServerDebugInContext(const FWorldContext& WorldContext)
 {
 	return
 		(WorldContext.WorldType == EWorldType::PIE) &&
@@ -38,7 +38,7 @@ bool CanDrawServerDebugInContext(const FWorldContext& WorldContext)
 	{ \
 		for (const FWorldContext& WorldContext : GEngine->GetWorldContexts()) \
 		{ \
-			if (CanDrawServerDebugInContext(WorldContext)) \
+			if (MyCanDrawServerDebugInContext(WorldContext)) \
 			{ \
 				FunctionName(WorldContext.World(), __VA_ARGS__); \
 			} \
@@ -51,12 +51,12 @@ bool CanDrawServerDebugInContext(const FWorldContext& WorldContext)
 
 #endif
 
-ULineBatchComponent* GetDebugLineBatcher( const UWorld* InWorld, bool bPersistentLines, float LifeTime, bool bDepthIsForeground )
+ULineBatchComponent* MyGetDebugLineBatcher( const UWorld* InWorld, bool bPersistentLines, float LifeTime, bool bDepthIsForeground )
 {
 	return (InWorld ? (bDepthIsForeground ? InWorld->ForegroundLineBatcher : (( bPersistentLines || (LifeTime > 0.f) ) ? InWorld->PersistentLineBatcher : InWorld->LineBatcher)) : nullptr);
 }
 
-static float GetDebugLineLifeTime(ULineBatchComponent* LineBatcher, float LifeTime, bool bPersistent)
+static float MyGetDebugLineLifeTime(ULineBatchComponent* LineBatcher, float LifeTime, bool bPersistent)
 {
 	return bPersistent ? -1.0f : ((LifeTime > 0.f) ? LifeTime : LineBatcher->DefaultLifeTime);
 }
@@ -68,9 +68,9 @@ void DrawDebugHelper::DrawDebugCircleArcXY(const UWorld* InWorld, const FVector&
 {
 	if (GEngine->GetNetMode(InWorld) != NM_DedicatedServer)
 	{
-		if (ULineBatchComponent* const LineBatcher = GetDebugLineBatcher(InWorld, InPersistentLines, InLifeTime, (InDepthPriority == SDPG_Foreground)))
+		if (ULineBatchComponent* const LineBatcher = MyGetDebugLineBatcher(InWorld, InPersistentLines, InLifeTime, (InDepthPriority == SDPG_Foreground)))
 		{
-			const float LineLifeTime = GetDebugLineLifeTime(LineBatcher, InLifeTime, InPersistentLines);
+			const float LineLifeTime = MyGetDebugLineLifeTime(LineBatcher, InLifeTime, InPersistentLines);
 
 			// Need at least 4 segments
 			InSegments = FMath::Max(InSegments, 4);
@@ -96,7 +96,7 @@ void DrawDebugHelper::DrawDebugCircleArcXY(const UWorld* InWorld, const FVector&
 	}
 	else
 	{
-		UE_DRAW_SERVER_DEBUG_ON_EACH_CLIENT(DrawDebugCircleArcXY, InCenter, InRadius, InAxisX, InAxisY, InAngleWidth, InSegments, AdjustColorForServer(InColor), InPersistentLines, InLifeTime, InDepthPriority, InThickness);
+		UE_DRAW_SERVER_DEBUG_ON_EACH_CLIENT(DrawDebugCircleArcXY, InCenter, InRadius, InAxisX, InAxisY, InAngleWidth, InSegments, MyAdjustColorForServer(InColor), InPersistentLines, InLifeTime, InDepthPriority, InThickness);
 	}
 }
 

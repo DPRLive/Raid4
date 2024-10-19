@@ -15,12 +15,12 @@ DECLARE_LOG_CATEGORY_EXTERN( R4Anim, Log, All );
  * 로그 매크로 모음. SHIPPING 시에 지워지지 않으면 패키징 안되므로 #if 추가
  */
 #if UE_BUILD_SHIPPING
-    LOG_N( category, text, ... ) {}
-	LOG_WARN( category, text, ... ) {}
-	LOG_ERROR( category, text, ... ) {}
-	LOG_SCREEN( category, Color, text, ... ) {}
+#define LOG_N( category, text, ... ) {}
+#define LOG_WARN( category, text, ... ) {}
+#define LOG_ERROR( category, text, ... ) {}
+#define LOG_SCREEN( Color, text, ... ) {}
 #else
-    /**
+    /** 
      * 출력 로그 (log) 용 로그. 
      */
     #define LOG_N( category, text, ... )										\
