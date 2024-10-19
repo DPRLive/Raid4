@@ -33,12 +33,19 @@ private:
 	UFUNCTION()
 	void _OnClickFindGameButton();
 
+	// _OnClickFindGameButton
+	UFUNCTION()
+	void _OnClickJoinByIdButton();
+	
 	// _OnClickJoinButton (SessionList's widget)
 	void _OnDoubleClickSessionEntry( UObject* InObject ) const;
 	
 	// Session 찾기 결과를 수신.
 	void _OnFindSessionCompleted( const TArray<FOnlineSessionSearchResult>& InResult );
 
+	// IP Parsing
+	FString _ParseIP() const;
+	
 	// Player Name Parsing
 	FString _ParsePlayerName() const;
 private:
@@ -61,6 +68,14 @@ private:
 	// Find Game button
 	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
 	TObjectPtr<UButton> FindGameButton;
+	
+	// IP
+	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
+	TObjectPtr<UEditableText> IPText;
+	
+	// Join by id button
+	UPROPERTY( VisibleAnywhere, meta = ( BindWidget ) )
+	TObjectPtr<UButton> JoinByIPButton;
 	
 	// Session을 한번에 얼마나 찾을지 설정
 	UPROPERTY( EditDefaultsOnly )

@@ -58,6 +58,9 @@ public:
 
 	// Lobby로 이동
 	void TravelToLobby() const;
+
+	// URL로 Force Travel ( console command )
+	void ForceTravel( const FString& InUrl, const FString& InNetPlayerName = FString() );
 private:
 	// On Session Create
 	void _OnCreateGameSessionComplete( FName InSessionName, bool InIsSuccessful );

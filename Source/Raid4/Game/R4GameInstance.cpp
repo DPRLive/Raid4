@@ -10,6 +10,7 @@
 #include <OnlineSubsystem.h>
 #include <OnlineSessionSettings.h>
 #include <GameFramework/PlayerController.h>
+#include <Kismet/GameplayStatics.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(R4GameInstance)
 
@@ -73,7 +74,10 @@ void UR4GameInstance::CreateGameSession( bool InIsLanMatch, const FString& InNet
 			settings.NumPublicConnections = MaxPlayerNum; // 최대 플레이어 수
 			settings.bShouldAdvertise = true;
 			settings.bAllowJoinInProgress = true; // start를 따로 호출.
-
+			settings.bUsesPresence = true;
+			settings.bAllowJoinViaPresence = true;
+			settings.bUseLobbiesIfAvailable = true;
+			
 			// Set Host Name
 			FOnlineSessionSetting hostName;
 			hostName.Data = InNetPlayerName;
@@ -82,8 +86,8 @@ void UR4GameInstance::CreateGameSession( bool InIsLanMatch, const FString& InNet
 
 			// Caching Name
 			CachedNetPlayerName = InNetPlayerName;
-			
-			sessionInterface->CreateSession( 0, NAME_GameSession, settings );
+
+			sessionInterface->CreateSession(0, NAME_GameSession, settings );
 		}
 	}
 }
@@ -155,7 +159,6 @@ void UR4GameInstance::TravelToMainGame() const
 			
 			if ( gameMode->CanTravelMainLevel() )
 			{
-				sessionInterface->StartSession( NAME_GameSession );
 				// Seamless travel
 				gameMode->bUseSeamlessTravel = true;
 
@@ -180,6 +183,25 @@ void UR4GameInstance::TravelToLobby() const
 	
 	_DestroyGameSession();
 	playerController->ClientTravel( LobbyLevel.GetAssetName(), TRAVEL_Absolute );
+}
+
+/**
+ * URL로 Force Travel ( console command )
+ */
+void UR4GameInstance::ForceTravel( const FString& InUrl, const FString& InNetPlayerName )
+{
+	APlayerController* playerController = GetFirstLocalPlayerController();
+	if ( !IsValid( playerController ) )
+		return;
+	
+	FString travelURL = TEXT("open ") + InUrl;
+	if( InNetPlayerName != FString() )
+	{
+		CachedNetPlayerName = InNetPlayerName;
+		_AppendNetPlayerNameParam( travelURL ); 
+	}
+	
+	playerController->ConsoleCommand( travelURL );
 }
 
 /**
@@ -229,22 +251,33 @@ void UR4GameInstance::_OnCreateGameSessionComplete( FName InSessionName, bool In
 	}
 
 	LOG_N( R4Log, TEXT("Create Session Success.") );
-	
-	bool bTravelSuccess = false;
-	UWorld* world = GetWorld();
-	if ( IsValid( world ) )
-	{
-		// NonSeamless travel
-		FString url = CharacterPickLevel.GetAssetName() + TEXT( "?listen" );
-		_AppendNetPlayerNameParam( url );
-		bTravelSuccess = world->ServerTravel( url );
-	}
-	
-	if ( !bTravelSuccess )
-	{
-		LOG_WARN( R4Log, TEXT("ServerTravel Failed, Destroy Game Session.") );
-		_DestroyGameSession();
-	}
+
+    IOnlineSubsystem* onlineSubsystem = IOnlineSubsystem::Get();
+    if ( onlineSubsystem != nullptr )
+    {
+    	IOnlineSessionPtr sessionInterface = onlineSubsystem->GetSessionInterface();
+    	if ( sessionInterface.IsValid() )
+    	{
+    		if ( !sessionInterface->StartSession( NAME_GameSession ) )
+    		{
+    			LOG_N( R4Log, TEXT("Start Session Failed.") );
+    			return;
+    		}
+    		
+    		LOG_N( R4Log, TEXT("Start Session Success.") );
+
+    		UWorld* world = GetWorld();
+    		if ( IsValid( world ) )
+    		{
+    			LOG_N( R4Log, TEXT("Open Level.") );
+    		
+    			// NonSeamless travel
+    			FString option = TEXT( "listen" );
+    			_AppendNetPlayerNameParam( option );
+    			UGameplayStatics::OpenLevel( world, FName(CharacterPickLevel.GetAssetName()), true, option );
+    		}
+    	}
+    }
 }
 
 /**
