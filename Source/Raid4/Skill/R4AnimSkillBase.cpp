@@ -338,13 +338,13 @@ bool UR4AnimSkillBase::PlaySkillAnimSync_Local( const FR4SkillAnimInfo& InSkillA
 				if( mIDelegate == nullptr )
 					return;
 	
+				// END
+				OnEndSkillAnim( InSkillAnimInfo );
+			
 				// UnBind Delegates..
 				FDelegateHandle dHandle;
 				CachedClearMontageHandles.RemoveAndCopyValue( mID, dHandle );
 				mIDelegate->Remove( dHandle );
-	
-				// END
-				OnEndSkillAnim( InSkillAnimInfo );
 			} );
 
 	// Add DelegateHandle
