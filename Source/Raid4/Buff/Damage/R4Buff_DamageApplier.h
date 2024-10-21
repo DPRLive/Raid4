@@ -28,8 +28,7 @@ public:
 	virtual bool ApplyBuff() override;
 
 private:
-	// 가할 데미지 관련 정보를 설정. Value를 DamageDesc의 Value로 사용.
-	// 기존 DamageApplyDesc의 Value값은 사용되지 않음.
+	// 가할 데미지 관련 정보를 설정.
 	UPROPERTY( EditDefaultsOnly, meta = (AllowPrivateAccess = true))
 	FR4DamageApplyDesc DamageApplyDesc;
 };
