@@ -13,15 +13,16 @@
 ------------
 
 ## Using Assets
-다음과 같은 폴더 구성이 되어있어야 합니다.
-<<<<<<<<<<<<<<<<<<이미지>>>>>>>>>
+#### 다음과 같은 폴더 구성이 되어있어야 합니다.
 
+<img src="https://github.com/user-attachments/assets/b8b26f26-9536-4547-9590-7eeafd4fe96e" width="439" height="278"/>
+
+- ##### [[Ithris Cemetery]](https://www.unrealengine.com/marketplace/ko/product/ithris-cemetery) ( Map ) 
 - ##### [[Paragon: Aurora]](https://www.unrealengine.com/marketplace/ko/product/paragon-aurora) ( Character )
 - ##### [[Paragon: Countess]](https://www.unrealengine.com/marketplace/ko/product/paragon-countess) ( Character )
 - ##### [[Paragon: Narbash]](https://www.unrealengine.com/marketplace/ko/product/paragon-narbash) ( Character ) 
 - ##### [[Paragon: Dekker]](https://www.unrealengine.com/marketplace/ko/product/paragon-dekker) ( Character ) 
 - ##### [[Paragon: Sevarog]](https://www.unrealengine.com/marketplace/ko/product/paragon-sevarog) ( AI Boss Monster )
-- ##### [[Ithris Cemetery]](https://www.unrealengine.com/marketplace/ko/product/ithris-cemetery) ( Map ) 
 - ##### [[Neon Ring PNGs by Vecteezy]](https://www.vecteezy.com/png/50240388-glowing-neon-cyan-circle) ( Area Of Effect )
 ------------
 
