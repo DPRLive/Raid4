@@ -14,7 +14,8 @@
 - 여기서 '효과'는 Stat 증감, 방어막 증감등 단순한 효과뿐만이 아닌, 강제 이동(루트 모션 대체 기능), Camera 조정 등 여러 예외 처리까지 포함하며, 이는 UR4BuffBase를 확장하여 처리할 수 있습니다.
 
 ### UR4BuffBase
-// UML //
+![image](https://github.com/user-attachments/assets/8c763d5b-5cca-450c-8492-a5d8943c8120)
+
 - Buff는 '어떠한 효과를 적용한다'는 역할을 유지하면서, 실제 적용되는 효과는 다양하게 확장될 수 있어야 했습니다. 이를 위해 '효과 적용'의 특정 단계만 확장 가능하게 하고, 전체 알고리즘 구조는 변경할 수 없도록 Template Method 패턴을 선택했습니다.
 
 - 이를 위해 Abstract Class인 UR4BuffBase를 제작하였으며, 상속을 받은 C++ 클래스에서 버프가 적용할 '효과'를 재정의하는 방식으로 확장하도록 하였습니다.
@@ -103,23 +104,23 @@ bool UR4Buff_DamageApplier::ApplyBuff()
 }
 ```
 - 위 처럼 데미지를 적용하는 효과를 가진 Buff를 제작하고, 데미지에 대한 데이터는 BP에서 확장하여 다양한 데미지 Buff를 제작할 수 있습니다.
-
-///// BP 사진 ///////
-
+<img src="https://github.com/user-attachments/assets/d2adaac6-6a71-4839-9593-7ce47aaf2b72" width="300" height="400"/>
 
 - 아래는 제가 직접 4개의 캐릭터를 제작하며 만든 C++ Buff 기반들과, 해당 기반 클래스를 BP에서 확장 후 데이터를 설정하여 다양하게 만들어낸 Buff 클래스들 입니다.
 
 - [Buffs](https://github.com/DPRLive/Raid4/tree/master/Source/Raid4/Buff)  ( C++ 기반 )
+- BP로 확장되어 데이터가 설정된 Buffs
+<img src="https://github.com/user-attachments/assets/6f80ccbb-d251-46c2-8a91-f10ac7219143" width="750" height="400"/>
 
-///// BP 사진 ///////
 
 ### Buff의 적용
-//// UML /////
+![image](https://github.com/user-attachments/assets/54f39d8f-dd2a-4730-8dc0-3b55b14ddcb8)
+
 - 위에서 Buff가 줄 '효과'를 정의했으니, 이제 해당 로직을 호출할 객체가 필요합니다.
 
 - 해당 효과 로직을 호출하는 것은 버프의 가해자 측에서 버프에 관련된 정보를 IR4BuffReceiveInterface를 통하여 넘겨주면, 버프를 Receive하는 쪽에서 관리하며 어떻게 적용할지 결정하도록 하였습니다.
 
-- 위에서 결정한 '효과' 로직을 실제로 어떤 방식 호출할 지 호출 방식을 선택할 수 있도록 FR4BuffSettingDesc를 정의하고 , Buff를 적용받는 객체에서 참고할 수 있도록 하였습니다.
+- 위에서 결정한 '효과' 로직을 실제로 어떤 방식 호출할 방식을 선택할 수 있도록 FR4BuffSettingDesc를 정의하고 , Buff를 적용받는 객체에서 참고할 수 있도록 하였습니다.
 - [[R4BuffStruct.h]](https://github.com/DPRLive/Raid4/blob/master/Source/Raid4/Buff/R4BuffStruct.h) 
 
 ```
@@ -159,6 +160,8 @@ struct RAID4_API FR4BuffSettingDesc
 	float Duration;
 };
 ```
+- BP에서 Buff를 설정 시 Buff의 적용 방식도 설정 할 수 있도록 했습니다.(Skill 관련 부분)
+<img src="https://github.com/user-attachments/assets/fe4ffec5-2a9a-46c1-8411-db97dabe5f2d" width="650" height="200"/>
 
 - Character의 경우 Buff의 다양한 적용 방식을 모두 처리할 수 있어야 하며, Character가 적용 받는 Buff의 경우 Server에서 주로 처리하면서도, Client에서 어떠한 Buff가 적용되었는지 알아야 하는 등 Replicate 기능도 필요했기 때문에 BuffManageComponent를 만들어, Buff의 관리를 위임하도록 하였습니다.
 
