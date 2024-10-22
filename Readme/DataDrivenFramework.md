@@ -273,7 +273,7 @@ private:
 
 - Skill이 공통적으로 필요로 하는 기능들을 재사용하기 위한 Abstract 클래스입니다.
 
-- 제공하는 기능으로는 Net Flag(Net Flag는 네트워크 동기화 참고)에 맞는 Detector의 생성, Detect 체크, Detect시 시전자 또는 피해자에게 적용하는 'Buff' 지정 및 적용, Skill 사용 시 시전자에게 적용할 'Buff' 지정 및 적용 등이 있습니다.
+- 제공하는 기능으로는 Net Flag(Net Flag는 [[네트워크 동기화]](https://github.com/DPRLive/Raid4/blob/master/Readme/NetworkSynchronization.md) 참고)에 맞는 Detector의 생성, Detect 체크, Detect시 시전자 또는 피해자에게 적용하는 'Buff' 지정 및 적용, Skill 사용 시 시전자에게 적용할 'Buff' 지정 및 적용 등이 있습니다.
 
 - 해당 클래스를 상속하여 제공하는 기능을 통해 다양한 형태의 Skill로 확장할 수 있으며, 어떠한 버프를 적용할지, 어떠한 Detector를 사용할지 등의 선택을 BP로 확장 후 데이터를 입력하여 다양한 Skill을 제작할 수 있습니다.
 
@@ -381,7 +381,7 @@ struct FR4SkillDetectBuffInfo
 #### Execute 기능
 - Skill에서 Animation을 사용할 때, 적절한 타이밍에 Detect를 실행하거나 Buff를 적용하는 등의 작업이 필요한 경우가 많습니다. 처음에는 AnimNotify에 Delegate를 설정하여 Animation 실행 시 Notify를 수신하고 특정 작업을 수행하는 구조로 구현했습니다. 그러나 동일한 Anim을 사용하는 경우, Anim을 실행하지 않은 객체에도 알림이 전달되는 문제가 발생했습니다. 이는 AnimMontage와 그 안에 포함된 각 AnimNotify가 하나의 Instance로 유지되는 구조 때문입니다. AnimMontage는 하나의 Instance로 유지되며, AnimInstance에서 MontageInstance를 생성하여 각 객체의 AnimMontage 재생과 상태를 추적하는 방식이었습니다.
 
-- 이 문제를 해결하기 위해 최종적으로 선택한 구조는, 어떤 Animation에 의해 실행되었는지와 Server에서 할당한 Anim Key(네트워크 동기화 참고), 실행할 Lambda, 몇 초 뒤에 실행할 것인지에 대한 Delay 정보를 TArray에 등록하고, TickComponent()에서 이를 업데이트하여 적절히 실행하는 방식입니다. 이 구조는 이전 문제를 해결하는 동시에 Anim과의 의존성을 줄일 수 있었습니다.
+- 이 문제를 해결하기 위해 최종적으로 선택한 구조는, 어떤 Animation에 의해 실행되었는지와 Server에서 할당한 Anim Key([[네트워크 동기화]](https://github.com/DPRLive/Raid4/blob/master/Readme/NetworkSynchronization.md) 참고), 실행할 Lambda, 몇 초 뒤에 실행할 것인지에 대한 Delay 정보를 TArray에 등록하고, TickComponent()에서 이를 업데이트하여 적절히 실행하는 방식입니다. 이 구조는 이전 문제를 해결하는 동시에 Anim과의 의존성을 줄일 수 있었습니다.
 
 - 또한 Detect와 Buff 작업은 데이터를 설정해두면 Anim이 실행될 때 자동으로 작업이 예약되도록 하였고, Anim이 종료되면 자동으로 작업 예약이 해제되도록 구현했습니다. 
 
