@@ -14,6 +14,7 @@
 아래는 프로젝트를 진행하며 고민한 내용들을 몇개만 추려 간단히 정리 해보았습니다.
 ### 1. [데이터 기반 멀티플레이어 전투 시스템 프레임워크 제작](https://github.com/DPRLive/Raid4/blob/master/Readme/DataDrivenFramework.md)
 ### 2. [네트워크 동기화](https://github.com/DPRLive/Raid4/blob/master/Readme/NetworkSynchronization.md)
+### 3. [최적화](https://github.com/DPRLive/Raid4/blob/master/Readme/Optimization.md)
 ------------
 
 ## Using Assets
