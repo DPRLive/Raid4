@@ -11,7 +11,7 @@
 - ### [2. Skill](#skill)
     * [Skill Animation](#skill-animation)
     * [Skill Execute](#skill-execute)
-    * [Skill Detect & Buff](#skill-detect-&-buff)
+    * [Skill Detect & Buff](#skill-detect-buff)
 
 ------------
 ## Animation Synchronization
